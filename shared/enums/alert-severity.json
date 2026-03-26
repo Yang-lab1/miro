@@ -1,0 +1,9 @@
+{
+  "name": "alertSeverity",
+  "type": "string",
+  "values": [
+    "low",
+    "medium",
+    "high"
+  ]
+}

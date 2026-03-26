@@ -1,0 +1,132 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "miro/shared/schemas/realtime-session-summary.schema.json",
+  "title": "RealtimeSessionSummary",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "sessionId",
+    "status",
+    "transport",
+    "countryKey",
+    "meetingType",
+    "goal",
+    "durationMinutes",
+    "voiceStyle",
+    "voiceProfileId",
+    "setupRevision",
+    "strategyForSetupRevision",
+    "turnCount",
+    "alertCount",
+    "lastAlertSeverity",
+    "lastUserTurnAt",
+    "lastAssistantTurnAt",
+    "startedAt",
+    "endedAt",
+    "createdAt",
+    "updatedAt"
+  ],
+  "properties": {
+    "sessionId": {
+      "type": "string"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "pending",
+        "active",
+        "ended",
+        "failed"
+      ]
+    },
+    "transport": {
+      "type": "string",
+      "enum": [
+        "webrtc",
+        "websocket"
+      ]
+    },
+    "countryKey": {
+      "type": "string"
+    },
+    "meetingType": {
+      "type": "string"
+    },
+    "goal": {
+      "type": "string"
+    },
+    "durationMinutes": {
+      "type": "integer",
+      "minimum": 1
+    },
+    "voiceStyle": {
+      "type": "string"
+    },
+    "voiceProfileId": {
+      "type": "string"
+    },
+    "setupRevision": {
+      "type": "integer",
+      "minimum": 1
+    },
+    "strategyForSetupRevision": {
+      "type": "integer",
+      "minimum": 1
+    },
+    "turnCount": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "alertCount": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "lastAlertSeverity": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "enum": [
+        "high",
+        "medium",
+        null
+      ]
+    },
+    "lastUserTurnAt": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "format": "date-time"
+    },
+    "lastAssistantTurnAt": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "format": "date-time"
+    },
+    "startedAt": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "format": "date-time"
+    },
+    "endedAt": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "format": "date-time"
+    },
+    "createdAt": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "updatedAt": {
+      "type": "string",
+      "format": "date-time"
+    }
+  }
+}

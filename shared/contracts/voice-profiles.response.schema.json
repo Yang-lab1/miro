@@ -1,0 +1,9 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "miro/shared/contracts/voice-profiles.response.schema.json",
+  "title": "VoiceProfilesResponse",
+  "type": "array",
+  "items": {
+    "$ref": "../schemas/voice-profile.schema.json"
+  }
+}

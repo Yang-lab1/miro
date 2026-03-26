@@ -1,0 +1,9 @@
+{
+  "name": "simulationSetupStatus",
+  "type": "string",
+  "values": [
+    "draft",
+    "ready_for_strategy",
+    "strategy_ready"
+  ]
+}

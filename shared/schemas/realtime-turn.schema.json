@@ -1,0 +1,64 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "miro/shared/schemas/realtime-turn.schema.json",
+  "title": "RealtimeTurn",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "turnId",
+    "turnIndex",
+    "speaker",
+    "inputMode",
+    "sourceText",
+    "normalizedText",
+    "language",
+    "parentTurnId",
+    "createdAt"
+  ],
+  "properties": {
+    "turnId": {
+      "type": "string"
+    },
+    "turnIndex": {
+      "type": "integer",
+      "minimum": 1
+    },
+    "speaker": {
+      "type": "string",
+      "enum": [
+        "user",
+        "assistant"
+      ]
+    },
+    "inputMode": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "enum": [
+        "text",
+        "speech_stub",
+        null
+      ]
+    },
+    "sourceText": {
+      "type": "string"
+    },
+    "normalizedText": {
+      "type": "string"
+    },
+    "language": {
+      "type": "string"
+    },
+    "parentTurnId": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "createdAt": {
+      "type": "string",
+      "format": "date-time"
+    }
+  }
+}

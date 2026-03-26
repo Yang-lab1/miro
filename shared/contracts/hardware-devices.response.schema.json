@@ -1,0 +1,9 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "miro/shared/contracts/hardware-devices.response.schema.json",
+  "title": "HardwareDevicesResponse",
+  "type": "array",
+  "items": {
+    "$ref": "../schemas/hardware-device.schema.json"
+  }
+}

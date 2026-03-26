@@ -1,0 +1,9 @@
+{
+  "name": "voiceGender",
+  "type": "string",
+  "values": [
+    "female",
+    "male",
+    "neutral"
+  ]
+}

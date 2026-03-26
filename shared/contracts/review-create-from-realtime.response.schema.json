@@ -1,0 +1,6 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "miro/shared/contracts/review-create-from-realtime.response.schema.json",
+  "title": "ReviewCreateFromRealtimeResponse",
+  "$ref": "./review-detail.response.schema.json"
+}

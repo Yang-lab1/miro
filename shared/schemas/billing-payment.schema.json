@@ -1,0 +1,50 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "miro/shared/schemas/billing-payment.schema.json",
+  "title": "BillingPayment",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "paymentId",
+    "eventType",
+    "amountValue",
+    "currencyCode",
+    "paymentStatus",
+    "createdAt"
+  ],
+  "properties": {
+    "paymentId": {
+      "type": "string"
+    },
+    "eventType": {
+      "type": "string",
+      "enum": [
+        "top_up"
+      ]
+    },
+    "amountValue": {
+      "type": "integer",
+      "enum": [
+        500,
+        1500,
+        3000
+      ]
+    },
+    "currencyCode": {
+      "type": "string",
+      "enum": [
+        "CREDIT"
+      ]
+    },
+    "paymentStatus": {
+      "type": "string",
+      "enum": [
+        "demo_completed"
+      ]
+    },
+    "createdAt": {
+      "type": "string",
+      "format": "date-time"
+    }
+  }
+}

@@ -1,0 +1,102 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "miro/shared/contracts/realtime-session.response.schema.json",
+  "title": "RealtimeSessionResponse",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "sessionId",
+    "simulationId",
+    "status",
+    "transport",
+    "countryKey",
+    "meetingType",
+    "goal",
+    "durationMinutes",
+    "voiceStyle",
+    "voiceProfileId",
+    "setupRevision",
+    "strategyForSetupRevision",
+    "launch",
+    "createdAt",
+    "updatedAt",
+    "startedAt",
+    "endedAt"
+  ],
+  "properties": {
+    "sessionId": {
+      "type": "string"
+    },
+    "simulationId": {
+      "type": "string"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "pending",
+        "active",
+        "ended",
+        "failed"
+      ]
+    },
+    "transport": {
+      "type": "string",
+      "enum": [
+        "webrtc",
+        "websocket"
+      ]
+    },
+    "countryKey": {
+      "type": "string"
+    },
+    "meetingType": {
+      "type": "string"
+    },
+    "goal": {
+      "type": "string"
+    },
+    "durationMinutes": {
+      "type": "integer",
+      "minimum": 1
+    },
+    "voiceStyle": {
+      "type": "string"
+    },
+    "voiceProfileId": {
+      "type": "string"
+    },
+    "setupRevision": {
+      "type": "integer",
+      "minimum": 1
+    },
+    "strategyForSetupRevision": {
+      "type": "integer",
+      "minimum": 1
+    },
+    "launch": {
+      "$ref": "../schemas/realtime-launch.schema.json"
+    },
+    "createdAt": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "updatedAt": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "startedAt": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "format": "date-time"
+    },
+    "endedAt": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "format": "date-time"
+    }
+  }
+}

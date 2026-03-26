@@ -1,0 +1,134 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "miro/shared/contracts/review-detail.response.schema.json",
+  "title": "ReviewDetailResponse",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "reviewId",
+    "sourceType",
+    "sourceSessionId",
+    "status",
+    "countryKey",
+    "meetingType",
+    "goal",
+    "durationMinutes",
+    "voiceStyle",
+    "voiceProfileId",
+    "setupRevision",
+    "strategyForSetupRevision",
+    "overallAssessment",
+    "summary",
+    "metrics",
+    "lines",
+    "createdAt",
+    "endedAt"
+  ],
+  "properties": {
+    "reviewId": {
+      "type": "string"
+    },
+    "sourceType": {
+      "type": "string"
+    },
+    "sourceSessionId": {
+      "type": "string"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "ready"
+      ]
+    },
+    "countryKey": {
+      "type": "string"
+    },
+    "meetingType": {
+      "type": "string"
+    },
+    "goal": {
+      "type": "string"
+    },
+    "durationMinutes": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "voiceStyle": {
+      "type": "string"
+    },
+    "voiceProfileId": {
+      "type": "string"
+    },
+    "setupRevision": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "strategyForSetupRevision": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "overallAssessment": {
+      "type": "string",
+      "enum": [
+        "needs_work",
+        "mixed",
+        "promising"
+      ]
+    },
+    "summary": {
+      "$ref": "../schemas/review-summary.schema.json"
+    },
+    "metrics": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "turnCount",
+        "alertCount",
+        "highSeverityCount",
+        "mediumSeverityCount",
+        "topIssueKeys"
+      ],
+      "properties": {
+        "turnCount": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "alertCount": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "highSeverityCount": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "mediumSeverityCount": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "topIssueKeys": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "lines": {
+      "type": "array",
+      "items": {
+        "$ref": "../schemas/review-line.schema.json"
+      }
+    },
+    "createdAt": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "endedAt": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "format": "date-time"
+    }
+  }
+}

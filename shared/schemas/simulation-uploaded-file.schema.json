@@ -1,0 +1,58 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "miro/shared/schemas/simulation-uploaded-file.schema.json",
+  "title": "SimulationUploadedFile",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "fileId",
+    "fileName",
+    "contentType",
+    "sizeBytes",
+    "sourceType",
+    "storageKey",
+    "parseStatus",
+    "status",
+    "createdAt"
+  ],
+  "properties": {
+    "fileId": {
+      "type": "string"
+    },
+    "fileName": {
+      "type": "string"
+    },
+    "contentType": {
+      "type": "string"
+    },
+    "sizeBytes": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "sourceType": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "storageKey": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "parseStatus": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "status": {
+      "type": "string"
+    },
+    "createdAt": {
+      "type": "string",
+      "format": "date-time"
+    }
+  }
+}

@@ -1,0 +1,15 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "miro/shared/contracts/simulation-precheck.request.schema.json",
+  "title": "SimulationPrecheckRequest",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "countryKey"
+  ],
+  "properties": {
+    "countryKey": {
+      "type": "string"
+    }
+  }
+}

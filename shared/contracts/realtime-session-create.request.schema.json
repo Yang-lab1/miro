@@ -1,0 +1,22 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "miro/shared/contracts/realtime-session-create.request.schema.json",
+  "title": "RealtimeSessionCreateRequest",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "simulationId"
+  ],
+  "properties": {
+    "simulationId": {
+      "type": "string"
+    },
+    "transport": {
+      "type": "string",
+      "enum": [
+        "webrtc",
+        "websocket"
+      ]
+    }
+  }
+}

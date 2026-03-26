@@ -1,0 +1,15 @@
+{
+  "name": "realtimeSessionStatus",
+  "type": "string",
+  "values": [
+    "pending",
+    "active",
+    "ended",
+    "failed"
+  ],
+  "notes": [
+    "pending is the create-time launch placeholder status.",
+    "active means the server has accepted start for the session.",
+    "ended and failed are reserved for later runtime phases."
+  ]
+}

@@ -1,0 +1,36 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "miro/shared/schemas/voice-profile.schema.json",
+  "title": "VoiceProfile",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "voiceProfileId",
+    "providerVoiceId",
+    "countryKey",
+    "gender",
+    "locale",
+    "displayName"
+  ],
+  "properties": {
+    "voiceProfileId": {
+      "type": "string"
+    },
+    "providerVoiceId": {
+      "type": "string"
+    },
+    "countryKey": {
+      "type": "string",
+      "description": "Canonical country key such as Japan."
+    },
+    "gender": {
+      "type": "string"
+    },
+    "locale": {
+      "type": "string"
+    },
+    "displayName": {
+      "type": "string"
+    }
+  }
+}

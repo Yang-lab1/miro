@@ -1,0 +1,9 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "miro/shared/contracts/billing-plans.response.schema.json",
+  "title": "BillingPlansResponse",
+  "type": "array",
+  "items": {
+    "$ref": "../schemas/billing-plan.schema.json"
+  }
+}

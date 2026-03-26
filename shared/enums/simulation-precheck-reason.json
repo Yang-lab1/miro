@@ -1,0 +1,10 @@
+{
+  "name": "simulationPrecheckReason",
+  "type": "string",
+  "values": [
+    "ready",
+    "learning_required",
+    "learning_outdated",
+    "country_not_supported"
+  ]
+}

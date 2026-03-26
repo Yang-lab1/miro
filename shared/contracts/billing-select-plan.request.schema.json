@@ -1,0 +1,21 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "miro/shared/contracts/billing-select-plan.request.schema.json",
+  "title": "BillingSelectPlanRequest",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "planKey"
+  ],
+  "properties": {
+    "planKey": {
+      "type": "string",
+      "enum": [
+        "free",
+        "go",
+        "plus",
+        "pro"
+      ]
+    }
+  }
+}

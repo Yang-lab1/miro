@@ -1,0 +1,49 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "miro/shared/contracts/simulation-patch.request.schema.json",
+  "title": "SimulationPatchRequest",
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "countryKey": {
+      "type": "string"
+    },
+    "meetingType": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "goal": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "durationMinutes": {
+      "type": [
+        "integer",
+        "null"
+      ],
+      "minimum": 1
+    },
+    "voiceStyle": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "voiceProfileId": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "constraints": {
+      "type": [
+        "string",
+        "null"
+      ]
+    }
+  }
+}

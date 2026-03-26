@@ -1,0 +1,75 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "miro/shared/contracts/hardware-device-sync.request.schema.json",
+  "title": "HardwareDeviceSyncRequest",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "syncKind",
+    "healthStatus"
+  ],
+  "properties": {
+    "syncKind": {
+      "type": "string",
+      "enum": [
+        "upload",
+        "download",
+        "sync_complete"
+      ]
+    },
+    "healthStatus": {
+      "type": "string",
+      "enum": [
+        "healthy",
+        "warning",
+        "failed"
+      ]
+    },
+    "summaryText": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "maxLength": 500
+    },
+    "detailText": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "maxLength": 2000
+    },
+    "firmwareVersion": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "maxLength": 64
+    },
+    "batteryPercent": {
+      "type": [
+        "integer",
+        "null"
+      ],
+      "minimum": 0,
+      "maximum": 100
+    },
+    "reviewId": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "vibrationEventCount": {
+      "type": "integer",
+      "minimum": 0,
+      "maximum": 100
+    },
+    "payload": {
+      "type": [
+        "object",
+        "null"
+      ]
+    }
+  }
+}

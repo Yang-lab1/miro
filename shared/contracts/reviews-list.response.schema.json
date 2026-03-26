@@ -1,0 +1,74 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "miro/shared/contracts/reviews-list.response.schema.json",
+  "title": "ReviewsListResponse",
+  "type": "array",
+  "items": {
+    "type": "object",
+    "additionalProperties": false,
+    "required": [
+      "reviewId",
+      "sourceType",
+      "sourceSessionId",
+      "status",
+      "countryKey",
+      "meetingType",
+      "goal",
+      "overallAssessment",
+      "topIssueKeys",
+      "createdAt",
+      "endedAt"
+    ],
+    "properties": {
+      "reviewId": {
+        "type": "string"
+      },
+      "sourceType": {
+        "type": "string"
+      },
+      "sourceSessionId": {
+        "type": "string"
+      },
+      "status": {
+        "type": "string",
+        "enum": [
+          "ready"
+        ]
+      },
+      "countryKey": {
+        "type": "string"
+      },
+      "meetingType": {
+        "type": "string"
+      },
+      "goal": {
+        "type": "string"
+      },
+      "overallAssessment": {
+        "type": "string",
+        "enum": [
+          "needs_work",
+          "mixed",
+          "promising"
+        ]
+      },
+      "topIssueKeys": {
+        "type": "array",
+        "items": {
+          "type": "string"
+        }
+      },
+      "createdAt": {
+        "type": "string",
+        "format": "date-time"
+      },
+      "endedAt": {
+        "type": [
+          "string",
+          "null"
+        ],
+        "format": "date-time"
+      }
+    }
+  }
+}

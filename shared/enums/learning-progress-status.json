@@ -1,0 +1,8 @@
+{
+  "name": "learningProgressStatus",
+  "type": "string",
+  "values": [
+    "missing",
+    "completed"
+  ]
+}

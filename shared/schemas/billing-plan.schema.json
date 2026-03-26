@@ -1,0 +1,45 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "miro/shared/schemas/billing-plan.schema.json",
+  "title": "BillingPlan",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "planId",
+    "planKey",
+    "displayName",
+    "billingCycle",
+    "currencyCode",
+    "amountValue",
+    "isCurrent"
+  ],
+  "properties": {
+    "planId": {
+      "type": "string"
+    },
+    "planKey": {
+      "type": "string",
+      "enum": [
+        "free",
+        "go",
+        "plus",
+        "pro"
+      ]
+    },
+    "displayName": {
+      "type": "string"
+    },
+    "billingCycle": {
+      "type": "string"
+    },
+    "currencyCode": {
+      "type": "string"
+    },
+    "amountValue": {
+      "type": "number"
+    },
+    "isCurrent": {
+      "type": "boolean"
+    }
+  }
+}

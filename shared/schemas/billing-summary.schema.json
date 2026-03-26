@@ -1,0 +1,31 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "miro/shared/schemas/billing-summary.schema.json",
+  "title": "BillingSummary",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "account",
+    "currentPlan",
+    "allowedTopUpAmounts"
+  ],
+  "properties": {
+    "account": {
+      "$ref": "./billing-account.schema.json"
+    },
+    "currentPlan": {
+      "$ref": "./billing-plan.schema.json"
+    },
+    "allowedTopUpAmounts": {
+      "type": "array",
+      "items": {
+        "type": "integer",
+        "enum": [
+          500,
+          1500,
+          3000
+        ]
+      }
+    }
+  }
+}

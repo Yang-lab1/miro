@@ -1,0 +1,23 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "miro/shared/schemas/review-summary.schema.json",
+  "title": "ReviewSummary",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "headline",
+    "coachSummary",
+    "nextStep"
+  ],
+  "properties": {
+    "headline": {
+      "type": "string"
+    },
+    "coachSummary": {
+      "type": "string"
+    },
+    "nextStep": {
+      "type": "string"
+    }
+  }
+}

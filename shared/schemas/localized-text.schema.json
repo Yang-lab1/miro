@@ -1,0 +1,19 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "miro/shared/schemas/localized-text.schema.json",
+  "title": "LocalizedText",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "en",
+    "zh"
+  ],
+  "properties": {
+    "en": {
+      "type": "string"
+    },
+    "zh": {
+      "type": "string"
+    }
+  }
+}

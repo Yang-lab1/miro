@@ -1,0 +1,7 @@
+{
+  "name": "reviewStatus",
+  "type": "string",
+  "values": [
+    "ready"
+  ]
+}

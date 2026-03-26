@@ -1,0 +1,1 @@
+"""Miro backend application package."""

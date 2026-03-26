@@ -1,0 +1,103 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "miro/shared/contracts/simulation.response.schema.json",
+  "title": "SimulationResponse",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "simulationId",
+    "status",
+    "setupRevision",
+    "countryKey",
+    "meetingType",
+    "goal",
+    "durationMinutes",
+    "voiceStyle",
+    "voiceProfileId",
+    "constraints",
+    "uploadedFiles",
+    "strategy",
+    "createdAt",
+    "updatedAt"
+  ],
+  "properties": {
+    "simulationId": {
+      "type": "string"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "draft",
+        "ready_for_strategy",
+        "strategy_ready"
+      ]
+    },
+    "setupRevision": {
+      "type": "integer",
+      "minimum": 1
+    },
+    "countryKey": {
+      "type": "string"
+    },
+    "meetingType": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "goal": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "durationMinutes": {
+      "type": [
+        "integer",
+        "null"
+      ]
+    },
+    "voiceStyle": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "voiceProfileId": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "constraints": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "uploadedFiles": {
+      "type": "array",
+      "items": {
+        "$ref": "../schemas/simulation-uploaded-file.schema.json"
+      }
+    },
+    "strategy": {
+      "anyOf": [
+        {
+          "$ref": "../schemas/simulation-strategy.schema.json"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "createdAt": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "updatedAt": {
+      "type": "string",
+      "format": "date-time"
+    }
+  }
+}

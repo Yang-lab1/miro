@@ -1,0 +1,24 @@
+{
+  "name": "miro",
+  "version": "1.0.0",
+  "description": "Static prototype and enterprise documentation for the Miro capstone concept.",
+  "main": "app.js",
+  "directories": {
+    "doc": "docs"
+  },
+  "scripts": {
+    "runtime:config": "node scripts/generate-runtime-config.js",
+    "build:static": "npm run runtime:config",
+    "validate:online": "node scripts/validate-online.js",
+    "smoke:bridge": "playwright test tests/live-review-bridge.spec.js",
+    "smoke:http": "playwright test tests/ui-smoke.spec.js tests/live-review-bridge.spec.js tests/workspace-bootstrap.spec.js tests/pricing-integration.spec.js tests/hardware-integration.spec.js",
+    "test": "npm run smoke:http"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "devDependencies": {
+    "@playwright/test": "^1.58.2"
+  }
+}

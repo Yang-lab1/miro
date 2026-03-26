@@ -1,0 +1,20 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "miro/shared/contracts/billing-top-up.request.schema.json",
+  "title": "BillingTopUpRequest",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "amount"
+  ],
+  "properties": {
+    "amount": {
+      "type": "integer",
+      "enum": [
+        500,
+        1500,
+        3000
+      ]
+    }
+  }
+}

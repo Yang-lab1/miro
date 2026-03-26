@@ -1,0 +1,26 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "miro/shared/contracts/realtime-turn-respond.request.schema.json",
+  "title": "RealtimeTurnRespondRequest",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "inputMode",
+    "sourceText"
+  ],
+  "properties": {
+    "inputMode": {
+      "type": "string",
+      "enum": [
+        "text",
+        "speech_stub"
+      ]
+    },
+    "sourceText": {
+      "type": "string"
+    },
+    "language": {
+      "type": "string"
+    }
+  }
+}

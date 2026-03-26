@@ -1,0 +1,49 @@
+services:
+  - type: web
+    name: miro-frontend
+    runtime: static
+    buildCommand: npm install && npm run runtime:config
+    staticPublishPath: .
+    envVars:
+      - key: MIRO_API_BASE
+        sync: false
+      - key: MIRO_REVIEW_API_BASE
+        sync: false
+      - key: MIRO_SUPABASE_URL
+        sync: false
+      - key: MIRO_SUPABASE_PUBLISHABLE_KEY
+        sync: false
+      - key: MIRO_SUPABASE_AUTH_REDIRECT_TO
+        sync: false
+    routes:
+      - type: rewrite
+        source: /*
+        destination: /index.html
+
+  - type: web
+    name: miro-backend
+    runtime: python
+    rootDir: backend
+    buildCommand: pip install -e .
+    preDeployCommand: alembic upgrade head
+    startCommand: uvicorn app.main:app --host 0.0.0.0 --port $PORT
+    healthCheckPath: /api/v1/health
+    envVars:
+      - key: APP_ENV
+        value: production
+      - key: APP_DEBUG
+        value: "false"
+      - key: ENABLE_DOCS
+        value: "false"
+      - key: FRONTEND_SITE_URL
+        sync: false
+      - key: CORS_ORIGINS
+        sync: false
+      - key: DATABASE_URL
+        sync: false
+      - key: SUPABASE_URL
+        sync: false
+      - key: SUPABASE_JWT_AUDIENCE
+        value: authenticated
+      - key: ALLOW_DEMO_ACTOR_FALLBACK
+        value: "false"

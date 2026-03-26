@@ -1,0 +1,48 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "miro/shared/schemas/realtime-alert.schema.json",
+  "title": "RealtimeAlert",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "alertId",
+    "turnId",
+    "severity",
+    "issueKey",
+    "title",
+    "detail",
+    "createdAt"
+  ],
+  "properties": {
+    "alertId": {
+      "type": "string"
+    },
+    "turnId": {
+      "type": "string"
+    },
+    "severity": {
+      "type": "string",
+      "enum": [
+        "low",
+        "medium",
+        "high"
+      ]
+    },
+    "issueKey": {
+      "type": "string"
+    },
+    "title": {
+      "type": "string"
+    },
+    "detail": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "createdAt": {
+      "type": "string",
+      "format": "date-time"
+    }
+  }
+}

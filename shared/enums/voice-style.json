@@ -1,0 +1,18 @@
+{
+  "name": "voiceStyle",
+  "type": "string",
+  "values": [
+    {
+      "key": "formal_measured",
+      "label": "Formal / measured"
+    },
+    {
+      "key": "direct_structured",
+      "label": "Direct / structured"
+    },
+    {
+      "key": "warm_relational",
+      "label": "Warm / relational"
+    }
+  ]
+}

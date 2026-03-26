@@ -1,0 +1,17 @@
+.env
+.env.*
+!.env.example
+backend/.env
+backend/.venv/
+backend/*.egg-info/
+backend/*.db
+node_modules/
+.codex/
+.npmrc
+.npm-cache/
+.playwright-browsers/
+output/
+test-results/
+artifacts/screenshots/
+__pycache__/
+*.pyc

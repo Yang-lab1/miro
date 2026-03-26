@@ -1,0 +1,56 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "miro/shared/schemas/hardware-sync-record.schema.json",
+  "title": "HardwareSyncRecord",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "syncRecordId",
+    "syncKind",
+    "status",
+    "title",
+    "detail",
+    "reviewId",
+    "createdAt"
+  ],
+  "properties": {
+    "syncRecordId": {
+      "type": "string"
+    },
+    "syncKind": {
+      "type": "string",
+      "enum": [
+        "upload",
+        "download",
+        "sync_complete"
+      ]
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "healthy",
+        "warning",
+        "failed"
+      ]
+    },
+    "title": {
+      "type": "string"
+    },
+    "detail": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "reviewId": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "createdAt": {
+      "type": "string",
+      "format": "date-time"
+    }
+  }
+}

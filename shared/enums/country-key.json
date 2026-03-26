@@ -1,0 +1,13 @@
+{
+  "name": "countryKey",
+  "type": "string",
+  "values": [
+    "Japan",
+    "Germany",
+    "UAE"
+  ],
+  "notes": [
+    "Use countryKey, not countryCode.",
+    "The display grouping can be language-specific, but the stored value stays canonical."
+  ]
+}

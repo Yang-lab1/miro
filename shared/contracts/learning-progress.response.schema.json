@@ -1,0 +1,57 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "miro/shared/contracts/learning-progress.response.schema.json",
+  "title": "LearningProgressResponse",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "countryKey",
+    "countryName",
+    "status",
+    "contentVersion",
+    "latestContentVersion",
+    "completedAt",
+    "expiresAt",
+    "isUpToDate"
+  ],
+  "properties": {
+    "countryKey": {
+      "type": "string"
+    },
+    "countryName": {
+      "$ref": "../schemas/localized-text.schema.json"
+    },
+    "status": {
+      "type": "string"
+    },
+    "contentVersion": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "latestContentVersion": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "completedAt": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "format": "date-time"
+    },
+    "expiresAt": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "format": "date-time"
+    },
+    "isUpToDate": {
+      "type": "boolean"
+    }
+  }
+}

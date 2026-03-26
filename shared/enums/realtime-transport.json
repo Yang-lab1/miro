@@ -1,0 +1,12 @@
+{
+  "name": "realtimeTransport",
+  "type": "string",
+  "values": [
+    "webrtc",
+    "websocket"
+  ],
+  "notes": [
+    "webrtc is the primary transport.",
+    "websocket remains as fallback and diagnostics path."
+  ]
+}

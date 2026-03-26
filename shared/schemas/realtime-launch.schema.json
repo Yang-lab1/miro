@@ -1,0 +1,51 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "miro/shared/schemas/realtime-launch.schema.json",
+  "title": "RealtimeLaunch",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "mode",
+    "transport",
+    "sessionToken",
+    "connectUrl",
+    "fallbackTransport",
+    "expiresAt"
+  ],
+  "properties": {
+    "mode": {
+      "type": "string"
+    },
+    "transport": {
+      "type": "string",
+      "enum": [
+        "webrtc",
+        "websocket"
+      ]
+    },
+    "sessionToken": {
+      "type": "string"
+    },
+    "connectUrl": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "fallbackTransport": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "enum": [
+        "webrtc",
+        "websocket",
+        null
+      ]
+    },
+    "expiresAt": {
+      "type": "string",
+      "format": "date-time"
+    }
+  }
+}

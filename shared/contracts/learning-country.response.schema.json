@@ -1,0 +1,45 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "miro/shared/contracts/learning-country.response.schema.json",
+  "title": "LearningCountryResponse",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "countryKey",
+    "countryName",
+    "contentVersion",
+    "defaultMeetingType",
+    "defaultGoal",
+    "sections",
+    "checklist"
+  ],
+  "properties": {
+    "countryKey": {
+      "type": "string"
+    },
+    "countryName": {
+      "$ref": "../schemas/localized-text.schema.json"
+    },
+    "contentVersion": {
+      "type": "string"
+    },
+    "defaultMeetingType": {
+      "type": "string"
+    },
+    "defaultGoal": {
+      "type": "string"
+    },
+    "sections": {
+      "type": "array",
+      "items": {
+        "type": "object"
+      }
+    },
+    "checklist": {
+      "type": "array",
+      "items": {
+        "type": "object"
+      }
+    }
+  }
+}

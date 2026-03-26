@@ -1,0 +1,80 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "miro/shared/schemas/hardware-device.schema.json",
+  "title": "HardwareDevice",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "deviceId",
+    "deviceName",
+    "connected",
+    "connectionState",
+    "transferState",
+    "firmwareVersion",
+    "versionPath",
+    "batteryPercent",
+    "lastSyncAt",
+    "capturedSessions",
+    "vibrationEvents"
+  ],
+  "properties": {
+    "deviceId": {
+      "type": "string"
+    },
+    "deviceName": {
+      "type": "string"
+    },
+    "connected": {
+      "type": "boolean"
+    },
+    "connectionState": {
+      "type": "string",
+      "enum": [
+        "connected",
+        "disconnected"
+      ]
+    },
+    "transferState": {
+      "type": "string",
+      "enum": [
+        "idle",
+        "healthy",
+        "warning",
+        "failed"
+      ]
+    },
+    "firmwareVersion": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "versionPath": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "batteryPercent": {
+      "type": [
+        "integer",
+        "null"
+      ]
+    },
+    "lastSyncAt": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "format": "date-time"
+    },
+    "capturedSessions": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "vibrationEvents": {
+      "type": "integer",
+      "minimum": 0
+    }
+  }
+}

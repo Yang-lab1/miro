@@ -1,0 +1,9 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "miro/shared/contracts/realtime-alerts.response.schema.json",
+  "title": "RealtimeAlertsResponse",
+  "type": "array",
+  "items": {
+    "$ref": "../schemas/realtime-alert.schema.json"
+  }
+}

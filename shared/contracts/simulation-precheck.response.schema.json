@@ -1,0 +1,76 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "miro/shared/contracts/simulation-precheck.response.schema.json",
+  "title": "SimulationPrecheckResponse",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "ready",
+    "countryKey",
+    "countryName",
+    "reason",
+    "learning"
+  ],
+  "properties": {
+    "ready": {
+      "type": "boolean"
+    },
+    "countryKey": {
+      "type": "string"
+    },
+    "countryName": {
+      "$ref": "../schemas/localized-text.schema.json"
+    },
+    "reason": {
+      "type": "string"
+    },
+    "learning": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "status",
+        "contentVersion",
+        "completedVersion",
+        "isUpToDate"
+      ],
+      "properties": {
+        "status": {
+          "type": "string"
+        },
+        "contentVersion": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "completedVersion": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "isUpToDate": {
+          "type": "boolean"
+        }
+      }
+    },
+    "recommendedAction": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "skipLearningAllowed": {
+      "type": [
+        "boolean",
+        "null"
+      ]
+    },
+    "warningMode": {
+      "type": [
+        "string",
+        "null"
+      ]
+    }
+  }
+}

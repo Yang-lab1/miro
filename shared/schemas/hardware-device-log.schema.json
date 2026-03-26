@@ -1,0 +1,56 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "miro/shared/schemas/hardware-device-log.schema.json",
+  "title": "HardwareDeviceLog",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "logId",
+    "eventType",
+    "severity",
+    "title",
+    "detail",
+    "reviewId",
+    "createdAt"
+  ],
+  "properties": {
+    "logId": {
+      "type": "string"
+    },
+    "eventType": {
+      "type": "string",
+      "enum": [
+        "connection",
+        "sync",
+        "vibration"
+      ]
+    },
+    "severity": {
+      "type": "string",
+      "enum": [
+        "info",
+        "warning",
+        "error"
+      ]
+    },
+    "title": {
+      "type": "string"
+    },
+    "detail": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "reviewId": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "createdAt": {
+      "type": "string",
+      "format": "date-time"
+    }
+  }
+}

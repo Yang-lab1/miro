@@ -1,0 +1,8 @@
+{
+  "name": "reviewSource",
+  "type": "string",
+  "values": [
+    "simulation",
+    "device"
+  ]
+}

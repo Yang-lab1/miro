@@ -1,0 +1,35 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "miro/shared/contracts/realtime-turn-exchange.response.schema.json",
+  "title": "RealtimeTurnExchangeResponse",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "sessionId",
+    "userTurn",
+    "assistantTurn",
+    "alerts",
+    "turnCount"
+  ],
+  "properties": {
+    "sessionId": {
+      "type": "string"
+    },
+    "userTurn": {
+      "$ref": "../schemas/realtime-turn.schema.json"
+    },
+    "assistantTurn": {
+      "$ref": "../schemas/realtime-turn.schema.json"
+    },
+    "alerts": {
+      "type": "array",
+      "items": {
+        "$ref": "../schemas/realtime-alert.schema.json"
+      }
+    },
+    "turnCount": {
+      "type": "integer",
+      "minimum": 2
+    }
+  }
+}

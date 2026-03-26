@@ -1,0 +1,19 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "miro/shared/contracts/billing-top-up.response.schema.json",
+  "title": "BillingTopUpResponse",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "summary",
+    "payment"
+  ],
+  "properties": {
+    "summary": {
+      "$ref": "../schemas/billing-summary.schema.json"
+    },
+    "payment": {
+      "$ref": "../schemas/billing-payment.schema.json"
+    }
+  }
+}

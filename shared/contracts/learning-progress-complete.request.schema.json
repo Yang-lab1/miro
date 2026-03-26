@@ -1,0 +1,15 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "miro/shared/contracts/learning-progress-complete.request.schema.json",
+  "title": "LearningProgressCompleteRequest",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "contentVersion"
+  ],
+  "properties": {
+    "contentVersion": {
+      "type": "string"
+    }
+  }
+}

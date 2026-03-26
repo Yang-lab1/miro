@@ -1,0 +1,23 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "miro/shared/contracts/hardware-device-sync.response.schema.json",
+  "title": "HardwareDeviceSyncResponse",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "device",
+    "syncRecord",
+    "log"
+  ],
+  "properties": {
+    "device": {
+      "$ref": "../schemas/hardware-device.schema.json"
+    },
+    "syncRecord": {
+      "$ref": "../schemas/hardware-sync-record.schema.json"
+    },
+    "log": {
+      "$ref": "../schemas/hardware-device-log.schema.json"
+    }
+  }
+}

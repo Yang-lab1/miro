@@ -1,0 +1,9 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "miro/shared/contracts/hardware-device-sync-records.response.schema.json",
+  "title": "HardwareDeviceSyncRecordsResponse",
+  "type": "array",
+  "items": {
+    "$ref": "../schemas/hardware-sync-record.schema.json"
+  }
+}

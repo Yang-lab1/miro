@@ -1,0 +1,109 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "miro/shared/schemas/simulation-strategy.schema.json",
+  "title": "SimulationStrategy",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "templateKey",
+    "generatedAt",
+    "generatedFrom",
+    "summary",
+    "items"
+  ],
+  "properties": {
+    "templateKey": {
+      "type": "string"
+    },
+    "generatedAt": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "generatedFrom": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "countryKey",
+        "meetingType",
+        "goal",
+        "voiceStyle",
+        "voiceProfileId",
+        "learningContentVersion",
+        "setupRevision"
+      ],
+      "properties": {
+        "countryKey": {
+          "type": "string"
+        },
+        "meetingType": {
+          "type": "string"
+        },
+        "goal": {
+          "type": "string"
+        },
+        "voiceStyle": {
+          "type": "string"
+        },
+        "voiceProfileId": {
+          "type": "string"
+        },
+        "learningContentVersion": {
+          "type": "string"
+        },
+        "setupRevision": {
+          "type": "integer",
+          "minimum": 1
+        }
+      }
+    },
+    "summary": {
+      "$ref": "./localized-text.schema.json"
+    },
+    "items": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "id",
+          "tag",
+          "title",
+          "bullets"
+        ],
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "tag": {
+            "$ref": "./localized-text.schema.json"
+          },
+          "title": {
+            "$ref": "./localized-text.schema.json"
+          },
+          "bullets": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "en",
+              "zh"
+            ],
+            "properties": {
+              "en": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              },
+              "zh": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,144 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "miro/shared/contracts/auth-session.response.schema.json",
+  "title": "AuthSessionResponse",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "user",
+    "membership",
+    "organization",
+    "auth"
+  ],
+  "properties": {
+    "user": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "email",
+        "fullName",
+        "companyName",
+        "roleTitle",
+        "preferredLanguage",
+        "status"
+      ],
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "email": {
+          "type": "string"
+        },
+        "fullName": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "companyName": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "roleTitle": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "preferredLanguage": {
+          "type": "string"
+        },
+        "status": {
+          "type": "string"
+        }
+      }
+    },
+    "membership": {
+      "type": [
+        "object",
+        "null"
+      ],
+      "additionalProperties": false,
+      "required": [
+        "organizationId",
+        "roleKey",
+        "membershipStatus"
+      ],
+      "properties": {
+        "organizationId": {
+          "type": "string"
+        },
+        "roleKey": {
+          "type": "string"
+        },
+        "membershipStatus": {
+          "type": "string"
+        }
+      }
+    },
+    "organization": {
+      "type": [
+        "object",
+        "null"
+      ],
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "name",
+        "countryKey"
+      ],
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "name": {
+          "type": "string"
+        },
+        "countryKey": {
+          "type": [
+            "string",
+            "null"
+          ]
+        }
+      }
+    },
+    "auth": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "source",
+        "subject",
+        "expiresAt",
+        "role"
+      ],
+      "properties": {
+        "source": {
+          "type": "string",
+          "enum": [
+            "supabase",
+            "demo_fallback"
+          ]
+        },
+        "subject": {
+          "type": "string"
+        },
+        "expiresAt": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "format": "date-time"
+        },
+        "role": {
+          "type": [
+            "string",
+            "null"
+          ]
+        }
+      }
+    }
+  }
+}
