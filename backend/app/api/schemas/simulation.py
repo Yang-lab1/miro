@@ -55,6 +55,8 @@ class SimulationFileCreateRequest(StrictModel):
     contentType: str
     sizeBytes: int = Field(ge=0)
     sourceType: str | None = None
+    textContent: str | None = None
+    fileDataBase64: str | None = None
 
 
 class SimulationFilesRequest(StrictModel):

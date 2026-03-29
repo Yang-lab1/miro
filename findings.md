@@ -1,30 +1,34 @@
-# Phase 23 Findings
+# Phase 25 Findings
 
-## The realtime scaffold already had the right seam lines
-- `respond_realtime_turn` was already split into:
-  - session orchestration
-  - grounding prep
-  - turn generation
-  - alert extraction
-- The main gap was not architecture. It was that uploaded files still stopped at metadata.
+## The hosted stack is healthy and contract-consistent
+- `validate:online` passed against the real Vercel frontend and ECS backend.
+- Hosted `runtime-config.js` points to the correct ECS API base and Supabase project.
+- Backend `/api/v1/health` is healthy and unauthenticated `/api/v1/auth/session` still returns `401`.
 
-## A lightweight persisted extraction layer is enough for this phase
-- Full OCR/RAG infrastructure is still unnecessary here.
-- Two persisted fields on `simulation_uploaded_files` are enough to create real internal grounding value:
-  - `extracted_summary_text`
-  - `extracted_excerpt_text`
-- This keeps the enhancement stable, actor-scoped, and deployment-safe.
+## A real browser rehearsal is now repeatable from the repo
+- The repo now has a dedicated command for hosted browser rehearsal:
+  - `npm run rehearse:hosted`
+- That command exercises:
+  - home load
+  - authenticated pricing mutation
+  - hardware sync mutation
+  - live -> grounded review flow
+  - logout
+- This is better than relying on ad hoc manual clicking for final demo readiness.
 
-## Grounding now affects both live and review in observable ways
-- Uploaded files now produce deterministic internal summaries/excerpts.
-- Realtime grounding payload now includes:
-  - per-file extracted text
-  - uploaded context summary
-  - uploaded context excerpts
-- Turn generation now visibly references uploaded context.
-- Review `coachSummary` and assistant review lines now show that grounded input influenced the final snapshot.
+## The current hosted auth UI has a real demo caveat
+- Hosted `runtime-config.js` currently exposes an empty `MIRO_TURNSTILE_SITE_KEY`.
+- As a result, the email/password submit button is disabled in the hosted auth modal.
+- The workspace itself is healthy once a valid Supabase session exists, but the hosted email form is not currently demo-ready.
 
-## The main remaining gap is still true document intelligence
-- Uploaded context is no longer metadata-only.
-- But it is still not full parsing, chunking, embedding, or retrieval.
-- The next step after this phase is richer provider-backed grounding quality, not another deployment or API-contract pass.
+## The main demo chain is viable with one valid account
+- Pricing persisted online.
+- Hardware sync persisted online.
+- Learning precheck could be completed through the existing backend API.
+- Live -> Review successfully reflected grounded uploaded text in the hosted environment.
+- Logout returned the app to a public route.
+
+## Dual-account isolation still depends on valid external credentials
+- The second supplied account did not authenticate with Supabase password login.
+- Because of that, dual-account isolation could not be fully re-run in the browser this phase.
+- This is an external credential/input issue, not a repository regression.

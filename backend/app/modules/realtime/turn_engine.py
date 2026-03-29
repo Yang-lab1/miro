@@ -30,11 +30,31 @@ def _normalize_uploaded_topic(file_name: str) -> str:
     return normalized or "the uploaded brief"
 
 
-def _build_grounding_sentence(context: RealtimeTurnGenerationContext) -> str:
+def _extract_grounding_anchor(context: RealtimeTurnGenerationContext) -> str | None:
     if context.grounding.uploaded_files:
-        topic = _normalize_uploaded_topic(context.grounding.uploaded_files[0].file_name)
+        file_context = context.grounding.uploaded_files[0]
+        if file_context.extracted_excerpt_text:
+            return file_context.extracted_excerpt_text
+        if file_context.extracted_summary_text:
+            return file_context.extracted_summary_text
+        return _normalize_uploaded_topic(file_context.file_name)
+    if context.grounding.uploaded_context_excerpts_en:
+        return context.grounding.uploaded_context_excerpts_en[0]
+    if context.grounding.uploaded_context_summary_en:
+        return context.grounding.uploaded_context_summary_en
+    if context.grounding.strategy_summary_en:
+        return context.grounding.strategy_summary_en
+    return None
+
+
+def _build_grounding_sentence(context: RealtimeTurnGenerationContext) -> str:
+    anchor = _extract_grounding_anchor(context)
+    if anchor:
+        snippet = re.sub(r"\s+", " ", anchor).strip()
+        if len(snippet) > 120:
+            snippet = snippet[:117].rstrip() + "..."
         return (
-            f" The uploaded brief points back to {topic}, "
+            f" The uploaded brief points back to {snippet}, "
             "so I want to stay anchored to that context."
         )
     if context.grounding.strategy_summary_en:

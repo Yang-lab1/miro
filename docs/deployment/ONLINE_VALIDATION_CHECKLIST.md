@@ -70,6 +70,18 @@ This mode temporarily:
 - runs the same runtime-config, health, auth-boundary, and CORS checks
 - restores the default `runtime-config.js` afterwards
 
+For a real hosted browser rehearsal with demo credentials:
+
+```bash
+npm run rehearse:hosted
+```
+
+Required env for that command:
+
+- `MIRO_DEMO_EMAIL_1`
+- `MIRO_DEMO_PASSWORD_1`
+- `MIRO_DEMO_EMAIL_2` and `MIRO_DEMO_PASSWORD_2` when dual-account isolation should also be checked
+
 ## 3. Manual verification checklist
 
 ### Public access
@@ -82,6 +94,12 @@ This mode temporarily:
 - Register or log in through the deployed frontend.
 - Confirm Supabase email redirect or login callback returns to the frontend, not localhost.
 - Log out and confirm protected snapshots are cleared.
+
+Current hosted snapshot note:
+
+- `runtime-config.js` currently exposes an empty `MIRO_TURNSTILE_SITE_KEY`.
+- That means the hosted email/password submit button is disabled in the auth modal until Turnstile is configured.
+- OAuth or a pre-existing Supabase session remains the safer demo path for hosted rehearsals right now.
 
 ### Account-scoped data
 

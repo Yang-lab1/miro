@@ -53,6 +53,7 @@ Use the standard post-deploy validation command:
 
 - `npm run validate:online -- --frontend-url https://<frontend-domain> --backend-url https://<backend-domain> --expected-supabase-url https://<project-ref>.supabase.co`
 - For a no-account local dry run of the same validation path: `npm run validate:online -- --local-dry-run`
+- For a real hosted browser rehearsal with demo accounts: `npm run rehearse:hosted`
 
 The full checklist lives in [docs/deployment/ONLINE_VALIDATION_CHECKLIST.md](/C:/Users/Yang/Desktop/miro/docs/deployment/ONLINE_VALIDATION_CHECKLIST.md).
 The platform-specific hosted path lives in [docs/deployment/VERCEL_ECS_DEPLOY.md](/C:/Users/Yang/Desktop/miro/docs/deployment/VERCEL_ECS_DEPLOY.md).
@@ -69,6 +70,10 @@ Current hosted validation snapshot:
 
 - frontend: `https://miro-vert.vercel.app`
 - backend health: `https://47-238-228-236.sslip.io/api/v1/health`
+- current hosted auth UI note:
+  - `MIRO_TURNSTILE_SITE_KEY` is empty in `runtime-config.js`
+  - email/password submit is currently disabled in the hosted auth modal until Turnstile is configured
+  - hosted rehearsal for authenticated workspace flows therefore uses valid Supabase sessions rather than the disabled email form
 
 Relevant frontend env:
 

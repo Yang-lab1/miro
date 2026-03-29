@@ -120,10 +120,14 @@ def test_rule_based_turn_generator_uses_grounded_context_in_response(client, db_
         json={
             "files": [
                 {
-                    "fileName": "pricing-brief.pdf",
-                    "contentType": "application/pdf",
-                    "sizeBytes": 4096,
+                    "fileName": "renewal-notes.txt",
+                    "contentType": "text/plain",
+                    "sizeBytes": 96,
                     "sourceType": "manual_upload",
+                    "textContent": (
+                        "Renewal timing should stay conservative. "
+                        "Confirm the internal owner before discussing pricing."
+                    ),
                 }
             ]
         },
@@ -165,7 +169,7 @@ def test_rule_based_turn_generator_uses_grounded_context_in_response(client, db_
     assert "pricing expectations" in result.assistant_text
     assert "Before moving too fast on establish_trust_before_pricing" in result.assistant_text
     assert "uploaded brief" in result.assistant_text
-    assert "pricing brief" in result.assistant_text.lower()
+    assert "renewal timing" in result.assistant_text.lower()
     assert result.focus_phrase == "pricing expectations"
 
 

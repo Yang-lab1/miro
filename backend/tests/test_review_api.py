@@ -475,8 +475,28 @@ def test_review_top_issue_keys_sort_by_frequency_then_first_seen(client):
 def test_review_detail_reflects_uploaded_grounding_context(client):
     simulation = _create_strategy_ready_simulation_with_uploaded_context(
         client,
-        file_name="renewal-brief.pdf",
+        file_name="renewal-notes.txt",
     )
+    uploaded = client.post(
+        f"/api/v1/simulations/{simulation['simulationId']}/files",
+        json={
+            "files": [
+                {
+                    "fileName": "renewal-notes.txt",
+                    "contentType": "text/plain",
+                    "sizeBytes": 104,
+                    "sourceType": "manual_upload",
+                    "textContent": (
+                        "Renewal timing should stay conservative. "
+                        "Confirm the internal owner before discussing pricing."
+                    ),
+                }
+            ]
+        },
+    )
+    assert uploaded.status_code == 200
+    regenerated = client.post(f"/api/v1/simulations/{simulation['simulationId']}/strategy")
+    assert regenerated.status_code == 200
     created = _create_realtime_session(client, simulation["simulationId"])
     started = client.post(f"/api/v1/realtime/sessions/{created['sessionId']}/start")
     assert started.status_code == 200
@@ -494,11 +514,11 @@ def test_review_detail_reflects_uploaded_grounding_context(client):
     assert detail.status_code == 200
     payload = detail.json()
     assert "uploaded brief" in payload["summary"]["coachSummary"].lower()
-    assert "renewal brief" in payload["summary"]["coachSummary"].lower()
+    assert "renewal timing" in payload["summary"]["coachSummary"].lower()
     assistant_lines = [line for line in payload["lines"] if line["speaker"] == "assistant"]
     assert assistant_lines
     assert "uploaded brief" in assistant_lines[0]["text"].lower()
-    assert "renewal brief" in assistant_lines[0]["text"].lower()
+    assert "renewal timing" in assistant_lines[0]["text"].lower()
 
 
 def test_review_overall_assessment_mixed(client):

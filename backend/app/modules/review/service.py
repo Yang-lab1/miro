@@ -258,6 +258,27 @@ def _build_review_summary(
     }
 
 
+def _build_grounding_note_from_context(grounding) -> str | None:
+    if grounding.uploaded_files:
+        file_context = grounding.uploaded_files[0]
+        anchor = (
+            file_context.extracted_summary_text
+            or file_context.extracted_excerpt_text
+            or file_context.file_name
+        )
+    else:
+        anchor = grounding.uploaded_context_summary_en
+
+    if not anchor:
+        return None
+
+    normalized = " ".join(str(anchor).split())
+    if len(normalized) > 120:
+        normalized = normalized[:117].rstrip() + "..."
+
+    return f"The uploaded brief stayed relevant through this session: {normalized}"
+
+
 def _normalize_summary_payload(review: Review) -> ReviewSummaryResponse:
     payload = review.summary_json or {
         "headline": review.title_text,
@@ -388,13 +409,7 @@ def create_review_from_realtime_session(
     top_issue_keys = [str(issue_key) for issue_key in metrics["topIssueKeys"]]
     overall_assessment = _build_overall_assessment(metrics)
     grounding = build_realtime_grounding_context(session, realtime_session)
-    grounding_note = None
-    if grounding.uploaded_files:
-        file_name = grounding.uploaded_files[0].file_name
-        topic = file_name.rsplit(".", 1)[0].replace("-", " ").replace("_", " ").strip().lower()
-        grounding_note = (
-            f"The uploaded brief on {topic} should stay visible in how the next step is framed."
-        )
+    grounding_note = _build_grounding_note_from_context(grounding)
     summary = _build_review_summary(
         realtime_session.country_key,
         overall_assessment,

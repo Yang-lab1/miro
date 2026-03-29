@@ -88,7 +88,7 @@ Responsibilities:
 
 1. Frontend submits country, meeting type, goal, duration, files, and notes.
 2. API stores setup metadata.
-3. Ingestion pipeline parses uploaded TXT/PDF material.
+3. Ingestion pipeline extracts grounded text from uploaded TXT material and simple text-based PDFs.
 4. Strategy service retrieves:
    - country package
    - organization context
@@ -113,8 +113,12 @@ Current implementation note:
   - uploaded context grounding prep
   - turn generation
   - alert extraction
-- Uploaded files now persist lightweight extracted summaries and short excerpts so live grounding can use them without changing the public API.
-- The current extraction is intentionally lightweight and deterministic. It is not yet full document parsing, chunking, embedding, or retrieval.
+- Uploaded files now persist extracted summaries and short excerpts so live grounding can use them without changing the public API.
+- The current extraction supports:
+  - direct `text/plain` body extraction
+  - simple text extraction from text-based PDFs
+  - safe fallback to lightweight deterministic summaries when extraction is unavailable
+- It is still not full document parsing, chunking, embedding, or retrieval.
 - The default turn generation and alert extraction logic remain rule-based, but partner replies and review summaries can now reflect grounded uploaded context while the demo and smoke suite stay stable.
 
 ### 3.3 Hardware demo state flow
@@ -216,7 +220,7 @@ What is implemented in this workspace:
 
 What remains for production build:
 
-- real file parsing
+- richer file parsing beyond `text/plain` and simple PDF text extraction
 - richer live provider integration
 - vector retrieval / grounding beyond lightweight extracted summaries
 - device integration API

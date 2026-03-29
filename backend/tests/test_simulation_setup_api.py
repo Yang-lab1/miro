@@ -113,6 +113,123 @@ def test_add_files_bumps_revision_and_persists_grounding_stub_fields(client, db_
     assert "brief.pdf" in record.extracted_excerpt_text
 
 
+def test_add_text_file_extracts_real_text_content(client, db_session):
+    created = _create_simulation(client, "Japan", full_setup=True)
+    text_content = (
+        "Renewal timing should stay conservative. "
+        "Do not push pricing before confirming the internal owner and timeline."
+    )
+
+    response = client.post(
+        f"/api/v1/simulations/{created['simulationId']}/files",
+        json={
+            "files": [
+                {
+                    "fileName": "renewal-notes.txt",
+                    "contentType": "text/plain",
+                    "sizeBytes": len(text_content.encode('utf-8')),
+                    "sourceType": "manual_upload",
+                    "textContent": text_content,
+                }
+            ]
+        },
+    )
+
+    assert response.status_code == 200
+    payload = response.json()["uploadedFiles"][0]
+    assert payload["parseStatus"] == "ready"
+
+    record = db_session.scalar(
+        select(SimulationUploadedFile).where(
+            SimulationUploadedFile.id == payload["fileId"]
+        )
+    )
+    assert record is not None
+    assert record.extracted_summary_text is not None
+    assert "renewal timing should stay conservative" in record.extracted_summary_text.lower()
+    assert record.extracted_excerpt_text is not None
+    assert "internal owner and timeline" in record.extracted_excerpt_text.lower()
+
+
+def test_add_pdf_file_extracts_simple_text(client, db_session):
+    created = _create_simulation(client, "Japan", full_setup=True)
+    pdf_base64 = (
+        "JVBERi0xLjQKMSAwIG9iago8PCAvVHlwZSAvQ2F0YWxvZyAvUGFnZXMgMiAwIFIgPj4KZW5kb2Jq"
+        "CjIgMCBvYmoKPDwgL1R5cGUgL1BhZ2VzIC9Db3VudCAxIC9LaWRzIFszIDAgUl0gPj4KZW5kb2Jq"
+        "CjMgMCBvYmoKPDwgL1R5cGUgL1BhZ2UgL1BhcmVudCAyIDAgUiAvTWVkaWFCb3ggWzAgMCA2MTIg"
+        "NzkyXSAvUmVzb3VyY2VzIDw8IC9Gb250IDw8IC9GMSA0IDAgUiA+PiA+PiAvQ29udGVudHMgNSAw"
+        "IFIgPj4KZW5kb2JqCjQgMCBvYmoKPDwgL1R5cGUgL0ZvbnQgL1N1YnR5cGUgL1R5cGUxIC9CYXNl"
+        "Rm9udCAvSGVsdmV0aWNhID4+CmVuZG9iago1IDAgb2JqCjw8IC9MZW5ndGggNzEgPj4Kc3RyZWFt"
+        "CkJUCi9GMSAxOCBUZgo3MiA3MjAgVGQKKFJlbmV3YWwgdGltaW5nIHN0YXlzIGNvbnNlcnZhdGl2"
+        "ZS4pIFRqCkVUCmVuZHN0cmVhbQplbmRvYmoKeHJlZgowIDYKMDAwMDAwMDAwMCA2NTUzNSBmIAow"
+        "MDAwMDAwMDA5IDAwMDAwIG4gCjAwMDAwMDAwNTggMDAwMDAgbiAKMDAwMDAwMDExNSAwMDAwMCBu"
+        "IAowMDAwMDAwMjQxIDAwMDAwIG4gCjAwMDAwMDAzMTEgMDAwMDAgbiAKdHJhaWxlcgo8PCAvU2l6"
+        "ZSA2IC9Sb290IDEgMCBSID4+CnN0YXJ0eHJlZgo0MzIKJSVFT0Y="
+    )
+
+    response = client.post(
+        f"/api/v1/simulations/{created['simulationId']}/files",
+        json={
+            "files": [
+                {
+                    "fileName": "renewal-brief.pdf",
+                    "contentType": "application/pdf",
+                    "sizeBytes": 1024,
+                    "sourceType": "manual_upload",
+                    "fileDataBase64": pdf_base64,
+                }
+            ]
+        },
+    )
+
+    assert response.status_code == 200
+    payload = response.json()["uploadedFiles"][0]
+    assert payload["parseStatus"] == "ready"
+
+    record = db_session.scalar(
+        select(SimulationUploadedFile).where(
+            SimulationUploadedFile.id == payload["fileId"]
+        )
+    )
+    assert record is not None
+    assert record.extracted_summary_text is not None
+    assert "renewal timing stays conservative" in record.extracted_summary_text.lower()
+    assert record.extracted_excerpt_text is not None
+    assert "renewal timing stays conservative" in record.extracted_excerpt_text.lower()
+
+
+def test_add_pdf_file_falls_back_safely_when_text_extraction_fails(client, db_session):
+    created = _create_simulation(client, "Japan", full_setup=True)
+
+    response = client.post(
+        f"/api/v1/simulations/{created['simulationId']}/files",
+        json={
+            "files": [
+                {
+                    "fileName": "broken-brief.pdf",
+                    "contentType": "application/pdf",
+                    "sizeBytes": 64,
+                    "sourceType": "manual_upload",
+                    "fileDataBase64": "bm90LWEtcmVhbC1wZGY=",
+                }
+            ]
+        },
+    )
+
+    assert response.status_code == 200
+    payload = response.json()["uploadedFiles"][0]
+    assert payload["parseStatus"] == "fallback"
+
+    record = db_session.scalar(
+        select(SimulationUploadedFile).where(
+            SimulationUploadedFile.id == payload["fileId"]
+        )
+    )
+    assert record is not None
+    assert record.extracted_summary_text is not None
+    assert "broken brief" in record.extracted_summary_text.lower()
+
+
 def test_generate_strategy_and_invalidate_on_setup_change(client):
     created = _create_simulation(client, "Japan", full_setup=True)
 

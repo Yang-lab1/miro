@@ -151,8 +151,35 @@ Evaluate turn response:
 
 Current implementation note:
 
-- Uploaded files now persist lightweight extracted summaries and short excerpts for internal grounding prep.
+- Uploaded files now persist extracted summaries and short excerpts for internal grounding prep.
+- The current extraction path supports:
+  - direct `text/plain` content
+  - simple text extraction from text-based PDFs
+  - safe fallback to deterministic summaries when extraction is unavailable
 - They are still not parsed through a full document pipeline, chunked, embedded, or retrieved through a vector database.
+
+Simulation files request example:
+
+```json
+{
+  "files": [
+    {
+      "fileName": "renewal-notes.txt",
+      "contentType": "text/plain",
+      "sizeBytes": 104,
+      "sourceType": "manual_upload",
+      "textContent": "Renewal timing should stay conservative. Confirm the internal owner before discussing pricing."
+    },
+    {
+      "fileName": "renewal-brief.pdf",
+      "contentType": "application/pdf",
+      "sizeBytes": 58214,
+      "sourceType": "manual_upload",
+      "fileDataBase64": "<base64-pdf-bytes>"
+    }
+  ]
+}
+```
 
 Production runtime note:
 
@@ -180,7 +207,7 @@ Current implementation note:
 - The default turn generation and alert extraction paths remain demo-safe and rule-based.
 - Turn generation now consumes:
   - strategy summary
-  - lightweight uploaded context summary / excerpts
+  - uploaded context summary / excerpts derived from real text when available
   - recent transcript lines
 - This scaffold is intended for future provider integration and RAG grounding work without changing the current API contract.
 

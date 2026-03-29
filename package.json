@@ -10,6 +10,7 @@
     "runtime:config": "node scripts/generate-runtime-config.js",
     "build:static": "npm run runtime:config",
     "validate:online": "node scripts/validate-online.js",
+    "rehearse:hosted": "node scripts/rehearse-hosted-demo.js",
     "smoke:bridge": "playwright test tests/live-review-bridge.spec.js",
     "smoke:http": "playwright test tests/ui-smoke.spec.js tests/live-review-bridge.spec.js tests/workspace-bootstrap.spec.js tests/pricing-integration.spec.js tests/hardware-integration.spec.js",
     "test": "npm run smoke:http"

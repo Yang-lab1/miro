@@ -1,4 +1,4 @@
-# Phase 23 Progress Log
+# Phase 25 Progress Log
 
 ## 2026-03-29
 - Re-read the required guardrail docs first:
@@ -16,38 +16,34 @@
 - Confirmed current boundaries still hold:
   - Hardware remains demo-only
   - Billing remains demo-only
-  - Hosted stack remains Vercel + ECS + Supabase
-- Audited the realtime path from simulation uploads to review snapshots and confirmed:
-  - uploaded files were still metadata-only
-  - grounding payload ignored extracted text because none existed
-  - turn generation did not consume uploaded context
-  - review summary could not reflect grounded input
-- Added failing tests first for:
-  - uploaded extraction persistence
-  - grounding payload enrichment
-  - grounded assistant turn generation
-  - grounded review summary / lines
-- Added migration `20260329_0012_uploaded_context_grounding.py`.
-- Added two persisted fields on `simulation_uploaded_files`:
-  - `extracted_summary_text`
-  - `extracted_excerpt_text`
-- Implemented lightweight deterministic extraction during file registration.
-- Extended realtime grounding payload with:
-  - per-file extracted summary/excerpt
-  - combined uploaded context summary
-  - uploaded context excerpts
-- Extended realtime turn generation to use:
-  - strategy summary
-  - uploaded context
-  - recent transcript lines
-- Added grounded alert detail enrichment for early pricing pushes when uploaded context exists.
-- Updated review summary generation so `coachSummary` reflects uploaded brief influence.
-- Re-ran focused pytest until the new coverage turned green.
-- Ran full backend pytest:
-  - `132 passed`
-- Ran backend Ruff:
-  - `All checks passed`
-- Re-ran unified frontend smoke:
-  - `npm run smoke:http`
-  - `17 passed`
-- Synced architecture/API/backend docs and planning files to the new Phase 23 state.
+  - hosted stack remains Vercel + ECS + Supabase
+- Audited repo sync state:
+  - branch = `main`
+  - remote = `origin https://github.com/Yang-lab1/miro.git`
+  - local working tree contained the expected Phase 24 changes plus the new Phase 25 rehearsal/doc sync work
+- Re-ran hosted validation baseline:
+  - `npm run validate:online -- --frontend-url https://miro-vert.vercel.app --backend-url https://47-238-228-236.sslip.io --expected-supabase-url https://wzqpboqlhzxqbfautlxe.supabase.co`
+  - hosted `runtime-config.js`
+  - backend `/api/v1/health`
+  - unauthenticated `/api/v1/auth/session`
+- Added `scripts/rehearse-hosted-demo.js`.
+- Added the repo command:
+  - `npm run rehearse:hosted`
+- Ran real hosted browser rehearsal with supplied credentials.
+- Confirmed the hosted auth modal currently shows:
+  - email/password submit disabled
+  - message: `Email is temporarily unavailable until Turnstile is configured.`
+- Confirmed account 1 can still authenticate through a real Supabase session and use the hosted workspace.
+- Confirmed hosted Pricing mutation:
+  - top-up persisted online
+- Confirmed hosted Hardware mutation:
+  - sync/log/sync-record counts increased online
+- Confirmed learning precheck could be completed through the existing backend API for the rehearsal account.
+- Confirmed hosted Live -> Review flow:
+  - session started after learning precheck completion
+  - grounded uploaded text influenced the rehearsal
+  - review detail loaded with grounded output
+- Confirmed hosted logout returns to a public route.
+- Confirmed the second supplied credential is invalid for Supabase password login, so dual-account isolation could not be fully re-run this phase.
+- Updated deployment/checklist docs to reflect the current hosted Turnstile reality and the new hosted rehearsal command.
+- Synced planning files to the final Phase 25 state.

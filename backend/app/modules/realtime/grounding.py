@@ -10,6 +10,9 @@ from app.modules.realtime.providers.base import (
     RealtimeGroundingFileContext,
 )
 
+STUB_SUMMARY_PREFIX = "uploaded brief about "
+STUB_EXCERPT_PREFIX = "reference from "
+
 
 def _load_simulation(
     session: Session,
@@ -32,7 +35,7 @@ def _load_uploaded_files(
     session: Session,
     simulation_id: str,
 ) -> list[SimulationUploadedFile]:
-    return session.scalars(
+    uploaded_files = session.scalars(
         select(SimulationUploadedFile)
         .where(SimulationUploadedFile.simulation_id == simulation_id)
         .order_by(
@@ -40,6 +43,23 @@ def _load_uploaded_files(
             SimulationUploadedFile.id.asc(),
         )
     ).all()
+    return sorted(uploaded_files, key=_uploaded_file_priority_key)
+
+
+def _is_stub_extraction(file_record: SimulationUploadedFile) -> bool:
+    summary = str(file_record.extracted_summary_text or "").strip().lower()
+    excerpt = str(file_record.extracted_excerpt_text or "").strip().lower()
+    return summary.startswith(STUB_SUMMARY_PREFIX) and excerpt.startswith(
+        STUB_EXCERPT_PREFIX
+    )
+
+
+def _uploaded_file_priority_key(file_record: SimulationUploadedFile) -> tuple[int, object, str]:
+    return (
+        1 if _is_stub_extraction(file_record) else 0,
+        file_record.created_at,
+        file_record.id,
+    )
 
 
 def _parse_strategy_payload(

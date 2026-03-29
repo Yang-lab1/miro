@@ -90,6 +90,8 @@ For post-deploy validation, run the root command:
 - `npm run validate:online -- --frontend-url https://<frontend-domain> --backend-url https://<backend-domain> --expected-supabase-url https://<project-ref>.supabase.co`
 - For a local dry run of the same checks without an external deployment:
   - `npm run validate:online -- --local-dry-run`
+- For a real hosted browser rehearsal against the deployed stack:
+  - `npm run rehearse:hosted`
 
 Use [docs/deployment/ONLINE_VALIDATION_CHECKLIST.md](/C:/Users/Yang/Desktop/miro/docs/deployment/ONLINE_VALIDATION_CHECKLIST.md) for the manual auth, isolation, Pricing, Hardware, and Live -> Review checks that follow the automated probe.
 
@@ -163,10 +165,14 @@ Billing is now wired as a demo state layer:
 
 Live grounding is now wired as a lightweight internal scaffold:
 
-- uploaded files persist deterministic extracted summaries/excerpts for internal grounding only
+- uploaded files persist extracted summaries/excerpts for internal grounding only
+- the extraction path now supports:
+  - direct `text/plain` content
+  - simple text extraction from text-based PDFs
+  - deterministic fallback summaries when extraction is unavailable
 - realtime turn generation can read strategy summary, uploaded context, and recent transcript lines
 - review summaries can reflect grounded uploaded context without changing the public review contract
-- the backend still does not implement full OCR, chunking, embeddings, vector retrieval, or real multimodal/live media handling
+- the backend still does not implement OCR, chunking, embeddings, vector retrieval, or real multimodal/live media handling
 
 ## Shared Source Of Truth
 
