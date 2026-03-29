@@ -59,7 +59,9 @@ Recommended production env:
 - `ENABLE_DOCS=false`
 - `DATABASE_URL=<supabase postgres connection string>`
 - `SUPABASE_URL=https://<project-ref>.supabase.co`
+- `SUPABASE_JWT_ISSUER=https://<project-ref>.supabase.co/auth/v1` (optional override)
 - `SUPABASE_JWT_AUDIENCE=authenticated`
+- `SUPABASE_JWKS_URL=https://<project-ref>.supabase.co/auth/v1/.well-known/jwks.json` (optional override)
 - `FRONTEND_SITE_URL=https://<your-frontend-domain>`
 - `CORS_ORIGINS=["https://<your-frontend-domain>"]`
 - `ALLOW_DEMO_ACTOR_FALLBACK=false`
@@ -70,7 +72,18 @@ Config notes:
 - `SUPABASE_JWT_ISSUER` and `SUPABASE_JWKS_URL` can still be overridden explicitly, but they are now derived automatically from `SUPABASE_URL` when omitted.
 - Health checks should target `GET /api/v1/health`.
 
-The root [render.yaml](/C:/Users/Yang/Desktop/miro/render.yaml) provides a minimal Render deployment scaffold for a static frontend plus a Python backend service.
+The current hosted deployment path is:
+
+- frontend on Vercel
+- backend on Alibaba Cloud ECS
+- auth + database on Supabase
+
+Repo deployment entrypoints:
+
+- frontend config: [vercel.json](/C:/Users/Yang/Desktop/miro/vercel.json)
+- ECS deployment guide: [VERCEL_ECS_DEPLOY.md](/C:/Users/Yang/Desktop/miro/docs/deployment/VERCEL_ECS_DEPLOY.md)
+- legacy PaaS backend entrypoint: [Procfile](/C:/Users/Yang/Desktop/miro/backend/Procfile)
+- legacy Render reference: [render.yaml](/C:/Users/Yang/Desktop/miro/render.yaml)
 
 For post-deploy validation, run the root command:
 
@@ -79,6 +92,8 @@ For post-deploy validation, run the root command:
   - `npm run validate:online -- --local-dry-run`
 
 Use [docs/deployment/ONLINE_VALIDATION_CHECKLIST.md](/C:/Users/Yang/Desktop/miro/docs/deployment/ONLINE_VALIDATION_CHECKLIST.md) for the manual auth, isolation, Pricing, Hardware, and Live -> Review checks that follow the automated probe.
+
+For the hosted platform pairing itself, use [docs/deployment/VERCEL_ECS_DEPLOY.md](/C:/Users/Yang/Desktop/miro/docs/deployment/VERCEL_ECS_DEPLOY.md).
 
 ## Route Strategy
 
@@ -122,7 +137,7 @@ Phase 2 and Phase 3 currently implement:
 - `POST /api/v1/billing/select-plan`
 - `POST /api/v1/billing/top-up`
 
-The setup flow stores revisions, uploaded file metadata, and stable strategy payloads. Realtime create/start/end now exist with a stub launch provider, but there is still no real media transport, turn pipeline, or external provider integration.
+The setup flow stores revisions, uploaded file metadata, lightweight extracted summaries/excerpts, and stable strategy payloads. Realtime create/start/end now exist with a stub launch provider, but there is still no real media transport or external provider integration.
 
 Auth is now wired as a thin Supabase integration:
 
@@ -145,6 +160,13 @@ Billing is now wired as a demo state layer:
 - `select-plan` updates the current demo subscription snapshot only
 - `top-up` increases demo credits and records a demo payment event only
 - the backend does not implement Stripe, PayPal, invoices, taxes, refunds, webhooks, or recurring charges
+
+Live grounding is now wired as a lightweight internal scaffold:
+
+- uploaded files persist deterministic extracted summaries/excerpts for internal grounding only
+- realtime turn generation can read strategy summary, uploaded context, and recent transcript lines
+- review summaries can reflect grounded uploaded context without changing the public review contract
+- the backend still does not implement full OCR, chunking, embeddings, vector retrieval, or real multimodal/live media handling
 
 ## Shared Source Of Truth
 

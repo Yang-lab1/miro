@@ -1,4 +1,6 @@
 
+import { miroBrandMark } from "./brand-mark.js";
+
 export function navTemplate(ctx) {
   const { state, t, initials } = ctx;
   const routes = [
@@ -15,11 +17,15 @@ export function navTemplate(ctx) {
   return `
     <div class="topbar-wrap">
       <header class="topbar editorial-nav liquid-glass">
-        <button type="button" class="brand" data-route="home">
-          <span class="brand-mark">M</span>
-          <span class="brand-copy">
-            <strong>Miro</strong>
-            <span>${t().misc.brandSub}</span>
+        <button
+          type="button"
+          class="brand brand-icon-only"
+          data-route="home"
+          aria-label="Miro home"
+          title="Miro"
+        >
+          <span class="brand-mark brand-mark-logo">
+            ${miroBrandMark({ className: "brand-mark-art", idPrefix: "nav-logo", title: "Miro" })}
           </span>
         </button>
         <nav class="nav-links editorial-links" aria-label="Primary">

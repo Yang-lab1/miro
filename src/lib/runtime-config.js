@@ -41,6 +41,9 @@ const configuredSupabasePublishableKey = cleanRuntimeValue(
 const configuredSupabaseRedirect = cleanRuntimeValue(
   readRuntimeConfig("MIRO_SUPABASE_AUTH_REDIRECT_TO")
 );
+const configuredTurnstileSiteKey = cleanRuntimeValue(
+  readRuntimeConfig("MIRO_TURNSTILE_SITE_KEY")
+);
 
 export const API_BASE =
   configuredApiBase || configuredReviewApiBase || deriveSameOriginApiBase();
@@ -55,3 +58,5 @@ export const SUPABASE_AUTH_REDIRECT_TO =
 export const SUPABASE_AUTH_ENABLED = Boolean(
   SUPABASE_URL && SUPABASE_PUBLISHABLE_KEY
 );
+
+export const TURNSTILE_SITE_KEY = configuredTurnstileSiteKey;

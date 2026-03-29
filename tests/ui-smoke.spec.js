@@ -45,6 +45,40 @@ function assertNoClientDiagnostics(diagnostics) {
   ).toEqual([]);
 }
 
+async function installMockTurnstile(page) {
+  await page.addInitScript(() => {
+    globalThis.MIRO_TURNSTILE_SITE_KEY = "turnstile-site-key";
+    const calls = {
+      render: 0,
+      reset: 0,
+      remove: 0
+    };
+
+    globalThis.__turnstileMock = {
+      calls,
+      lastOptions: null
+    };
+
+    globalThis.turnstile = {
+      render(container, options) {
+        calls.render += 1;
+        const widgetId = `widget-${calls.render}`;
+        globalThis.__turnstileMock.lastOptions = options;
+        container.innerHTML = `<div data-mock-turnstile="${widgetId}">Mock Turnstile ${widgetId}</div>`;
+        return widgetId;
+      },
+      reset(widgetId) {
+        calls.reset += 1;
+        calls.lastReset = widgetId;
+      },
+      remove(widgetId) {
+        calls.remove += 1;
+        calls.lastRemove = widgetId;
+      }
+    };
+  });
+}
+
 function createReviewFixture() {
   return {
     list: [
@@ -231,6 +265,79 @@ test("protected live and review routes stay gated when unauthenticated", async (
   }
 
   expect(protectedApiHit).toBe(false);
+  assertNoClientDiagnostics(diagnostics);
+});
+
+test("auth modal shows disabled email fallback when Turnstile is not configured", async ({
+  page
+}) => {
+  const diagnostics = trackClientDiagnostics(page);
+
+  await page.goto(`${BASE_URL}/index.html#home`, {
+    waitUntil: "domcontentloaded"
+  });
+
+  await page.locator("button[data-auth='register']").click();
+
+  await expect(
+    page.getByRole("button", { name: "Continue with Google" })
+  ).toBeVisible();
+  await expect(
+    page.getByLabel("Work email")
+  ).toBeVisible();
+  await expect(
+    page.getByLabel("Password")
+  ).toBeVisible();
+  await expect(
+    page.locator("[data-turnstile-message]")
+  ).toHaveText("Email is temporarily unavailable until Turnstile is configured.");
+  await expect(
+    page.getByRole("button", { name: "Create account with email" })
+  ).toBeDisabled();
+  await expect(
+    page.getByRole("button", { name: "Continue with Apple" })
+  ).toHaveCount(0);
+
+  assertNoClientDiagnostics(diagnostics);
+});
+
+test("auth modal remounts mocked Turnstile across mode switches and reopen", async ({
+  page
+}) => {
+  const diagnostics = trackClientDiagnostics(page);
+
+  await installMockTurnstile(page);
+  await page.goto(`${BASE_URL}/index.html#home`, {
+    waitUntil: "domcontentloaded"
+  });
+
+  await page.locator("button[data-auth='login']").click();
+
+  await expect(page.locator("[data-mock-turnstile='widget-1']")).toBeVisible();
+  await page.getByLabel("Work email").fill("user@example.com");
+  await page.getByLabel("Password").fill("password123");
+  await page.getByRole("button", { name: "Continue with email" }).click();
+  await expect(page.locator("[data-auth-feedback]")).toHaveText(
+    "Complete verification before continuing with email."
+  );
+
+  await page.locator("[data-auth-switch='register']").click();
+  await expect(page.locator("[data-mock-turnstile='widget-2']")).toBeVisible();
+
+  let calls = await page.evaluate(() => window.__turnstileMock.calls);
+  expect(calls.render).toBe(2);
+  expect(calls.reset).toBeGreaterThanOrEqual(1);
+  expect(calls.remove).toBeGreaterThanOrEqual(1);
+
+  await page.locator("#closeAuthBtn").click();
+  await page.locator("button[data-auth='login']").click();
+  await expect(page.locator("[data-mock-turnstile='widget-3']")).toBeVisible();
+
+  calls = await page.evaluate(() => window.__turnstileMock.calls);
+  expect(calls.render).toBe(3);
+  expect(calls.reset).toBeGreaterThanOrEqual(2);
+  expect(calls.remove).toBeGreaterThanOrEqual(2);
+
   assertNoClientDiagnostics(diagnostics);
 });
 

@@ -4,3 +4,4 @@ globalThis.MIRO_REVIEW_API_BASE ??= "/api/v1";
 globalThis.MIRO_SUPABASE_URL ??= "";
 globalThis.MIRO_SUPABASE_PUBLISHABLE_KEY ??= "";
 globalThis.MIRO_SUPABASE_AUTH_REDIRECT_TO ??= "";
+globalThis.MIRO_TURNSTILE_SITE_KEY ??= "";

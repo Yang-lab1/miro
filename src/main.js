@@ -32,6 +32,7 @@ import {
   getAccessToken,
   isSupabaseConfigured,
   onAuthStateChange,
+  signInWithOAuthProvider,
   signInWithPassword,
   signOut as signOutOfSupabase,
   signUpWithPassword
@@ -83,15 +84,42 @@ import {
   mergeSimulationResponse,
   pickVoiceProfileId
 } from "./lib/live-mappers.js";
+import { TURNSTILE_SITE_KEY } from "./lib/runtime-config.js";
 
 const STORAGE_KEY = "miro-prototype-state-v4";
 const PUBLIC_ROUTES = new Set(["home"]);
 const { ISSUE_LIBRARY, COUNTRY_LIBRARY, TESTIMONIALS, seedState } = window.MIRO_DATA;
+const TURNSTILE_SCRIPT_SRC = "https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit";
 
 const COPY = {
   en: {
     nav: { home: "Home", live: "Live Simulation", hardware: "Hardware Devices", review: "Review Center", pricing: "Pricing", settings: "Settings" },
-    auth: { register: "Register", login: "Log In", email: "Work email", password: "Password" },
+    auth: {
+      register: "Register",
+      login: "Log In",
+      email: "Work email",
+      password: "Password",
+      google: "Continue with Google",
+      emailDivider: "or continue with email",
+      loginHeading: "Welcome back to Miro",
+      registerHeading: "Create your Miro account",
+      loginIntro: "Sign in to access cross-cultural rehearsal, reviews, and workspace history.",
+      registerIntro: "Register with Google or email to unlock rehearsal, synced reviews, and coaching memory.",
+      emailLogin: "Continue with email",
+      emailRegister: "Create account with email",
+      switchToLogin: "Already have an account?",
+      switchToRegister: "Need a new account?",
+      turnstileTitle: "Verification",
+      turnstileIdle: "Complete the check to enable email sign-in.",
+      turnstileLoading: "Loading security check...",
+      turnstileReady: "Verification ready. Please complete the security check.",
+      turnstileVerified: "Verification complete. You can continue with email.",
+      turnstileExpired: "Verification expired. Please complete it again.",
+      turnstileError: "Verification could not load. Try again in a moment.",
+      turnstileUnavailable: "Email is temporarily unavailable until Turnstile is configured.",
+      turnstileRequired: "Complete verification before continuing with email.",
+      emailWorking: "Working..."
+    },
     home: {
       eyebrow: "Enterprise cross-cultural coaching",
       subtitle: "Miro helps cross-border teams rehearse high-stakes client conversations before the real meeting starts.",
@@ -236,7 +264,32 @@ const COPY = {
 };
 COPY.zh = JSON.parse(JSON.stringify(COPY.en));
 COPY.zh.nav = { home: "Home", live: "Live Simulation", hardware: "Hardware Devices", review: "Review Center", pricing: "Pricing", settings: "Settings" };
-COPY.zh.auth = { register: "Register", login: "Log In", email: "Work email", password: "Password" };
+COPY.zh.auth = {
+  register: "Register",
+  login: "Log In",
+  email: "Work email",
+  password: "Password",
+  google: "Continue with Google",
+  emailDivider: "or continue with email",
+  loginHeading: "Welcome back to Miro",
+  registerHeading: "Create your Miro account",
+  loginIntro: "Sign in to access cross-cultural rehearsal, reviews, and workspace history.",
+  registerIntro: "Register with Google or email to unlock rehearsal, synced reviews, and coaching memory.",
+  emailLogin: "Continue with email",
+  emailRegister: "Create account with email",
+  switchToLogin: "Already have an account?",
+  switchToRegister: "Need a new account?",
+  turnstileTitle: "Verification",
+  turnstileIdle: "Complete the check to enable email sign-in.",
+  turnstileLoading: "Loading security check...",
+  turnstileReady: "Verification ready. Please complete the security check.",
+  turnstileVerified: "Verification complete. You can continue with email.",
+  turnstileExpired: "Verification expired. Please complete it again.",
+  turnstileError: "Verification could not load. Try again in a moment.",
+  turnstileUnavailable: "Email is temporarily unavailable until Turnstile is configured.",
+  turnstileRequired: "请先完成验证，再继续邮箱登录或注册。",
+  emailWorking: "提交中..."
+};
 COPY.zh.review.empty = "\u8fd8\u6ca1\u6709 review snapshot\u3002";
 COPY.zh.review.loading = "\u6b63\u5728\u52a0\u8f7d reviews...";
 COPY.zh.review.loadError = "\u65e0\u6cd5\u52a0\u8f7d review \u5217\u8868\u3002";
@@ -529,6 +582,20 @@ function createPricingCenterState() {
   };
 }
 
+function createTurnstileState() {
+  const hasSiteKey = Boolean(TURNSTILE_SITE_KEY);
+  return {
+    scriptStatus: hasSiteKey ? "idle" : "disabled",
+    uiState: hasSiteKey ? "idle" : "unavailable",
+    token: null,
+    widgetId: null,
+    emailDisabled: !hasSiteKey,
+    message: ""
+  };
+}
+
+let turnstileScriptPromise = null;
+
 let reviewListRequestVersion = 0;
 let reviewDetailRequestVersion = 0;
 let liveVoiceProfilesRequestVersion = 0;
@@ -589,7 +656,10 @@ function loadState() {
     reviewCenter: createReviewCenterState(),
     liveCenter: createLiveCenterState(),
     hardwareCenter: createHardwareCenterState(),
-    pricingCenter: createPricingCenterState()
+    pricingCenter: createPricingCenterState(),
+    turnstile: createTurnstileState(),
+    authPending: false,
+    authFeedback: null
   };
   try {
     const raw = localStorage.getItem(STORAGE_KEY);
@@ -616,6 +686,7 @@ function loadState() {
     merged.liveCenter = createLiveCenterState();
     merged.hardwareCenter = createHardwareCenterState();
     merged.pricingCenter = createPricingCenterState();
+    merged.turnstile = createTurnstileState();
     return merged;
   } catch (error) {
     return normalizeSeed;
@@ -624,19 +695,30 @@ function loadState() {
 
 let state = loadState();
 
+function buildPersistedState({ pendingRoute = null } = {}) {
+  return {
+    ...state,
+    reviewCenter: undefined,
+    liveCenter: undefined,
+    hardwareCenter: undefined,
+    pricingCenter: undefined,
+    turnstile: undefined,
+    authPending: false,
+    authFeedback: null,
+    toast: null,
+    authOpen: false,
+    pendingRoute
+  };
+}
+
 function saveState() {
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(buildPersistedState()));
+}
+
+function saveStateForOAuthRedirect() {
   localStorage.setItem(
     STORAGE_KEY,
-    JSON.stringify({
-      ...state,
-      reviewCenter: undefined,
-      liveCenter: undefined,
-      hardwareCenter: undefined,
-      pricingCenter: undefined,
-      toast: null,
-      authOpen: false,
-      pendingRoute: null
-    })
+    JSON.stringify(buildPersistedState({ pendingRoute: state.pendingRoute || null }))
   );
 }
 
@@ -703,6 +785,9 @@ function applyAuthenticatedUser(authSession) {
 
   state.loggedIn = true;
   state.authOpen = false;
+  state.authPending = false;
+  state.authFeedback = null;
+  state.turnstile = createTurnstileState();
   state.user = {
     ...fallbackUser,
     ...state.user,
@@ -728,6 +813,9 @@ function clearAuthenticatedUser() {
   state.authOpen = false;
   state.authMode = "login";
   state.pendingRoute = null;
+  state.authPending = false;
+  state.authFeedback = null;
+  state.turnstile = createTurnstileState();
   state.user = { ...fallbackUser };
   state.pricingSelection = seedState().pricingSelection || "free";
   state.hardware = defaultHardwareState();
@@ -744,6 +832,271 @@ function ensurePublicRouteForLoggedOutUser() {
 
 function t() {
   return COPY[state.lang];
+}
+
+function getTurnstileMessage(uiState) {
+  if (uiState === "loading") return t().auth.turnstileLoading;
+  if (uiState === "ready") return t().auth.turnstileReady;
+  if (uiState === "verified") return t().auth.turnstileVerified;
+  if (uiState === "expired") return t().auth.turnstileExpired;
+  if (uiState === "error") return t().auth.turnstileError;
+  if (uiState === "unavailable") return t().auth.turnstileUnavailable;
+  return t().auth.turnstileIdle;
+}
+
+function setAuthFeedback(message, tone = "error") {
+  state.authFeedback = message ? { tone, message } : null;
+}
+
+function getAuthSubmitLabel() {
+  if (state.authPending) return t().auth.emailWorking;
+  return state.authMode === "register" ? t().auth.emailRegister : t().auth.emailLogin;
+}
+
+function syncAuthSurface() {
+  const captchaShell = document.querySelector(".auth-captcha-shell");
+  if (captchaShell) {
+    captchaShell.dataset.turnstileState = state.turnstile.uiState || "idle";
+  }
+
+  const captchaMessage = document.querySelector("[data-turnstile-message]");
+  if (captchaMessage) {
+    captchaMessage.textContent = state.turnstile.message || getTurnstileMessage(state.turnstile.uiState);
+  }
+
+  const captchaContainer = document.querySelector("[data-turnstile]");
+  if (captchaContainer) {
+    captchaContainer.dataset.turnstileAvailable = TURNSTILE_SITE_KEY ? "true" : "false";
+    captchaContainer.dataset.turnstileMounted = state.turnstile.widgetId ? "true" : "false";
+  }
+
+  const submitButton = document.querySelector("[data-auth-email-submit]");
+  if (submitButton) {
+    submitButton.disabled = Boolean(state.authPending || state.turnstile.emailDisabled);
+    submitButton.textContent = getAuthSubmitLabel();
+  }
+
+  const feedback = document.querySelector("[data-auth-feedback]");
+  if (feedback) {
+    if (state.authFeedback?.message) {
+      feedback.hidden = false;
+      feedback.dataset.tone = state.authFeedback.tone || "error";
+      feedback.textContent = state.authFeedback.message;
+    } else {
+      feedback.hidden = true;
+      feedback.dataset.tone = "error";
+      feedback.textContent = "";
+    }
+  }
+}
+
+function updateTurnstileState(patch = {}) {
+  state.turnstile = {
+    ...state.turnstile,
+    ...patch
+  };
+  if (!("message" in patch)) {
+    state.turnstile.message = getTurnstileMessage(state.turnstile.uiState);
+  }
+  syncAuthSurface();
+}
+
+function clearTurnstileWidget({ remove = true } = {}) {
+  const widgetId = state.turnstile?.widgetId;
+  if (widgetId && window.turnstile) {
+    if (typeof window.turnstile.reset === "function") {
+      try {
+        window.turnstile.reset(widgetId);
+      } catch {}
+    }
+    if (remove && typeof window.turnstile.remove === "function") {
+      try {
+        window.turnstile.remove(widgetId);
+      } catch {}
+    }
+  }
+}
+
+function resetTurnstileState() {
+  const hadReadyScript = state.turnstile?.scriptStatus === "ready";
+  clearTurnstileWidget();
+  state.turnstile = createTurnstileState();
+  state.turnstile.scriptStatus = TURNSTILE_SITE_KEY
+    ? hadReadyScript ? "ready" : "idle"
+    : "disabled";
+  state.turnstile.uiState = TURNSTILE_SITE_KEY ? "idle" : "unavailable";
+  state.turnstile.emailDisabled = !TURNSTILE_SITE_KEY;
+  state.turnstile.message = getTurnstileMessage(state.turnstile.uiState);
+  syncAuthSurface();
+}
+
+function resetAuthModalState() {
+  state.authPending = false;
+  setAuthFeedback(null);
+  resetTurnstileState();
+}
+
+function closeAuth() {
+  resetAuthModalState();
+  state.authOpen = false;
+  render();
+}
+
+function ensureTurnstileScript() {
+  if (!TURNSTILE_SITE_KEY) {
+    return Promise.reject(new Error("Turnstile site key is not configured."));
+  }
+
+  if (window.turnstile && typeof window.turnstile.render === "function") {
+    updateTurnstileState({ scriptStatus: "ready" });
+    return Promise.resolve(window.turnstile);
+  }
+
+  if (turnstileScriptPromise) return turnstileScriptPromise;
+
+  updateTurnstileState({
+    scriptStatus: "loading",
+    uiState: "loading",
+    emailDisabled: true,
+    token: null
+  });
+
+  turnstileScriptPromise = new Promise((resolve, reject) => {
+    const existingScript = document.querySelector(`script[src="${TURNSTILE_SCRIPT_SRC}"]`);
+    const script = existingScript || document.createElement("script");
+
+    const cleanup = () => {
+      script.removeEventListener("load", handleLoad);
+      script.removeEventListener("error", handleError);
+    };
+
+    const handleLoad = () => {
+      cleanup();
+      updateTurnstileState({ scriptStatus: "ready" });
+      resolve(window.turnstile);
+    };
+
+    const handleError = () => {
+      cleanup();
+      turnstileScriptPromise = null;
+      updateTurnstileState({
+        scriptStatus: "error",
+        uiState: "error",
+        emailDisabled: true,
+        token: null
+      });
+      reject(new Error("Unable to load Turnstile."));
+    };
+
+    script.addEventListener("load", handleLoad, { once: true });
+    script.addEventListener("error", handleError, { once: true });
+
+    if (!existingScript) {
+      script.src = TURNSTILE_SCRIPT_SRC;
+      script.async = true;
+      script.defer = true;
+      document.head.appendChild(script);
+    }
+  });
+
+  return turnstileScriptPromise;
+}
+
+async function syncTurnstileLifecycle() {
+  if (!state.authOpen) return;
+
+  const container = document.getElementById("authTurnstile");
+  if (!container) return;
+
+  if (!TURNSTILE_SITE_KEY) {
+    updateTurnstileState({
+      scriptStatus: "disabled",
+      uiState: "unavailable",
+      emailDisabled: true,
+      token: null,
+      widgetId: null
+    });
+    return;
+  }
+
+  if (state.turnstile.widgetId && container.childElementCount > 0) {
+    syncAuthSurface();
+    return;
+  }
+
+  if (state.turnstile.widgetId && container.childElementCount === 0) {
+    state.turnstile.widgetId = null;
+    state.turnstile.token = null;
+  }
+
+  updateTurnstileState({
+    uiState: "loading",
+    emailDisabled: true,
+    token: null
+  });
+
+  try {
+    await ensureTurnstileScript();
+    if (!state.authOpen) return;
+
+    const mountTarget = document.getElementById("authTurnstile");
+    if (!mountTarget || state.turnstile.widgetId) {
+      syncAuthSurface();
+      return;
+    }
+
+    mountTarget.innerHTML = "";
+    const widgetId = window.turnstile.render(mountTarget, {
+      sitekey: TURNSTILE_SITE_KEY,
+      theme: "light",
+      callback(token) {
+        state.turnstile.token = token;
+        state.turnstile.uiState = "verified";
+        state.turnstile.emailDisabled = false;
+        state.turnstile.message = getTurnstileMessage("verified");
+        setAuthFeedback(null);
+        syncAuthSurface();
+      },
+      "expired-callback": () => {
+        state.turnstile.token = null;
+        state.turnstile.uiState = "expired";
+        state.turnstile.emailDisabled = false;
+        state.turnstile.message = getTurnstileMessage("expired");
+        syncAuthSurface();
+      },
+      "timeout-callback": () => {
+        state.turnstile.token = null;
+        state.turnstile.uiState = "expired";
+        state.turnstile.emailDisabled = false;
+        state.turnstile.message = getTurnstileMessage("expired");
+        syncAuthSurface();
+      },
+      "error-callback": () => {
+        state.turnstile.token = null;
+        state.turnstile.uiState = "error";
+        state.turnstile.emailDisabled = false;
+        state.turnstile.message = getTurnstileMessage("error");
+        syncAuthSurface();
+        return true;
+      }
+    });
+
+    updateTurnstileState({
+      widgetId,
+      uiState: "ready",
+      emailDisabled: false,
+      token: null
+    });
+  } catch (error) {
+    console.error("Failed to initialize Turnstile widget", error);
+    updateTurnstileState({
+      scriptStatus: "error",
+      uiState: "error",
+      emailDisabled: true,
+      token: null,
+      widgetId: null
+    });
+  }
 }
 
 function pick(text) {
@@ -2452,10 +2805,22 @@ function setRoute(route) {
 }
 
 function openAuth(mode, route) {
+  resetAuthModalState();
   state.authMode = mode;
   state.authOpen = true;
   state.pendingRoute = route || null;
   render();
+}
+
+async function startSocialAuth(provider) {
+  try {
+    saveStateForOAuthRedirect();
+    await signInWithOAuthProvider(provider);
+  } catch (error) {
+    console.error(`Supabase ${provider} auth flow failed`, error);
+    pushToast(error.message || "Unable to start social sign-in right now.");
+    render();
+  }
 }
 
 function requireAuth(route) {
@@ -2692,6 +3057,10 @@ function render() {
   document.body.classList.toggle("session-mode", state.activeRoute === "live" && state.currentSimulation.phase === "session");
   document.getElementById("app").innerHTML = `<div class="app-shell"><a class="skip-link" href="#mainContent">${state.lang === "zh" ? "璺冲埌涓昏鍐呭" : "Skip to main content"}</a><div class="ambient a1"></div><div class="ambient a2"></div><div class="ambient a3"></div>${navTemplate(view)}<main id="mainContent" class="main-wrap ${state.activeRoute === "live" && state.currentSimulation.phase === "session" ? "main-wrap-session" : ""}">${currentPage()}</main>${authModal(view)}${state.toast ? `<div class="toast-stack" role="status" aria-live="polite"><div class="toast">${state.toast.message}</div></div>` : ""}</div>`;
   bindEvents();
+  syncAuthSurface();
+  if (state.authOpen) {
+    void syncTurnstileLifecycle();
+  }
   syncNavVisibility();
   if (
     state.activeRoute === "review" &&
@@ -2735,7 +3104,11 @@ function bindEvents() {
     else setRoute(route);
   }));
   document.querySelectorAll("[data-auth]").forEach((button) => button.addEventListener("click", () => openAuth(button.dataset.auth, null)));
-  document.querySelectorAll("[data-auth-switch]").forEach((button) => button.addEventListener("click", () => { state.authMode = button.dataset.authSwitch; render(); }));
+  document.querySelectorAll("[data-auth-switch]").forEach((button) => button.addEventListener("click", () => {
+    resetAuthModalState();
+    state.authMode = button.dataset.authSwitch;
+    render();
+  }));
   document.querySelectorAll("[data-review-select]").forEach((button) => button.addEventListener("click", () => {
     void loadReviewDetail(button.dataset.reviewSelect);
   }));
@@ -2796,21 +3169,48 @@ function bindEvents() {
   if (reviewHome) reviewHome.addEventListener("click", () => requireAuth("review"));
 
   const closeAuthBtn = document.getElementById("closeAuthBtn");
-  if (closeAuthBtn) closeAuthBtn.addEventListener("click", () => { state.authOpen = false; render(); });
+  if (closeAuthBtn) closeAuthBtn.addEventListener("click", () => { closeAuth(); });
+
+  document.querySelectorAll("[data-auth-oauth]").forEach((button) =>
+    button.addEventListener("click", async () => {
+      await startSocialAuth(button.dataset.authOauth);
+    })
+  );
 
   const authForm = document.getElementById("authForm");
   if (authForm) authForm.addEventListener("submit", async (event) => {
     event.preventDefault();
+    setAuthFeedback(null);
     const email = document.getElementById("authEmail").value.trim();
     const password = document.getElementById("authPassword").value.trim();
     if (!email || !password) {
-      pushToast(state.lang === "zh" ? "请输入邮箱和密码。" : "Enter email and password.");
+      setAuthFeedback(state.lang === "zh" ? "请输入邮箱和密码。" : "Enter email and password.");
+      syncAuthSurface();
       return;
     }
 
+    if (state.turnstile.emailDisabled) {
+      setAuthFeedback(
+        state.turnstile.uiState === "unavailable"
+          ? t().auth.turnstileUnavailable
+          : t().auth.turnstileError
+      );
+      syncAuthSurface();
+      return;
+    }
+
+    if (!state.turnstile.token) {
+      setAuthFeedback(t().auth.turnstileRequired);
+      syncAuthSurface();
+      return;
+    }
+
+    state.authPending = true;
+    syncAuthSurface();
+
     try {
       if (state.authMode === "register") {
-        const signUpResult = await signUpWithPassword(email, password);
+        const signUpResult = await signUpWithPassword(email, password, state.turnstile.token);
         if (signUpResult.session) {
           await syncAuthSessionFromBackend({
             redirectPending: true,
@@ -2824,6 +3224,7 @@ function bindEvents() {
           return;
         }
 
+        resetAuthModalState();
         state.authOpen = false;
         state.pendingRoute = null;
         saveState();
@@ -2836,7 +3237,7 @@ function bindEvents() {
         return;
       }
 
-      await signInWithPassword(email, password);
+      await signInWithPassword(email, password, state.turnstile.token);
       await syncAuthSessionFromBackend({
         redirectPending: true,
         renderAfter: false
@@ -2844,8 +3245,32 @@ function bindEvents() {
       pushToast(t().misc.loginDone);
     } catch (error) {
       console.error("Supabase auth flow failed", error);
-      pushToast(error.message || (state.lang === "zh" ? "登录失败，请重试。" : "Unable to sign in right now."));
+      resetTurnstileState();
+      state.authPending = false;
+      setAuthFeedback(error.message || (state.lang === "zh" ? "登录失败，请重试。" : "Unable to sign in right now."));
       render();
+      return;
+    } finally {
+      state.authPending = false;
+      if (state.authOpen) {
+        syncAuthSurface();
+      }
+    }
+  });
+ 
+  const authEmail = document.getElementById("authEmail");
+  if (authEmail) authEmail.addEventListener("input", () => {
+    if (state.authFeedback?.message) {
+      setAuthFeedback(null);
+      syncAuthSurface();
+    }
+  });
+
+  const authPassword = document.getElementById("authPassword");
+  if (authPassword) authPassword.addEventListener("input", () => {
+    if (state.authFeedback?.message) {
+      setAuthFeedback(null);
+      syncAuthSurface();
     }
   });
 

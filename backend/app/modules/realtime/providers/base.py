@@ -46,6 +46,8 @@ class RealtimeGroundingFileContext:
     storage_key: str | None
     parse_status: str | None
     upload_status: str
+    extracted_summary_text: str | None
+    extracted_excerpt_text: str | None
 
 
 @dataclass(slots=True)
@@ -61,6 +63,8 @@ class RealtimeGroundingContext:
     strategy_summary_en: str | None
     strategy_bullets_en: list[str]
     uploaded_files: list[RealtimeGroundingFileContext]
+    uploaded_context_summary_en: str | None
+    uploaded_context_excerpts_en: list[str]
 
 
 @dataclass(slots=True)
@@ -70,6 +74,7 @@ class RealtimeTurnGenerationContext:
     language: str
     normalized_text: str
     grounding: RealtimeGroundingContext
+    recent_transcript_lines: list[str]
 
 
 @dataclass(slots=True)

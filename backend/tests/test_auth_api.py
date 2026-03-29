@@ -87,6 +87,70 @@ def test_auth_session_returns_existing_membership_and_organization(
     }
 
 
+def test_auth_session_reconciles_legacy_local_user_with_matching_email(
+    make_client,
+    supabase_jwks_server,
+    db_session,
+):
+    legacy_user_id = str(uuid4())
+    supabase_user_id = str(uuid4())
+    legacy_user = User(
+        id=legacy_user_id,
+        email="legacy-user@miro.local",
+        full_name="Legacy User",
+        status="active",
+    )
+    organization = Organization(name="Legacy Org", country_key="Japan", is_active=True)
+    db_session.add_all([legacy_user, organization])
+    db_session.flush()
+    membership = Membership(
+        user_id=legacy_user.id,
+        organization_id=organization.id,
+        role_key="member",
+        membership_status="active",
+    )
+    db_session.add(membership)
+    db_session.commit()
+
+    client = make_client(
+        ALLOW_DEMO_ACTOR_FALLBACK="false",
+        SUPABASE_URL=supabase_jwks_server["base_url"],
+    )
+    token = supabase_jwks_server["issue_token"](
+        sub=supabase_user_id,
+        email="legacy-user@miro.local",
+        extra_claims={"user_metadata": {"full_name": "Supabase User"}},
+    )
+
+    response = client.get("/api/v1/auth/session", headers=_auth_headers(token))
+
+    assert response.status_code == 200
+    payload = response.json()
+    assert payload["user"]["id"] == supabase_user_id
+    assert payload["user"]["email"] == "legacy-user@miro.local"
+    assert payload["user"]["fullName"] == "Supabase User"
+    assert payload["membership"] == {
+        "organizationId": organization.id,
+        "roleKey": "member",
+        "membershipStatus": "active",
+    }
+
+    migrated_user = db_session.scalar(select(User).where(User.id == supabase_user_id))
+    assert migrated_user is not None
+    assert migrated_user.email == "legacy-user@miro.local"
+    assert migrated_user.full_name == "Supabase User"
+
+    legacy_user = db_session.scalar(select(User).where(User.id == legacy_user_id))
+    assert legacy_user is None
+
+    db_session.expire_all()
+    migrated_membership = db_session.scalar(
+        select(Membership).where(Membership.organization_id == organization.id)
+    )
+    assert migrated_membership is not None
+    assert migrated_membership.user_id == supabase_user_id
+
+
 def test_missing_bearer_token_returns_auth_token_required(make_client):
     client = make_client(ALLOW_DEMO_ACTOR_FALLBACK="false", SUPABASE_URL="http://127.0.0.1:9999")
 

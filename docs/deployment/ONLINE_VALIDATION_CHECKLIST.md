@@ -2,13 +2,13 @@
 
 This checklist is the post-deploy dry-run path for the current repository shape:
 
-- static frontend
-- FastAPI backend
+- Vercel static frontend
+- Alibaba Cloud ECS-hosted FastAPI backend
 - Supabase Auth + Postgres
 
 ## 1. Required deployed values
 
-Frontend runtime config:
+Frontend runtime config on Vercel:
 
 - `MIRO_API_BASE`
 - `MIRO_REVIEW_API_BASE`
@@ -16,7 +16,7 @@ Frontend runtime config:
 - `MIRO_SUPABASE_PUBLISHABLE_KEY`
 - `MIRO_SUPABASE_AUTH_REDIRECT_TO`
 
-Backend env:
+Backend env on ECS:
 
 - `APP_ENV=production`
 - `APP_DEBUG=false`
@@ -104,8 +104,9 @@ This mode temporarily:
 - API base points to localhost:
   - `MIRO_API_BASE` was not set for production
 - Backend health fails:
-  - Render web service did not start correctly
-  - `startCommand` or dependency install is wrong
+  - ECS service process did not start correctly
+  - uvicorn process, environment file, or migration step is wrong
+  - security group / nginx / sslip routing is wrong
 - CORS preflight fails:
   - `FRONTEND_SITE_URL` / `CORS_ORIGINS` does not match the deployed frontend origin
 - Auth redirect fails:
@@ -123,3 +124,19 @@ This checklist validates the current demo-capable product:
 - rule-based live session behavior
 
 It does not validate real payment providers, real hardware connectivity, or media-streaming infrastructure.
+
+## 6. Platform configuration pairing
+
+- Vercel frontend origin
+  - becomes `MIRO_SUPABASE_AUTH_REDIRECT_TO`
+  - becomes backend `FRONTEND_SITE_URL`
+  - must be included in backend `CORS_ORIGINS`
+  - must be registered in Supabase `Site URL` and `Redirect URLs`
+- ECS backend origin
+  - becomes `MIRO_API_BASE`
+  - becomes `MIRO_REVIEW_API_BASE`
+  - should answer `GET /api/v1/health`
+- Supabase project URL
+  - becomes `MIRO_SUPABASE_URL`
+  - becomes backend `SUPABASE_URL`
+  - should match `--expected-supabase-url` in `validate:online`

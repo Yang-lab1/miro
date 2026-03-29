@@ -15,6 +15,7 @@ from app.core.errors import AppError
 from app.models.review import Review, ReviewLine
 from app.models.simulation import RealtimeSessionAlert, RealtimeSessionTurn, VoiceProfileCatalog
 from app.modules.realtime import service as realtime_service
+from app.modules.realtime.grounding import build_realtime_grounding_context
 from app.services.current_actor import CurrentActor
 
 REVIEW_SOURCE_REALTIME_SESSION = "realtime_session"
@@ -205,8 +206,6 @@ def _build_next_step(country_key: str, top_issue_keys: list[str]) -> str:
     if country_key == "UAE":
         return "Next time, reinforce rapport first and then move into one gentle clarification."
     return "Next time, keep the response concrete and end with one focused clarifying question."
-
-
 def _build_review_metrics(
     turns: list[RealtimeSessionTurn],
     alerts: list[RealtimeSessionAlert],
@@ -236,6 +235,7 @@ def _build_review_summary(
     country_key: str,
     overall_assessment: str,
     top_issue_keys: list[str],
+    grounding_note: str | None = None,
 ) -> dict[str, str]:
     headline = {
         "needs_work": "Needs stronger control of the conversation.",
@@ -243,13 +243,17 @@ def _build_review_summary(
         "promising": "Strong rehearsal baseline.",
     }[overall_assessment]
 
+    coach_summary = _build_coach_summary(
+        country_key,
+        overall_assessment,
+        top_issue_keys,
+    )
+    if grounding_note:
+        coach_summary = f"{coach_summary} {grounding_note}"
+
     return {
         "headline": headline,
-        "coachSummary": _build_coach_summary(
-            country_key,
-            overall_assessment,
-            top_issue_keys,
-        ),
+        "coachSummary": coach_summary,
         "nextStep": _build_next_step(country_key, top_issue_keys),
     }
 
@@ -383,10 +387,19 @@ def create_review_from_realtime_session(
     metrics = _build_review_metrics(turns, alerts)
     top_issue_keys = [str(issue_key) for issue_key in metrics["topIssueKeys"]]
     overall_assessment = _build_overall_assessment(metrics)
+    grounding = build_realtime_grounding_context(session, realtime_session)
+    grounding_note = None
+    if grounding.uploaded_files:
+        file_name = grounding.uploaded_files[0].file_name
+        topic = file_name.rsplit(".", 1)[0].replace("-", " ").replace("_", " ").strip().lower()
+        grounding_note = (
+            f"The uploaded brief on {topic} should stay visible in how the next step is framed."
+        )
     summary = _build_review_summary(
         realtime_session.country_key,
         overall_assessment,
         top_issue_keys,
+        grounding_note,
     )
 
     review = Review(

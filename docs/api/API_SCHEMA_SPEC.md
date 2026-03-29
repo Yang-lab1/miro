@@ -151,7 +151,8 @@ Evaluate turn response:
 
 Current implementation note:
 
-- Uploaded files are still metadata-only at this stage. They are available for strategy generation and internal grounding prep, but they are not yet parsed, chunked, embedded, or retrieved through a vector database.
+- Uploaded files now persist lightweight extracted summaries and short excerpts for internal grounding prep.
+- They are still not parsed through a full document pipeline, chunked, embedded, or retrieved through a vector database.
 
 Production runtime note:
 
@@ -177,6 +178,10 @@ Current implementation note:
   - turn generation
   - alert extraction
 - The default turn generation and alert extraction paths remain demo-safe and rule-based.
+- Turn generation now consumes:
+  - strategy summary
+  - lightweight uploaded context summary / excerpts
+  - recent transcript lines
 - This scaffold is intended for future provider integration and RAG grounding work without changing the current API contract.
 
 ### Review Center

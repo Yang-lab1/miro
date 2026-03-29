@@ -98,16 +98,47 @@ def test_grounding_context_includes_uploaded_file_metadata_and_strategy_summary(
     assert len(grounding.uploaded_files) == 1
     assert grounding.uploaded_files[0].file_name == "brief.pdf"
     assert grounding.uploaded_files[0].source_type == "manual_upload"
-    assert grounding.uploaded_files[0].parse_status is None
+    assert grounding.uploaded_files[0].parse_status == "ready"
+    assert grounding.uploaded_files[0].extracted_summary_text is not None
+    assert "brief" in grounding.uploaded_files[0].extracted_summary_text.lower()
+    assert grounding.uploaded_files[0].extracted_excerpt_text is not None
+    assert grounding.uploaded_context_summary_en is not None
+    assert "brief" in grounding.uploaded_context_summary_en.lower()
+    assert grounding.uploaded_context_excerpts_en
+    assert "brief.pdf" in grounding.uploaded_context_excerpts_en[0]
     assert any("brief.pdf" in bullet for bullet in grounding.strategy_bullets_en)
 
 
-def test_rule_based_turn_generator_preserves_country_specific_response_shape(client, db_session):
+def test_rule_based_turn_generator_uses_grounded_context_in_response(client, db_session):
     from app.modules.realtime.grounding import build_realtime_grounding_context
     from app.modules.realtime.providers.base import RealtimeTurnGenerationContext
     from app.modules.realtime.turn_engine import RuleBasedRealtimeTurnGenerator
 
-    _, realtime_session_payload = _create_active_realtime_session(client, "Japan")
+    created = _create_simulation(client, "Japan", full_setup=True)
+    uploaded = client.post(
+        f"/api/v1/simulations/{created['simulationId']}/files",
+        json={
+            "files": [
+                {
+                    "fileName": "pricing-brief.pdf",
+                    "contentType": "application/pdf",
+                    "sizeBytes": 4096,
+                    "sourceType": "manual_upload",
+                }
+            ]
+        },
+    )
+    assert uploaded.status_code == 200
+    generated = client.post(f"/api/v1/simulations/{created['simulationId']}/strategy")
+    assert generated.status_code == 200
+    created_session = client.post(
+        "/api/v1/realtime/sessions",
+        json={"simulationId": created["simulationId"]},
+    )
+    assert created_session.status_code == 200
+    started = client.post(f"/api/v1/realtime/sessions/{created_session.json()['sessionId']}/start")
+    assert started.status_code == 200
+    realtime_session_payload = started.json()
     realtime_session = _load_realtime_session(db_session, realtime_session_payload["sessionId"])
     grounding = build_realtime_grounding_context(db_session, realtime_session)
 
@@ -121,11 +152,20 @@ def test_rule_based_turn_generator_preserves_country_specific_response_shape(cli
                 "for this introduction."
             ),
             grounding=grounding,
+            recent_transcript_lines=[
+                "assistant: Let us align on one practical next step first.",
+                (
+                    "user: Before anything else, we should discuss price and budget "
+                    "expectations for this introduction."
+                ),
+            ],
         )
     )
 
     assert "pricing expectations" in result.assistant_text
     assert "Before moving too fast on establish_trust_before_pricing" in result.assistant_text
+    assert "uploaded brief" in result.assistant_text
+    assert "pricing brief" in result.assistant_text.lower()
     assert result.focus_phrase == "pricing expectations"
 
 

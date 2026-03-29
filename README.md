@@ -55,6 +55,42 @@ Use the standard post-deploy validation command:
 - For a no-account local dry run of the same validation path: `npm run validate:online -- --local-dry-run`
 
 The full checklist lives in [docs/deployment/ONLINE_VALIDATION_CHECKLIST.md](/C:/Users/Yang/Desktop/miro/docs/deployment/ONLINE_VALIDATION_CHECKLIST.md).
+The platform-specific hosted path lives in [docs/deployment/VERCEL_ECS_DEPLOY.md](/C:/Users/Yang/Desktop/miro/docs/deployment/VERCEL_ECS_DEPLOY.md).
+
+## Hosted deployment path
+
+The primary hosted deployment path is now:
+
+- frontend on Vercel
+- backend on Alibaba Cloud ECS
+- auth + database on Supabase
+
+Current hosted validation snapshot:
+
+- frontend: `https://miro-vert.vercel.app`
+- backend health: `https://47-238-228-236.sslip.io/api/v1/health`
+
+Relevant frontend env:
+
+- `MIRO_API_BASE`
+- `MIRO_REVIEW_API_BASE`
+- `MIRO_SUPABASE_URL`
+- `MIRO_SUPABASE_PUBLISHABLE_KEY`
+- `MIRO_SUPABASE_AUTH_REDIRECT_TO`
+
+Relevant backend env:
+
+- `APP_ENV`
+- `APP_DEBUG`
+- `ENABLE_DOCS`
+- `FRONTEND_SITE_URL`
+- `CORS_ORIGINS`
+- `DATABASE_URL`
+- `SUPABASE_URL`
+- `SUPABASE_JWT_ISSUER`
+- `SUPABASE_JWKS_URL`
+- `SUPABASE_JWT_AUDIENCE`
+- `ALLOW_DEMO_ACTOR_FALLBACK`
 
 ## Open the prototype
 
@@ -74,7 +110,10 @@ Open [index.html](/C:/Users/Yang/Desktop/miro/index.html) through an HTTP server
 - Backend workspace: [backend](/C:/Users/Yang/Desktop/miro/backend)
 - Shared contracts workspace: [shared](/C:/Users/Yang/Desktop/miro/shared)
 - Debug scripts: [scripts](/C:/Users/Yang/Desktop/miro/scripts)
-- Render blueprint: [render.yaml](/C:/Users/Yang/Desktop/miro/render.yaml)
+- Vercel config: [vercel.json](/C:/Users/Yang/Desktop/miro/vercel.json)
+- ECS deployment guide: [VERCEL_ECS_DEPLOY.md](/C:/Users/Yang/Desktop/miro/docs/deployment/VERCEL_ECS_DEPLOY.md)
+- Legacy PaaS backend entrypoint reference: [backend/Procfile](/C:/Users/Yang/Desktop/miro/backend/Procfile)
+- Legacy Render blueprint reference: [render.yaml](/C:/Users/Yang/Desktop/miro/render.yaml)
 - Visual artifacts: [screenshots](/C:/Users/Yang/Desktop/miro/artifacts/screenshots)
 - Docs index: [docs/README.md](/C:/Users/Yang/Desktop/miro/docs/README.md)
 - Product requirements: [PRD.md](/C:/Users/Yang/Desktop/miro/docs/product/PRD.md)

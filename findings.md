@@ -1,29 +1,30 @@
-# Phase 22 Findings
+# Phase 23 Findings
 
-## The repo-side deployment work is ahead of the real execution bottleneck
-- The repository already contains the main deployment assets needed for a Render-based rollout:
-  - `render.yaml`
-  - runtime config generation
-  - backend production settings
-  - `npm run validate:online`
-  - `npm run smoke:http`
-- The limiting factor is no longer deployment design inside the repo.
+## The realtime scaffold already had the right seam lines
+- `respond_realtime_turn` was already split into:
+  - session orchestration
+  - grounding prep
+  - turn generation
+  - alert extraction
+- The main gap was not architecture. It was that uploaded files still stopped at metadata.
 
-## The current environment is missing both Render execution prerequisites
-- `git remote -v` returned no configured remotes, so the workspace is not connected to a pushable hosted repository that Render can consume.
-- `render --version` and `render whoami` both failed because the Render CLI is not installed on this machine.
-- Without at least a git remote and Render access, a real Render deployment cannot honestly be executed from this environment.
+## A lightweight persisted extraction layer is enough for this phase
+- Full OCR/RAG infrastructure is still unnecessary here.
+- Two persisted fields on `simulation_uploaded_files` are enough to create real internal grounding value:
+  - `extracted_summary_text`
+  - `extracted_excerpt_text`
+- This keeps the enhancement stable, actor-scoped, and deployment-safe.
 
-## This is an external blocker, not a code blocker
-- The current phase asked for a real hosted deployment and hosted validation.
-- The repo is already at the point where the next honest step requires:
-  - a pushed remote repository
-  - Render account access / login context
-- Continuing to edit code without those prerequisites would only create fake progress.
+## Grounding now affects both live and review in observable ways
+- Uploaded files now produce deterministic internal summaries/excerpts.
+- Realtime grounding payload now includes:
+  - per-file extracted text
+  - uploaded context summary
+  - uploaded context excerpts
+- Turn generation now visibly references uploaded context.
+- Review `coachSummary` and assistant review lines now show that grounded input influenced the final snapshot.
 
-## The prior deployment docs remain directionally consistent
-- The previously established docs still line up with the current product boundaries:
-  - Hardware remains demo-only
-  - Billing remains demo-only
-  - Production shape remains static frontend + FastAPI backend + Supabase
-- No new repo-side contradiction was found that would justify another deployment-readiness refactor before the real deploy attempt.
+## The main remaining gap is still true document intelligence
+- Uploaded context is no longer metadata-only.
+- But it is still not full parsing, chunking, embedding, or retrieval.
+- The next step after this phase is richer provider-backed grounding quality, not another deployment or API-contract pass.

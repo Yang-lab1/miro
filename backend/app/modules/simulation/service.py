@@ -1,3 +1,4 @@
+import re
 from dataclasses import dataclass
 from datetime import UTC, datetime
 
@@ -196,6 +197,35 @@ def _build_uploaded_file_response(
         status=record.upload_status,
         createdAt=record.created_at,
     )
+
+
+def _normalize_uploaded_context_topic(file_name: str) -> str:
+    stem = file_name.rsplit(".", 1)[0]
+    normalized = re.sub(r"[_\-]+", " ", stem)
+    normalized = re.sub(r"\s+", " ", normalized).strip().lower()
+    normalized = re.sub(r"\b(v\d+|final|copy|draft)\b", "", normalized)
+    normalized = re.sub(r"\s+", " ", normalized).strip()
+    return normalized or "uploaded context"
+
+
+def _extract_uploaded_file_stub_content(
+    file_name: str,
+    *,
+    content_type: str,
+    size_bytes: int,
+    source_type: str | None,
+) -> tuple[str, str]:
+    topic = _normalize_uploaded_context_topic(file_name)
+    source_label = source_type or "uploaded"
+    summary = (
+        f"Uploaded brief about {topic} from {file_name}. "
+        f"It is a {source_label} {content_type} file with {size_bytes} bytes of context."
+    )
+    excerpt = (
+        f"Reference from {file_name}: keep the live discussion anchored to {topic} "
+        "and use one concrete next step before moving into pressure or pricing."
+    )
+    return summary, excerpt
 
 
 def _parse_strategy_payload(payload: dict | None) -> SimulationStrategyResponse | None:
@@ -522,6 +552,12 @@ def add_simulation_files(
     simulation = _get_simulation_for_actor(session, actor, simulation_id)
 
     for file_payload in payload.files:
+        extracted_summary_text, extracted_excerpt_text = _extract_uploaded_file_stub_content(
+            file_payload.fileName,
+            content_type=file_payload.contentType,
+            size_bytes=file_payload.sizeBytes,
+            source_type=file_payload.sourceType,
+        )
         session.add(
             SimulationUploadedFile(
                 simulation_id=simulation.id,
@@ -530,8 +566,10 @@ def add_simulation_files(
                 size_bytes=file_payload.sizeBytes,
                 upload_status="registered",
                 storage_key=None,
-                parse_status=None,
+                parse_status="ready",
                 source_type=file_payload.sourceType,
+                extracted_summary_text=extracted_summary_text,
+                extracted_excerpt_text=extracted_excerpt_text,
             )
         )
 

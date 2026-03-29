@@ -1,30 +1,31 @@
-# Phase 22 Task Plan
+# Phase 23 Task Plan
 
 ## Goal
-- Execute the repo's real Render deployment path as far as possible.
-- Validate whether the current blueprint, runtime config, and deployment docs are sufficient for a hosted dry run.
-- If external access is missing, reduce the stop condition to one explicit blocker instead of leaving the phase ambiguous.
+- Move uploaded files from metadata-only placeholders into real internal grounding inputs.
+- Improve basic live realism without changing the current public API contract or hosted deployment shape.
+- Make review output reflect grounded uploaded context in a stable, testable way.
 
 ## Stages
 | Stage | Status | Notes |
 |---|---|---|
-| 1. Repo-first + docs-first exploration | complete | Re-read the deployment, architecture, API, flow, and product boundary docs before attempting hosted execution. |
-| 2. Planning | complete | Chosen direction: verify repo-side deploy assets first, then check real Render execution prerequisites, then either deploy and validate or stop at one external blocker. |
-| 3. Hosted execution attempt | blocked | Verified the repo has no git remote configured and the current machine has no Render CLI available, so a real Render deployment cannot proceed from this environment yet. |
-| 4. Verification and closeout | in_progress | Sync planning artifacts, preserve the validated repo-side deployment state, and report the single blocker clearly with no fake deployment claims. |
+| 1. Repo-first + docs-first audit | complete | Re-read product, deployment, architecture, API, flow, and planning docs; confirmed hosted deployment is already done and the next gap is uploaded context grounding. |
+| 2. TDD coverage for grounding realism | complete | Added failing tests for uploaded extraction persistence, grounding payload enrichment, grounded turn output, and grounded review summary. |
+| 3. Backend grounding enhancement | complete | Added lightweight extracted summary/excerpt persistence, grounding payload expansion, transcript-aware turn generation, and grounded review summary notes. |
+| 4. Regression + doc sync | complete | Backend full pytest, `smoke:http`, architecture/API/backend docs, and planning files are all updated to the new state. |
 
 ## Decisions
-- Keep the existing Render-based deployment shape:
-  - Render Static Site for the frontend
-  - Render Python Web Service for the backend
-  - Supabase for Auth and Postgres
-- Treat the current phase as an execution phase, not another deployment-readiness refactor.
-- Do not change business behavior, API contract, or demo semantics just to compensate for missing deployment access.
-- Reduce the external stop condition to one explicit blocker:
-  - Render deployment requires a pushed git remote plus Render access from this machine or account context.
+- Keep the hosted stack unchanged:
+  - frontend on Vercel
+  - backend on Alibaba Cloud ECS
+  - auth + database on Supabase
+- Keep realtime API shape unchanged.
+- Use a lightweight deterministic extraction model for uploaded files in this phase instead of full parsing/OCR/RAG infrastructure.
+- Let grounded context affect:
+  - internal realtime grounding payload
+  - assistant turn generation
+  - review summary text
 
 ## Constraints
-- Do not claim a hosted deployment succeeded unless it actually ran.
-- Do not introduce new secrets, test backdoors, or deployment-only behavior.
-- Do not break `npm run smoke:http` or the existing runtime-config flow.
-- Keep `task_plan.md`, `findings.md`, and `progress.md` aligned with the true execution state of Phase 22.
+- Do not break `npm run smoke:http`, hosted validation assumptions, or current actor-scoped security boundaries.
+- Do not introduce vector DB, embeddings, OCR, or media pipeline dependencies.
+- Do not expand Hardware or Billing beyond their demo-only scope.

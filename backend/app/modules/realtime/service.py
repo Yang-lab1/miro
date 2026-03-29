@@ -449,6 +449,32 @@ def _reserve_turn_index_pair(
     )
 
 
+def _load_recent_transcript_lines(
+    session: Session,
+    session_id: str,
+    *,
+    limit: int = 4,
+) -> list[str]:
+    turns = session.scalars(
+        select(RealtimeSessionTurn)
+        .where(RealtimeSessionTurn.session_id == session_id)
+        .order_by(
+            RealtimeSessionTurn.turn_index.desc(),
+            RealtimeSessionTurn.created_at.desc(),
+            RealtimeSessionTurn.id.desc(),
+        )
+        .limit(limit)
+    ).all()
+    ordered_turns = list(reversed(turns))
+    transcript_lines: list[str] = []
+    for turn in ordered_turns:
+        text = turn.normalized_text or turn.source_text or ""
+        if not text:
+            continue
+        transcript_lines.append(f"{turn.speaker}: {text}")
+    return transcript_lines
+
+
 def create_realtime_session(
     session: Session,
     actor: CurrentActor,
@@ -677,6 +703,10 @@ def respond_realtime_turn(
     )
     session.add(user_turn)
     session.flush()
+    recent_transcript_lines = _load_recent_transcript_lines(
+        session,
+        realtime_session.id,
+    )
 
     generated_turn = turn_generator.generate_turn(
         RealtimeTurnGenerationContext(
@@ -685,6 +715,7 @@ def respond_realtime_turn(
             language=language,
             normalized_text=normalized_text,
             grounding=grounding,
+            recent_transcript_lines=recent_transcript_lines,
         )
     )
     assistant_turn_created_at = _utcnow()

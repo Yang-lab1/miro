@@ -7,6 +7,7 @@ Create Date: 2026-03-26 14:00:00
 
 from alembic import op
 import sqlalchemy as sa
+from sqlalchemy.dialects import postgresql
 
 
 revision = "20260326_0011"
@@ -85,33 +86,22 @@ def upgrade() -> None:
     )
     op.create_index("ix_billing_accounts_current_plan_id", "billing_accounts", ["current_plan_id"], unique=False)
 
+    billing_plans = sa.table(
+        "billing_plans",
+        sa.column("id", sa.String(length=36)),
+        sa.column("plan_key", sa.String(length=64)),
+        sa.column("display_name", sa.String(length=128)),
+        sa.column("billing_cycle", sa.String(length=32)),
+        sa.column("currency_code", sa.String(length=8)),
+        sa.column("amount_value", sa.Numeric(12, 2)),
+        sa.column("is_active", sa.Boolean()),
+    )
+
     for plan in SEEDED_PLANS:
         bind.execute(
-            sa.text(
-                """
-                INSERT INTO billing_plans (
-                    id,
-                    plan_key,
-                    display_name,
-                    billing_cycle,
-                    currency_code,
-                    amount_value,
-                    is_active
-                )
-                SELECT
-                    :id,
-                    :plan_key,
-                    :display_name,
-                    :billing_cycle,
-                    :currency_code,
-                    :amount_value,
-                    :is_active
-                WHERE NOT EXISTS (
-                    SELECT 1 FROM billing_plans WHERE plan_key = :plan_key
-                )
-                """
-            ),
-            plan,
+            postgresql.insert(billing_plans)
+            .values(**plan)
+            .on_conflict_do_nothing(index_elements=["plan_key"])
         )
 
 

@@ -1,27 +1,53 @@
-# Phase 22 Progress Log
+# Phase 23 Progress Log
 
-## 2026-03-26
-- Switched from the completed Phase 21 deployment validation scope to Phase 22 real hosted deployment + hosted validation.
-- Re-read the required guardrail docs first to avoid drifting away from the already-agreed product boundaries:
+## 2026-03-29
+- Re-read the required guardrail docs first:
   - `docs/product/HARDWARE_SCOPE.md`
   - `docs/architecture/TECHNICAL_ARCHITECTURE.md`
   - `docs/api/API_SCHEMA_SPEC.md`
   - `docs/flows/FLOW_STATE_API_MAP.md`
   - `docs/deployment/ONLINE_VALIDATION_CHECKLIST.md`
+  - `docs/deployment/VERCEL_ECS_DEPLOY.md`
   - `README.md`
   - `backend/README.md`
-  - `render.yaml`
-- Confirmed the repo still targets:
-  - static frontend
-  - FastAPI backend
-  - Supabase Auth + Postgres
-  - Render deployment as the default hosted path
-- Checked the execution prerequisites for a real Render deployment from this machine:
-  - `git remote -v`
-  - `render --version`
-  - `render whoami`
-- Found the two hard facts that stop a real hosted deploy:
-  - there is no configured git remote in the repository
-  - the Render CLI is not installed on the machine
-- Determined that the phase is blocked by external deployment access rather than missing repo-side code.
-- Synced `task_plan.md`, `findings.md`, and `progress.md` to reflect the true Phase 22 state instead of leaving them at Phase 21.
+  - `task_plan.md`
+  - `findings.md`
+  - `progress.md`
+- Confirmed current boundaries still hold:
+  - Hardware remains demo-only
+  - Billing remains demo-only
+  - Hosted stack remains Vercel + ECS + Supabase
+- Audited the realtime path from simulation uploads to review snapshots and confirmed:
+  - uploaded files were still metadata-only
+  - grounding payload ignored extracted text because none existed
+  - turn generation did not consume uploaded context
+  - review summary could not reflect grounded input
+- Added failing tests first for:
+  - uploaded extraction persistence
+  - grounding payload enrichment
+  - grounded assistant turn generation
+  - grounded review summary / lines
+- Added migration `20260329_0012_uploaded_context_grounding.py`.
+- Added two persisted fields on `simulation_uploaded_files`:
+  - `extracted_summary_text`
+  - `extracted_excerpt_text`
+- Implemented lightweight deterministic extraction during file registration.
+- Extended realtime grounding payload with:
+  - per-file extracted summary/excerpt
+  - combined uploaded context summary
+  - uploaded context excerpts
+- Extended realtime turn generation to use:
+  - strategy summary
+  - uploaded context
+  - recent transcript lines
+- Added grounded alert detail enrichment for early pricing pushes when uploaded context exists.
+- Updated review summary generation so `coachSummary` reflects uploaded brief influence.
+- Re-ran focused pytest until the new coverage turned green.
+- Ran full backend pytest:
+  - `132 passed`
+- Ran backend Ruff:
+  - `All checks passed`
+- Re-ran unified frontend smoke:
+  - `npm run smoke:http`
+  - `17 passed`
+- Synced architecture/API/backend docs and planning files to the new Phase 23 state.

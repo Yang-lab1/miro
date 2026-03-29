@@ -1,0 +1,17 @@
+.git
+.codex
+.npm-cache
+.playwright-browsers
+.pytest_cache
+.ruff_cache
+artifacts
+backend
+docs
+node_modules
+output
+test-artifacts
+test-results
+tests
+findings.md
+progress.md
+task_plan.md

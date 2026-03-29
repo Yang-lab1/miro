@@ -7,13 +7,19 @@ import jwt
 from fastapi import Request
 from jwt import PyJWKClient
 from jwt.exceptions import ExpiredSignatureError, InvalidTokenError, PyJWKClientError
-from sqlalchemy import select
+from sqlalchemy import select, update
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
 from app.core.config import get_settings
 from app.core.errors import AppError
-from app.models.user import User
+from app.models.audit import AuditLog
+from app.models.billing import BillingAccount, Payment
+from app.models.hardware import Device
+from app.models.learning import UserLearningProgress
+from app.models.review import Review
+from app.models.simulation import RealtimeSession, Simulation
+from app.models.user import Membership, User, UserTwinMemory
 
 ASYMMETRIC_SIGNING_ALGORITHMS = ("RS256", "RS384", "RS512", "ES256", "ES384", "ES512")
 
@@ -191,6 +197,67 @@ def verify_supabase_token(token: str) -> VerifiedSupabaseClaims:
     )
 
 
+def _reassign_user_foreign_keys(
+    session: Session,
+    *,
+    from_user_id: str,
+    to_user_id: str,
+) -> None:
+    reassignments = (
+        (AuditLog, AuditLog.actor_user_id),
+        (BillingAccount, BillingAccount.user_id),
+        (Payment, Payment.user_id),
+        (Device, Device.user_id),
+        (UserLearningProgress, UserLearningProgress.user_id),
+        (Review, Review.user_id),
+        (Simulation, Simulation.user_id),
+        (RealtimeSession, RealtimeSession.user_id),
+        (Membership, Membership.user_id),
+        (UserTwinMemory, UserTwinMemory.user_id),
+    )
+
+    for model, column in reassignments:
+        session.execute(
+            update(model)
+            .where(column == from_user_id)
+            .values({column.key: to_user_id})
+        )
+
+
+def _migrate_legacy_user_to_supabase_subject(
+    session: Session,
+    *,
+    legacy_user: User,
+    claims: VerifiedSupabaseClaims,
+) -> User:
+    legacy_user.email = f"migrated+{legacy_user.id}@miro.local"
+    session.flush()
+
+    migrated_user = User(
+        id=claims.subject,
+        email=claims.email,
+        full_name=claims.full_name or legacy_user.full_name,
+        company_name=legacy_user.company_name,
+        role_title=legacy_user.role_title,
+        preferred_language=legacy_user.preferred_language,
+        status=legacy_user.status,
+        created_at=legacy_user.created_at,
+        updated_at=legacy_user.updated_at,
+    )
+    session.add(migrated_user)
+    session.flush()
+
+    _reassign_user_foreign_keys(
+        session,
+        from_user_id=legacy_user.id,
+        to_user_id=migrated_user.id,
+    )
+    session.delete(legacy_user)
+    session.flush()
+
+    return migrated_user
+
+
 def sync_supabase_user(session: Session, claims: VerifiedSupabaseClaims) -> User:
     existing_conflict = session.scalar(
         select(User)
@@ -200,17 +267,18 @@ def sync_supabase_user(session: Session, claims: VerifiedSupabaseClaims) -> User
         )
         .limit(1)
     )
-    if existing_conflict is not None:
-        raise AppError(
-            status_code=409,
-            code="auth_user_sync_failed",
-            message="Authenticated user could not be synchronized locally.",
-        )
 
     user = session.scalar(select(User).where(User.id == claims.subject).limit(1))
     has_changes = False
 
-    if user is None:
+    if user is None and existing_conflict is not None:
+        user = _migrate_legacy_user_to_supabase_subject(
+            session,
+            legacy_user=existing_conflict,
+            claims=claims,
+        )
+        has_changes = True
+    elif user is None:
         user = User(
             id=claims.subject,
             email=claims.email,

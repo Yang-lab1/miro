@@ -13,7 +13,13 @@ const BACKEND_PYTHON_PATH = path.join(
 );
 const INDEX_PATH = path.join(ROOT_DIR, "index.html");
 const RUNTIME_CONFIG_PATH = path.join(ROOT_DIR, "runtime-config.js");
-const RENDER_BLUEPRINT_PATH = path.join(ROOT_DIR, "render.yaml");
+const VERCEL_CONFIG_PATH = path.join(ROOT_DIR, "vercel.json");
+const ECS_DEPLOY_GUIDE_PATH = path.join(
+  ROOT_DIR,
+  "docs",
+  "deployment",
+  "VERCEL_ECS_DEPLOY.md"
+);
 const DEFAULT_HEALTH_PATH = "/api/v1/health";
 const DEFAULT_AUTH_SESSION_PATH = "/api/v1/auth/session";
 
@@ -231,10 +237,11 @@ async function withLocalDryRun(callback) {
 }
 
 async function checkLocalFiles() {
-  const [indexHtml, runtimeConfig, renderYaml] = await Promise.all([
+  const [indexHtml, runtimeConfig, vercelConfig, ecsDeployGuide] = await Promise.all([
     fs.readFile(INDEX_PATH, "utf8"),
     fs.readFile(RUNTIME_CONFIG_PATH, "utf8"),
-    fs.readFile(RENDER_BLUEPRINT_PATH, "utf8"),
+    fs.readFile(VERCEL_CONFIG_PATH, "utf8"),
+    fs.readFile(ECS_DEPLOY_GUIDE_PATH, "utf8"),
   ]);
 
   if (!indexHtml.includes('src="runtime-config.js"')) {
@@ -247,10 +254,21 @@ async function checkLocalFiles() {
   }
   pass("local runtime-config defaults", "no hardcoded localhost backend");
 
-  if (!renderYaml.includes("healthCheckPath: /api/v1/health")) {
-    throw new Error("render.yaml is missing backend healthCheckPath.");
+  if (!vercelConfig.includes('"destination": "/index.html"')) {
+    throw new Error("vercel.json is missing the SPA rewrite to index.html.");
   }
-  pass("render blueprint health path", "/api/v1/health");
+  if (!vercelConfig.includes('"/runtime-config.js"')) {
+    throw new Error("vercel.json is missing the runtime-config.js cache rule.");
+  }
+  pass("vercel config", "SPA rewrite + runtime-config cache header");
+
+  if (!ecsDeployGuide.includes("Alibaba Cloud ECS")) {
+    throw new Error("VERCEL_ECS_DEPLOY.md is missing the ECS deployment path.");
+  }
+  if (!ecsDeployGuide.includes("uvicorn")) {
+    throw new Error("VERCEL_ECS_DEPLOY.md is missing the uvicorn backend run guidance.");
+  }
+  pass("ecs deployment guide", "deployment doc matches the current hosted backend path");
 }
 
 async function checkFrontendAndRuntime({

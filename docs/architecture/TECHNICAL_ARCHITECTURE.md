@@ -55,7 +55,7 @@ Responsibilities:
 - Retrieve country package and user memory
 - Run language-signal evaluation
 - Stream transcript and alerts to the session UI
-- Prepare uploaded file metadata and strategy output as future grounding inputs for live generation
+- Prepare lightweight uploaded context summaries and excerpts plus strategy output for live grounding
 
 ### 2.5 Review Service
 
@@ -98,7 +98,7 @@ Responsibilities:
 ### 3.2 Live simulation flow
 
 1. Frontend sends user draft text or live ASR transcript.
-2. Realtime session orchestration validates the active session and assembles grounding context from simulation setup, generated strategy, and uploaded file metadata.
+2. Realtime session orchestration validates the active session and assembles grounding context from simulation setup, generated strategy, lightweight uploaded context summaries/excerpts, and recent transcript lines.
 3. Turn generation produces the partner response.
 4. Alert analysis extracts language-signal issues from the latest user turn.
 5. Alert objects and partner response are returned/streamed.
@@ -113,8 +113,9 @@ Current implementation note:
   - uploaded context grounding prep
   - turn generation
   - alert extraction
-- Uploaded files are still metadata-only in this phase. They are prepared as grounding inputs but are not yet parsed into full retrieval chunks or embeddings.
-- The default turn generation and alert extraction logic remain rule-based so the current demo and smoke suite stay stable while future provider integration is prepared.
+- Uploaded files now persist lightweight extracted summaries and short excerpts so live grounding can use them without changing the public API.
+- The current extraction is intentionally lightweight and deterministic. It is not yet full document parsing, chunking, embedding, or retrieval.
+- The default turn generation and alert extraction logic remain rule-based, but partner replies and review summaries can now reflect grounded uploaded context while the demo and smoke suite stay stable.
 
 ### 3.3 Hardware demo state flow
 
@@ -191,13 +192,16 @@ It does not include BLE, USB, firmware, drivers, provisioning, or real wearable 
 
 Recommended production deployment:
 
-- Static frontend hosted on Render Static Sites or an equivalent static host
-- FastAPI backend hosted as a Python web service
+- Static frontend hosted on Vercel
+- FastAPI backend hosted on Alibaba Cloud ECS
 - Supabase for Postgres + Auth
 - Frontend runtime values injected at deploy time through `runtime-config.js`
 - Backend health check on `/api/v1/health`
 - Strict CORS allow-list based on the deployed frontend origin
 - Post-deploy verification through the repository `validate:online` command plus the deployment checklist
+- Current live validation uses:
+  - frontend `https://miro-vert.vercel.app`
+  - backend `https://47-238-228-236.sslip.io/api/v1`
 
 ## 8. Prototype-to-Production Gap
 
@@ -214,6 +218,6 @@ What remains for production build:
 
 - real file parsing
 - richer live provider integration
-- vector retrieval / grounding beyond metadata
+- vector retrieval / grounding beyond lightweight extracted summaries
 - device integration API
 - payment provider integration

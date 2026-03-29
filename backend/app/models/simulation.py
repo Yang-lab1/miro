@@ -63,6 +63,8 @@ class SimulationUploadedFile(Base, IdMixin, TimestampMixin):
     storage_key: Mapped[str | None] = mapped_column(String(512), nullable=True)
     parse_status: Mapped[str | None] = mapped_column(String(64), nullable=True)
     source_type: Mapped[str | None] = mapped_column(String(64), nullable=True)
+    extracted_summary_text: Mapped[str | None] = mapped_column(Text, nullable=True)
+    extracted_excerpt_text: Mapped[str | None] = mapped_column(Text, nullable=True)
 
 
 class RealtimeSession(Base, IdMixin, TimestampMixin):

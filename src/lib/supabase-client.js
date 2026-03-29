@@ -43,20 +43,23 @@ export async function getAccessToken() {
   return session ? session.access_token : null;
 }
 
-export async function signInWithPassword(email, password) {
+export async function signInWithPassword(email, password, captchaToken) {
   const client = getSupabaseClient();
   if (!client) {
     throw new Error("Supabase auth is not configured.");
   }
   const { data, error } = await client.auth.signInWithPassword({
     email,
-    password
+    password,
+    options: {
+      captchaToken: captchaToken || undefined
+    }
   });
   if (error) throw error;
   return data;
 }
 
-export async function signUpWithPassword(email, password) {
+export async function signUpWithPassword(email, password, captchaToken) {
   const client = getSupabaseClient();
   if (!client) {
     throw new Error("Supabase auth is not configured.");
@@ -65,8 +68,31 @@ export async function signUpWithPassword(email, password) {
     email,
     password,
     options: {
-      emailRedirectTo: SUPABASE_AUTH_REDIRECT_TO || undefined
+      emailRedirectTo: SUPABASE_AUTH_REDIRECT_TO || undefined,
+      captchaToken: captchaToken || undefined
     }
+  });
+  if (error) throw error;
+  return data;
+}
+
+export async function signInWithOAuthProvider(provider) {
+  const client = getSupabaseClient();
+  if (!client) {
+    throw new Error("Supabase auth is not configured.");
+  }
+
+  const options = {
+    redirectTo: SUPABASE_AUTH_REDIRECT_TO || undefined
+  };
+
+  if (provider === "google") {
+    options.scopes = "email profile";
+  }
+
+  const { data, error } = await client.auth.signInWithOAuth({
+    provider,
+    options
   });
   if (error) throw error;
   return data;

@@ -2,7 +2,7 @@ import pytest
 from sqlalchemy import select
 
 from app.core.errors import AppError
-from app.models.simulation import Simulation
+from app.models.simulation import Simulation, SimulationUploadedFile
 from app.models.user import User
 from app.modules.simulation import service as simulation_service
 from app.services.current_actor import resolve_current_actor
@@ -73,7 +73,7 @@ def test_patch_simulation_to_ready_and_noop_preserves_revision(client):
     assert noop.json()["setupRevision"] == 2
 
 
-def test_add_files_bumps_revision_and_returns_placeholder_fields(client):
+def test_add_files_bumps_revision_and_persists_grounding_stub_fields(client, db_session):
     created = _create_simulation(client, "Japan", full_setup=True)
 
     response = client.post(
@@ -98,8 +98,19 @@ def test_add_files_bumps_revision_and_returns_placeholder_fields(client):
     file_payload = payload["uploadedFiles"][0]
     assert file_payload["sourceType"] == "manual_upload"
     assert file_payload["storageKey"] is None
-    assert file_payload["parseStatus"] is None
+    assert file_payload["parseStatus"] == "ready"
     assert file_payload["status"] == "registered"
+
+    record = db_session.scalar(
+        select(SimulationUploadedFile).where(
+            SimulationUploadedFile.id == file_payload["fileId"]
+        )
+    )
+    assert record is not None
+    assert record.extracted_summary_text is not None
+    assert "brief" in record.extracted_summary_text.lower()
+    assert record.extracted_excerpt_text is not None
+    assert "brief.pdf" in record.extracted_excerpt_text
 
 
 def test_generate_strategy_and_invalidate_on_setup_change(client):

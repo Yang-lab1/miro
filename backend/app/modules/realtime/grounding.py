@@ -53,6 +53,30 @@ def _parse_strategy_payload(
         return None
 
 
+def _build_uploaded_context_summary(
+    uploaded_files: list[SimulationUploadedFile],
+) -> str | None:
+    summaries = [
+        str(file_record.extracted_summary_text).strip()
+        for file_record in uploaded_files
+        if file_record.extracted_summary_text
+    ]
+    if not summaries:
+        return None
+    return " ".join(summaries[:2])
+
+
+def _build_uploaded_context_excerpts(
+    uploaded_files: list[SimulationUploadedFile],
+) -> list[str]:
+    excerpts = [
+        str(file_record.extracted_excerpt_text).strip()
+        for file_record in uploaded_files
+        if file_record.extracted_excerpt_text
+    ]
+    return excerpts[:3]
+
+
 def build_realtime_grounding_context(
     session: Session,
     realtime_session: RealtimeSession,
@@ -65,6 +89,9 @@ def build_realtime_grounding_context(
     if strategy is not None:
         for item in strategy.items:
             strategy_bullets_en.extend(item.bullets.en)
+
+    uploaded_context_summary_en = _build_uploaded_context_summary(uploaded_files)
+    uploaded_context_excerpts_en = _build_uploaded_context_excerpts(uploaded_files)
 
     return RealtimeGroundingContext(
         simulation_id=simulation.id,
@@ -87,7 +114,11 @@ def build_realtime_grounding_context(
                 storage_key=file_record.storage_key,
                 parse_status=file_record.parse_status,
                 upload_status=file_record.upload_status,
+                extracted_summary_text=file_record.extracted_summary_text,
+                extracted_excerpt_text=file_record.extracted_excerpt_text,
             )
             for file_record in uploaded_files
         ],
+        uploaded_context_summary_en=uploaded_context_summary_en,
+        uploaded_context_excerpts_en=uploaded_context_excerpts_en,
     )

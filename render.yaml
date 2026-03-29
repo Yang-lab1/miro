@@ -1,3 +1,5 @@
+# Legacy reference blueprint retained from the earlier Render deployment path.
+# The primary hosted deployment path now uses Vercel for the frontend and Alibaba Cloud ECS for the backend.
 services:
   - type: web
     name: miro-frontend

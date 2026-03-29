@@ -31,14 +31,18 @@ class RuleBasedRealtimeAlertAnalyzer:
             )
             and len(alerts) < 2
         ):
+            detail_text = "This opening risks pushing pricing before trust is established."
+            if context.grounding.uploaded_context_summary_en:
+                detail_text = (
+                    f"{detail_text} It also ignores the uploaded brief: "
+                    f"{context.grounding.uploaded_context_summary_en}"
+                )
             alerts.append(
                 RealtimeAlertSpec(
                     issue_key="premature_pricing_push",
                     severity="high",
                     title_text="Price pressure is too early",
-                    detail_text=(
-                        "This opening risks pushing pricing before trust is established."
-                    ),
+                    detail_text=detail_text,
                 )
             )
 
