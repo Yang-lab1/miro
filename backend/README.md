@@ -96,7 +96,7 @@ For post-deploy validation, run the root command:
 Current hosted auth note:
 
 - if `MIRO_TURNSTILE_SITE_KEY` is empty, the frontend now uses a demo-safe email auth fallback instead of disabling the public auth form
-- dual-account hosted isolation still requires a second confirmed Supabase account
+- dual-account hosted isolation has now been verified with a second real Supabase account through the hosted browser flow
 
 Use [docs/deployment/ONLINE_VALIDATION_CHECKLIST.md](/C:/Users/Yang/Desktop/miro/docs/deployment/ONLINE_VALIDATION_CHECKLIST.md) for the manual auth, isolation, Pricing, Hardware, and Live -> Review checks that follow the automated probe.
 

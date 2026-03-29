@@ -99,7 +99,7 @@ Current hosted snapshot note:
 
 - `runtime-config.js` currently exposes an empty `MIRO_TURNSTILE_SITE_KEY`.
 - The hosted auth modal now falls back to demo-safe email/password auth instead of disabling submit.
-- If signup confirmation is enabled, a newly registered second account must still confirm its email before the dual-account isolation rehearsal can be completed.
+- Dual-account hosted isolation has now been validated with two real accounts. If a future fresh second account must be created during rehearsal, signup confirmation may still require email verification before that new account can log in.
 
 ### Account-scoped data
 

@@ -22,13 +22,15 @@
   - Live -> grounded Review flow
   - true UI logout
 
-## Public register also works through the real UI, but second-account verification still needs one external input
-- The supplied second credential still fails real hosted login with `Invalid login credentials`.
-- A real hosted register attempt for that account now reaches the email-confirmation path instead of being blocked by the frontend.
-- A generated fallback account also reached the hosted register path, but Supabase then hit email send rate limiting.
-- Because of that, dual-account hosted isolation is still not honestly complete.
+## Dual-account hosted isolation is now truly verified
+- The newly supplied second account `593976339@qq.com` authenticated through the hosted public auth UI.
+- Account 1 and account 2 resolved to different actor ids.
+- After account 1 changed Pricing, Hardware, and Review state, account 2's billing, hardware, and review snapshots remained unchanged.
+- The previous dual-account blocker has therefore been cleared.
 
 ## The repo and docs now match the real hosted state
 - README and deployment docs no longer claim the hosted email form is disabled.
-- The remaining limitation is now stated correctly:
-  - the second account is not yet confirmed/login-capable for the hosted isolation check.
+- Planning files now reflect the true final state:
+  - public hosted auth works
+  - true hosted rehearsal works
+  - dual-account isolation has been verified

@@ -17,7 +17,7 @@
   - frontend on Vercel
   - backend on Alibaba Cloud ECS
   - auth + database on Supabase
-- Confirmed the public auth problem was real and frontend-side:
+- Confirmed the public auth problem was frontend-side:
   - hosted `runtime-config.js` still had empty `MIRO_TURNSTILE_SITE_KEY`
   - backend `/api/v1/health` remained healthy
   - unauthenticated `/api/v1/auth/session` still returned `401`
@@ -45,16 +45,13 @@
 - Re-ran hosted validation:
   - `validate:online -- --frontend-url https://miro-vert.vercel.app --backend-url https://47-238-228-236.sslip.io --expected-supabase-url https://wzqpboqlhzxqbfautlxe.supabase.co`
   - passed
-- Re-ran true hosted rehearsal:
-  - real UI account-1 login succeeded
-  - Pricing persisted online
+- Re-ran true hosted rehearsal with the original account 1 and the new account 2:
+  - account 2 real UI login succeeded
+  - account 1 real UI login succeeded
+  - Pricing top-up persisted online
   - Hardware sync persisted online
   - learning precheck completed
   - Live -> grounded Review flow succeeded
   - real UI logout succeeded
-- Re-tested second-account hosted path:
-  - supplied account 2 login still failed with invalid credentials
-  - real hosted register for that account now reached email confirmation
-  - generated fallback account then hit Supabase email rate limiting
-- Updated docs and planning files to remove the old “email submit disabled” claim and replace it with the true remaining blocker:
-  - a second confirmed login-capable account is still required for the final hosted dual-account isolation check
+  - dual-account isolation snapshot remained stable
+- Updated docs and planning files to remove the old dual-account blocker and reflect the true final hosted verification state.
