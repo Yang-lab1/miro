@@ -268,7 +268,7 @@ test("protected live and review routes stay gated when unauthenticated", async (
   assertNoClientDiagnostics(diagnostics);
 });
 
-test("auth modal shows disabled email fallback when Turnstile is not configured", async ({
+test("auth modal keeps email auth available when Turnstile is not configured", async ({
   page
 }) => {
   const diagnostics = trackClientDiagnostics(page);
@@ -290,10 +290,12 @@ test("auth modal shows disabled email fallback when Turnstile is not configured"
   ).toBeVisible();
   await expect(
     page.locator("[data-turnstile-message]")
-  ).toHaveText("Email is temporarily unavailable until Turnstile is configured.");
+  ).toHaveText(
+    "Security check is not configured for this demo environment. Email auth remains enabled."
+  );
   await expect(
     page.getByRole("button", { name: "Create account with email" })
-  ).toBeDisabled();
+  ).toBeEnabled();
   await expect(
     page.getByRole("button", { name: "Continue with Apple" })
   ).toHaveCount(0);

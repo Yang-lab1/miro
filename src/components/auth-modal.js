@@ -23,7 +23,8 @@ export function authModal(ctx) {
   const captchaState = state.turnstile?.uiState || "idle";
   const captchaMessage = state.turnstile?.message || t().auth.turnstileIdle;
   const authFeedback = state.authFeedback?.message || "";
-  const turnstileAvailable = captchaState !== "unavailable";
+  const turnstileAvailable =
+    captchaState !== "unavailable" && captchaState !== "bypassed";
 
   return `
     <div class="modal-backdrop ${state.authOpen ? "open" : ""}">

@@ -117,6 +117,8 @@ const COPY = {
       turnstileExpired: "Verification expired. Please complete it again.",
       turnstileError: "Verification could not load. Try again in a moment.",
       turnstileUnavailable: "Email is temporarily unavailable until Turnstile is configured.",
+      turnstileBypassed:
+        "Security check is not configured for this demo environment. Email auth remains enabled.",
       turnstileRequired: "Complete verification before continuing with email.",
       emailWorking: "Working..."
     },
@@ -287,6 +289,8 @@ COPY.zh.auth = {
   turnstileExpired: "Verification expired. Please complete it again.",
   turnstileError: "Verification could not load. Try again in a moment.",
   turnstileUnavailable: "Email is temporarily unavailable until Turnstile is configured.",
+  turnstileBypassed:
+    "Security check is not configured for this demo environment. Email auth remains enabled.",
   turnstileRequired: "请先完成验证，再继续邮箱登录或注册。",
   emailWorking: "提交中..."
 };
@@ -586,10 +590,10 @@ function createTurnstileState() {
   const hasSiteKey = Boolean(TURNSTILE_SITE_KEY);
   return {
     scriptStatus: hasSiteKey ? "idle" : "disabled",
-    uiState: hasSiteKey ? "idle" : "unavailable",
+    uiState: hasSiteKey ? "idle" : "bypassed",
     token: null,
     widgetId: null,
-    emailDisabled: !hasSiteKey,
+    emailDisabled: false,
     message: ""
   };
 }
@@ -841,6 +845,7 @@ function getTurnstileMessage(uiState) {
   if (uiState === "expired") return t().auth.turnstileExpired;
   if (uiState === "error") return t().auth.turnstileError;
   if (uiState === "unavailable") return t().auth.turnstileUnavailable;
+  if (uiState === "bypassed") return t().auth.turnstileBypassed;
   return t().auth.turnstileIdle;
 }
 
@@ -924,8 +929,8 @@ function resetTurnstileState() {
   state.turnstile.scriptStatus = TURNSTILE_SITE_KEY
     ? hadReadyScript ? "ready" : "idle"
     : "disabled";
-  state.turnstile.uiState = TURNSTILE_SITE_KEY ? "idle" : "unavailable";
-  state.turnstile.emailDisabled = !TURNSTILE_SITE_KEY;
+  state.turnstile.uiState = TURNSTILE_SITE_KEY ? "idle" : "bypassed";
+  state.turnstile.emailDisabled = false;
   state.turnstile.message = getTurnstileMessage(state.turnstile.uiState);
   syncAuthSurface();
 }
@@ -1011,8 +1016,8 @@ async function syncTurnstileLifecycle() {
   if (!TURNSTILE_SITE_KEY) {
     updateTurnstileState({
       scriptStatus: "disabled",
-      uiState: "unavailable",
-      emailDisabled: true,
+      uiState: "bypassed",
+      emailDisabled: false,
       token: null,
       widgetId: null
     });
@@ -3189,7 +3194,9 @@ function bindEvents() {
       return;
     }
 
-    if (state.turnstile.emailDisabled) {
+    const turnstileRequired = Boolean(TURNSTILE_SITE_KEY);
+
+    if (turnstileRequired && state.turnstile.emailDisabled) {
       setAuthFeedback(
         state.turnstile.uiState === "unavailable"
           ? t().auth.turnstileUnavailable
@@ -3199,7 +3206,7 @@ function bindEvents() {
       return;
     }
 
-    if (!state.turnstile.token) {
+    if (turnstileRequired && !state.turnstile.token) {
       setAuthFeedback(t().auth.turnstileRequired);
       syncAuthSurface();
       return;
@@ -3208,12 +3215,16 @@ function bindEvents() {
     state.authPending = true;
     syncAuthSurface();
 
-    try {
-      if (state.authMode === "register") {
-        const signUpResult = await signUpWithPassword(email, password, state.turnstile.token);
-        if (signUpResult.session) {
-          await syncAuthSessionFromBackend({
-            redirectPending: true,
+      try {
+        if (state.authMode === "register") {
+        const signUpResult = await signUpWithPassword(
+          email,
+          password,
+          turnstileRequired ? state.turnstile.token : null
+        );
+          if (signUpResult.session) {
+            await syncAuthSessionFromBackend({
+              redirectPending: true,
             renderAfter: false
           });
           pushToast(
@@ -3237,7 +3248,11 @@ function bindEvents() {
         return;
       }
 
-      await signInWithPassword(email, password, state.turnstile.token);
+      await signInWithPassword(
+        email,
+        password,
+        turnstileRequired ? state.turnstile.token : null
+      );
       await syncAuthSessionFromBackend({
         redirectPending: true,
         renderAfter: false
