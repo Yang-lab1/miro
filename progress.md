@@ -1,4 +1,4 @@
-# Phase 25 Progress Log
+# Phase 25A Progress Log
 
 ## 2026-03-29
 - Re-read the required guardrail docs first:
@@ -13,37 +13,48 @@
   - `task_plan.md`
   - `findings.md`
   - `progress.md`
-- Confirmed current boundaries still hold:
-  - Hardware remains demo-only
-  - Billing remains demo-only
-  - hosted stack remains Vercel + ECS + Supabase
-- Audited repo sync state:
-  - branch = `main`
-  - remote = `origin https://github.com/Yang-lab1/miro.git`
-  - local working tree contained the expected Phase 24 changes plus the new Phase 25 rehearsal/doc sync work
-- Re-ran hosted validation baseline:
-  - `npm run validate:online -- --frontend-url https://miro-vert.vercel.app --backend-url https://47-238-228-236.sslip.io --expected-supabase-url https://wzqpboqlhzxqbfautlxe.supabase.co`
-  - hosted `runtime-config.js`
-  - backend `/api/v1/health`
-  - unauthenticated `/api/v1/auth/session`
-- Added `scripts/rehearse-hosted-demo.js`.
-- Added the repo command:
-  - `npm run rehearse:hosted`
-- Ran real hosted browser rehearsal with supplied credentials.
-- Confirmed the hosted auth modal currently shows:
-  - email/password submit disabled
-  - message: `Email is temporarily unavailable until Turnstile is configured.`
-- Confirmed account 1 can still authenticate through a real Supabase session and use the hosted workspace.
-- Confirmed hosted Pricing mutation:
-  - top-up persisted online
-- Confirmed hosted Hardware mutation:
-  - sync/log/sync-record counts increased online
-- Confirmed learning precheck could be completed through the existing backend API for the rehearsal account.
-- Confirmed hosted Live -> Review flow:
-  - session started after learning precheck completion
-  - grounded uploaded text influenced the rehearsal
-  - review detail loaded with grounded output
-- Confirmed hosted logout returns to a public route.
-- Confirmed the second supplied credential is invalid for Supabase password login, so dual-account isolation could not be fully re-run this phase.
-- Updated deployment/checklist docs to reflect the current hosted Turnstile reality and the new hosted rehearsal command.
-- Synced planning files to the final Phase 25 state.
+- Confirmed the hosted stack is still:
+  - frontend on Vercel
+  - backend on Alibaba Cloud ECS
+  - auth + database on Supabase
+- Confirmed the public auth problem was real and frontend-side:
+  - hosted `runtime-config.js` still had empty `MIRO_TURNSTILE_SITE_KEY`
+  - backend `/api/v1/health` remained healthy
+  - unauthenticated `/api/v1/auth/session` still returned `401`
+  - the auth modal submit button was disabled only because frontend Turnstile gating treated “no site key” as “auth unavailable”
+- Updated local smoke first:
+  - changed the no-Turnstile expectation to “email auth remains enabled”
+  - ran the focused auth smoke and got a red failure before code changes
+- Fixed frontend auth gating:
+  - empty site key now maps to a demo-safe bypass state instead of `emailDisabled=true`
+  - email auth submit no longer requires a captcha token when no site key is configured
+  - Turnstile-required flows remain unchanged when a site key exists
+- Updated `scripts/rehearse-hosted-demo.js`:
+  - removed direct session injection as the auth path
+  - real hosted login now uses the public modal and form
+  - second account logic now tries true login first, then true register
+  - the script now reports core hosted rehearsal results before surfacing a second-account blocker
+- Ran local regression:
+  - focused auth smoke passed
+  - `npm run smoke:http` passed
+  - `npm run validate:online` passed
+- Pushed the frontend auth closure change to `origin/main`.
+- Waited for hosted rollout and re-checked the real auth modal:
+  - email submit is now enabled
+  - hosted message now says the security check is not configured but email auth remains enabled
+- Re-ran hosted validation:
+  - `validate:online -- --frontend-url https://miro-vert.vercel.app --backend-url https://47-238-228-236.sslip.io --expected-supabase-url https://wzqpboqlhzxqbfautlxe.supabase.co`
+  - passed
+- Re-ran true hosted rehearsal:
+  - real UI account-1 login succeeded
+  - Pricing persisted online
+  - Hardware sync persisted online
+  - learning precheck completed
+  - Live -> grounded Review flow succeeded
+  - real UI logout succeeded
+- Re-tested second-account hosted path:
+  - supplied account 2 login still failed with invalid credentials
+  - real hosted register for that account now reached email confirmation
+  - generated fallback account then hit Supabase email rate limiting
+- Updated docs and planning files to remove the old “email submit disabled” claim and replace it with the true remaining blocker:
+  - a second confirmed login-capable account is still required for the final hosted dual-account isolation check

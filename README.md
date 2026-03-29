@@ -72,8 +72,8 @@ Current hosted validation snapshot:
 - backend health: `https://47-238-228-236.sslip.io/api/v1/health`
 - current hosted auth UI note:
   - `MIRO_TURNSTILE_SITE_KEY` is empty in `runtime-config.js`
-  - email/password submit is currently disabled in the hosted auth modal until Turnstile is configured
-  - hosted rehearsal for authenticated workspace flows therefore uses valid Supabase sessions rather than the disabled email form
+  - the hosted auth modal now falls back to demo-safe email/password auth instead of disabling submit
+  - `npm run rehearse:hosted` now exercises the real public auth UI rather than injecting a session
 
 Relevant frontend env:
 

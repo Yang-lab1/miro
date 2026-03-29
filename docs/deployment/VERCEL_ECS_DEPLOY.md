@@ -25,12 +25,14 @@ Vercel runtime env:
 - `MIRO_SUPABASE_URL=https://wzqpboqlhzxqbfautlxe.supabase.co`
 - `MIRO_SUPABASE_PUBLISHABLE_KEY=<supabase-publishable-key>`
 - `MIRO_SUPABASE_AUTH_REDIRECT_TO=https://miro-vert.vercel.app`
+- `MIRO_TURNSTILE_SITE_KEY=<optional-turnstile-site-key>`
 
 Notes:
 
 - `vercel.json` runs `npm run runtime:config` during build.
 - `runtime-config.js` is served with `Cache-Control: no-store` so production env changes are not hidden behind stale cache.
 - SPA routes are rewritten back to `index.html`.
+- When `MIRO_TURNSTILE_SITE_KEY` is omitted, the hosted auth modal now falls back to demo-safe email auth instead of disabling the public form.
 
 ## 2. Backend on Alibaba Cloud ECS
 

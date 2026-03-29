@@ -98,8 +98,8 @@ Required env for that command:
 Current hosted snapshot note:
 
 - `runtime-config.js` currently exposes an empty `MIRO_TURNSTILE_SITE_KEY`.
-- That means the hosted email/password submit button is disabled in the auth modal until Turnstile is configured.
-- OAuth or a pre-existing Supabase session remains the safer demo path for hosted rehearsals right now.
+- The hosted auth modal now falls back to demo-safe email/password auth instead of disabling submit.
+- If signup confirmation is enabled, a newly registered second account must still confirm its email before the dual-account isolation rehearsal can be completed.
 
 ### Account-scoped data
 

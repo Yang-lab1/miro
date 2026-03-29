@@ -1,34 +1,34 @@
-# Phase 25 Findings
+# Phase 25A Findings
 
-## The hosted stack is healthy and contract-consistent
-- `validate:online` passed against the real Vercel frontend and ECS backend.
-- Hosted `runtime-config.js` points to the correct ECS API base and Supabase project.
-- Backend `/api/v1/health` is healthy and unauthenticated `/api/v1/auth/session` still returns `401`.
+## The hosted auth failure was a frontend gating bug, not a backend outage
+- Hosted `runtime-config.js` still exposes an empty `MIRO_TURNSTILE_SITE_KEY`.
+- Backend health and auth boundary were already healthy.
+- The real blocker was the frontend treating “no site key” as “disable email auth entirely”.
 
-## A real browser rehearsal is now repeatable from the repo
-- The repo now has a dedicated command for hosted browser rehearsal:
-  - `npm run rehearse:hosted`
-- That command exercises:
-  - home load
-  - authenticated pricing mutation
-  - hardware sync mutation
-  - live -> grounded review flow
-  - logout
-- This is better than relying on ad hoc manual clicking for final demo readiness.
+## Public email auth is now truly available in the hosted demo
+- The auth modal now keeps email/password submit enabled when Turnstile is not configured.
+- The UI copy makes that downgrade explicit:
+  - security check not configured
+  - email auth remains enabled in the demo environment
+- This fixes the gap without changing backend auth semantics.
 
-## The current hosted auth UI has a real demo caveat
-- Hosted `runtime-config.js` currently exposes an empty `MIRO_TURNSTILE_SITE_KEY`.
-- As a result, the email/password submit button is disabled in the hosted auth modal.
-- The workspace itself is healthy once a valid Supabase session exists, but the hosted email form is not currently demo-ready.
+## Hosted rehearsal now uses the real auth UI
+- `rehearse:hosted` no longer calls Supabase sign-in directly through `page.evaluate`.
+- It now opens the real modal, fills the real form, submits it, and waits for the real logged-in workspace state.
+- Account 1 completed:
+  - true UI login
+  - Pricing mutation
+  - Hardware sync mutation
+  - Live -> grounded Review flow
+  - true UI logout
 
-## The main demo chain is viable with one valid account
-- Pricing persisted online.
-- Hardware sync persisted online.
-- Learning precheck could be completed through the existing backend API.
-- Live -> Review successfully reflected grounded uploaded text in the hosted environment.
-- Logout returned the app to a public route.
+## Public register also works through the real UI, but second-account verification still needs one external input
+- The supplied second credential still fails real hosted login with `Invalid login credentials`.
+- A real hosted register attempt for that account now reaches the email-confirmation path instead of being blocked by the frontend.
+- A generated fallback account also reached the hosted register path, but Supabase then hit email send rate limiting.
+- Because of that, dual-account hosted isolation is still not honestly complete.
 
-## Dual-account isolation still depends on valid external credentials
-- The second supplied account did not authenticate with Supabase password login.
-- Because of that, dual-account isolation could not be fully re-run in the browser this phase.
-- This is an external credential/input issue, not a repository regression.
+## The repo and docs now match the real hosted state
+- README and deployment docs no longer claim the hosted email form is disabled.
+- The remaining limitation is now stated correctly:
+  - the second account is not yet confirmed/login-capable for the hosted isolation check.

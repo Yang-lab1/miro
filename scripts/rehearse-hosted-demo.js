@@ -445,11 +445,19 @@ async function main() {
       `INFO auth-ui emailDisabled=${authUi.emailDisabled} message="${authUi.captchaMessage}"`
     );
 
-    const accountTwo = await ensureSecondaryAccount(pageTwo);
-    const accountTwoBefore = await getProtectedSnapshot(pageTwo);
-    console.log(
-      `PASS account-2 ${accountTwo.created ? "register+login" : "login"} ${accountTwo.actor.email}`
-    );
+    let accountTwo = null;
+    let accountTwoBefore = null;
+    let accountTwoBlocker = null;
+    try {
+      accountTwo = await ensureSecondaryAccount(pageTwo);
+      accountTwoBefore = await getProtectedSnapshot(pageTwo);
+      console.log(
+        `PASS account-2 ${accountTwo.created ? "register+login" : "login"} ${accountTwo.actor.email}`
+      );
+    } catch (error) {
+      accountTwoBlocker = error instanceof Error ? error.message : String(error);
+      console.log(`WARN account-2 unavailable ${accountTwoBlocker}`);
+    }
 
     const actorOne = await signInViaUi(pageOne, ACCOUNT_ONE.email, ACCOUNT_ONE.password);
     console.log(`PASS account-1 login ${actorOne.email}`);
@@ -471,24 +479,29 @@ async function main() {
     await logoutFromUi(pageOne);
     console.log("PASS logout route returns to public home");
 
-    const accountTwoAfter = await getProtectedSnapshot(pageTwo);
-    if (accountTwoBefore.userId === actorOne.userId) {
-      throw new Error("Account isolation failed: both accounts resolved to the same user id.");
-    }
-    if (accountTwoAfter.billingBalance !== accountTwoBefore.billingBalance) {
-      throw new Error("Account isolation failed: account 2 billing changed after account 1 actions.");
-    }
-    if (accountTwoAfter.hardwareLogCount !== accountTwoBefore.hardwareLogCount) {
-      throw new Error("Account isolation failed: account 2 hardware logs changed after account 1 sync.");
-    }
-    if (accountTwoAfter.hardwareSyncCount !== accountTwoBefore.hardwareSyncCount) {
-      throw new Error("Account isolation failed: account 2 sync records changed after account 1 sync.");
-    }
-    if (accountTwoAfter.reviewCount !== accountTwoBefore.reviewCount) {
-      throw new Error("Account isolation failed: account 2 review count changed after account 1 live session.");
-    }
+    if (accountTwo && accountTwoBefore) {
+      const accountTwoAfter = await getProtectedSnapshot(pageTwo);
+      if (accountTwoBefore.userId === actorOne.userId) {
+        throw new Error("Account isolation failed: both accounts resolved to the same user id.");
+      }
+      if (accountTwoAfter.billingBalance !== accountTwoBefore.billingBalance) {
+        throw new Error("Account isolation failed: account 2 billing changed after account 1 actions.");
+      }
+      if (accountTwoAfter.hardwareLogCount !== accountTwoBefore.hardwareLogCount) {
+        throw new Error("Account isolation failed: account 2 hardware logs changed after account 1 sync.");
+      }
+      if (accountTwoAfter.hardwareSyncCount !== accountTwoBefore.hardwareSyncCount) {
+        throw new Error("Account isolation failed: account 2 sync records changed after account 1 sync.");
+      }
+      if (accountTwoAfter.reviewCount !== accountTwoBefore.reviewCount) {
+        throw new Error("Account isolation failed: account 2 review count changed after account 1 live session.");
+      }
 
-    console.log("PASS dual-account isolation snapshot remained stable");
+      console.log("PASS dual-account isolation snapshot remained stable");
+    }
+    if (accountTwoBlocker) {
+      throw new Error(`Dual-account hosted isolation could not be completed: ${accountTwoBlocker}`);
+    }
   } finally {
     await contextOne.close();
     await contextTwo.close();

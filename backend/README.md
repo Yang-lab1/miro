@@ -93,6 +93,11 @@ For post-deploy validation, run the root command:
 - For a real hosted browser rehearsal against the deployed stack:
   - `npm run rehearse:hosted`
 
+Current hosted auth note:
+
+- if `MIRO_TURNSTILE_SITE_KEY` is empty, the frontend now uses a demo-safe email auth fallback instead of disabling the public auth form
+- dual-account hosted isolation still requires a second confirmed Supabase account
+
 Use [docs/deployment/ONLINE_VALIDATION_CHECKLIST.md](/C:/Users/Yang/Desktop/miro/docs/deployment/ONLINE_VALIDATION_CHECKLIST.md) for the manual auth, isolation, Pricing, Hardware, and Live -> Review checks that follow the automated probe.
 
 For the hosted platform pairing itself, use [docs/deployment/VERCEL_ECS_DEPLOY.md](/C:/Users/Yang/Desktop/miro/docs/deployment/VERCEL_ECS_DEPLOY.md).
