@@ -814,16 +814,24 @@ def validate_realtime_launch_prerequisites(
     session: Session,
     actor: CurrentActor,
     simulation_id: str,
+    *,
+    skip_learning_precheck: bool = False,
 ) -> RealtimeLaunchPrerequisites:
     simulation = _get_simulation_for_actor(session, actor, simulation_id)
     precheck = run_precheck(session, actor, simulation.country_key)
 
-    if not precheck.ready:
+    if not precheck.ready and not (
+        skip_learning_precheck and precheck.skipLearningAllowed is True
+    ):
         raise AppError(
             status_code=400,
             code="learning_precheck_failed",
             message="Learning precheck must pass before realtime launch.",
-            details={"simulationId": simulation_id, "reason": precheck.reason},
+            details={
+                "simulationId": simulation_id,
+                "reason": precheck.reason,
+                "skipLearningAllowed": precheck.skipLearningAllowed,
+            },
         )
 
     if _derive_simulation_status(simulation) == "draft":

@@ -10,6 +10,7 @@ RealtimeSessionStatus = Literal["pending", "active", "ended", "failed"]
 class RealtimeSessionCreateRequest(StrictModel):
     simulationId: str
     transport: RealtimeTransport | None = None
+    skipLearningPrecheck: bool = False
 
 
 class RealtimeTurnRespondRequest(StrictModel):

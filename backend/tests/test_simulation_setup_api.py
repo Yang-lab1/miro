@@ -311,6 +311,24 @@ def test_validate_realtime_launch_prerequisites_requires_learning_ready(client, 
     assert exc_info.value.code == "learning_precheck_failed"
 
 
+def test_validate_realtime_launch_prerequisites_allows_explicit_learning_skip(client, db_session):
+    created = _create_simulation(client, "Germany", full_setup=True)
+    generated = client.post(f"/api/v1/simulations/{created['simulationId']}/strategy")
+    assert generated.status_code == 200
+
+    actor = resolve_current_actor(db_session)
+    prerequisites = simulation_service.validate_realtime_launch_prerequisites(
+        db_session,
+        actor,
+        created["simulationId"],
+        skip_learning_precheck=True,
+    )
+
+    assert prerequisites.simulation_id == created["simulationId"]
+    assert prerequisites.precheck.ready is False
+    assert prerequisites.precheck.skipLearningAllowed is True
+
+
 def test_validate_realtime_launch_prerequisites_requires_strategy(client, db_session):
     created = _create_simulation(client, "Japan", full_setup=True)
 

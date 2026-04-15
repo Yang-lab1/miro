@@ -484,6 +484,7 @@ def create_realtime_session(
         session,
         actor,
         payload.simulationId,
+        skip_learning_precheck=payload.skipLearningPrecheck,
     )
     simulation = prerequisites.simulation
     voice_profile_catalog_id = simulation.voice_profile_catalog_id

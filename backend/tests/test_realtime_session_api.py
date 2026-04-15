@@ -77,10 +77,13 @@ def _create_realtime_session(
     simulation_id: str,
     *,
     transport: str | None = None,
+    skip_learning_precheck: bool = False,
 ) -> dict:
     payload = {"simulationId": simulation_id}
     if transport is not None:
         payload["transport"] = transport
+    if skip_learning_precheck:
+        payload["skipLearningPrecheck"] = True
 
     response = client.post("/api/v1/realtime/sessions", json=payload)
     assert response.status_code == 200
@@ -239,6 +242,20 @@ def test_create_realtime_session_fails_when_learning_precheck_is_not_ready(clien
 
     assert response.status_code == 400
     assert response.json()["error"]["code"] == "learning_precheck_failed"
+    assert response.json()["error"]["details"]["skipLearningAllowed"] is True
+
+
+def test_create_realtime_session_allows_explicit_learning_skip(client):
+    simulation = _create_strategy_ready_simulation(client, "Germany")
+
+    payload = _create_realtime_session(
+        client,
+        simulation["simulationId"],
+        skip_learning_precheck=True,
+    )
+
+    assert payload["simulationId"] == simulation["simulationId"]
+    assert payload["status"] == "pending"
 
 
 def test_create_realtime_session_fails_when_strategy_is_missing(client):

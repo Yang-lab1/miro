@@ -7989,9 +7989,12 @@
         generateSimulationStrategy: (simulationId) => request(`/simulations/${encodeURIComponent(simulationId)}/strategy`, {
           method: "POST"
         }),
-        createRealtimeSession: (simulationId) => request("/realtime/sessions", {
+        createRealtimeSession: (simulationId, options = {}) => request("/realtime/sessions", {
           method: "POST",
-          body: { simulationId }
+          body: {
+            simulationId,
+            ...(options.skipLearningPrecheck ? { skipLearningPrecheck: true } : {})
+          }
         }),
         startRealtimeSession: (sessionId) => request(`/realtime/sessions/${encodeURIComponent(sessionId)}/start`, {
           method: "POST"
@@ -8333,6 +8336,153 @@
         return parts.join(" ");
       }
 
+      function ensureLearningReminderModal() {
+        let modal = document.querySelector("[data-learning-reminder-modal]");
+        if (modal) return modal;
+
+        if (!document.getElementById("learning-reminder-modal-style")) {
+          const style = document.createElement("style");
+          style.id = "learning-reminder-modal-style";
+          style.textContent = `
+            .learning-reminder-modal {
+              position: fixed;
+              inset: 0;
+              z-index: 80;
+              display: none;
+              place-items: center;
+              padding: 24px;
+              background: rgba(3, 5, 12, .66);
+              backdrop-filter: blur(14px);
+            }
+            .learning-reminder-modal.is-open { display: grid; }
+            .learning-reminder-dialog {
+              width: min(480px, 100%);
+              border: 1px solid rgba(255,255,255,.12);
+              border-radius: 28px;
+              padding: 24px;
+              background: linear-gradient(180deg, rgba(20,24,35,.98), rgba(9,11,18,.98));
+              box-shadow: 0 28px 80px rgba(0,0,0,.42);
+              color: rgba(255,255,255,.92);
+            }
+            .learning-reminder-eyebrow {
+              margin: 0 0 10px;
+              font-size: 11px;
+              letter-spacing: .14em;
+              text-transform: uppercase;
+              color: rgba(150,183,255,.78);
+            }
+            .learning-reminder-dialog h3 {
+              margin: 0;
+              font-size: 24px;
+              line-height: 1.1;
+            }
+            .learning-reminder-dialog p {
+              margin: 14px 0 0;
+              color: rgba(255,255,255,.66);
+              line-height: 1.6;
+            }
+            .learning-reminder-actions {
+              display: flex;
+              justify-content: flex-end;
+              gap: 10px;
+              margin-top: 22px;
+            }
+            .learning-reminder-actions button {
+              min-height: 44px;
+              border-radius: 999px;
+              padding: 0 18px;
+              border: 1px solid rgba(255,255,255,.14);
+              color: rgba(255,255,255,.88);
+              background: rgba(255,255,255,.05);
+              cursor: pointer;
+              font: inherit;
+            }
+            .learning-reminder-actions button:focus-visible {
+              outline: 2px solid rgba(122,174,255,.92);
+              outline-offset: 3px;
+            }
+            .learning-reminder-actions [data-learning-skip-continue] {
+              border-color: rgba(122,174,255,.42);
+              background: linear-gradient(180deg, rgba(114,168,255,.95), rgba(78,126,222,.92));
+              color: #06101f;
+              font-weight: 800;
+            }
+          `;
+          document.head.appendChild(style);
+        }
+
+        modal = document.createElement("div");
+        modal.className = "learning-reminder-modal";
+        modal.dataset.learningReminderModal = "";
+        modal.setAttribute("aria-hidden", "true");
+        modal.innerHTML = `
+          <section class="learning-reminder-dialog" role="dialog" aria-modal="true" aria-labelledby="learning-reminder-title">
+            <p class="learning-reminder-eyebrow">Learning reminder</p>
+            <h3 id="learning-reminder-title">Recommended before you start</h3>
+            <p data-learning-reminder-copy>
+              Completing the related learning first can improve simulation readiness and review quality. You can also continue now and review the gaps after the session.
+            </p>
+            <div class="learning-reminder-actions">
+              <button type="button" data-learning-skip-learning>Go to Learning</button>
+              <button type="button" data-learning-skip-continue>Continue Anyway</button>
+            </div>
+          </section>
+        `;
+        document.body.appendChild(modal);
+        return modal;
+      }
+
+      function showLearningReminder(precheck, countryKey) {
+        return new Promise((resolve) => {
+          const modal = ensureLearningReminderModal();
+          const copy = modal.querySelector("[data-learning-reminder-copy]");
+          const continueBtn = modal.querySelector("[data-learning-skip-continue]");
+          const learningBtn = modal.querySelector("[data-learning-skip-learning]");
+
+          if (copy) {
+            copy.textContent = `Learning for ${countryKey} is recommended before this simulation. It can improve simulation readiness and review quality, but you can continue now if you want to test the live flow.`;
+          }
+
+          const cleanup = () => {
+            continueBtn?.removeEventListener("click", onContinue);
+            learningBtn?.removeEventListener("click", onLearning);
+            modal.classList.remove("is-open");
+            modal.setAttribute("aria-hidden", "true");
+            window.closeModal?.("learning-reminder");
+          };
+          const onContinue = () => {
+            cleanup();
+            resolve("continue");
+          };
+          const onLearning = () => {
+            cleanup();
+            resolve("learning");
+          };
+
+          continueBtn?.addEventListener("click", onContinue, { once: true });
+          learningBtn?.addEventListener("click", onLearning, { once: true });
+          modal.classList.add("is-open");
+          modal.setAttribute("aria-hidden", "false");
+          window.openModal?.("learning-reminder");
+          continueBtn?.focus();
+        });
+      }
+
+      async function resolveLearningPrecheck(precheck, countryKey) {
+        if (precheck?.ready) return { skipLearningPrecheck: false };
+        if (precheck?.skipLearningAllowed === true) {
+          const choice = await showLearningReminder(precheck, countryKey);
+          if (choice === "continue") {
+            return { skipLearningPrecheck: true };
+          }
+          window.navigateToRoute?.("learning");
+        }
+        const error = new Error(precheck?.recommendedAction || `Learning precheck is not ready for ${countryKey}.`);
+        error.code = precheck?.reason || "learning_precheck_not_ready";
+        error.payload = precheck;
+        throw error;
+      }
+
       function reviewSeedFromDetail(detail) {
         const firstFocus = detail?.analysis?.focusItems?.[0] || null;
         return {
@@ -8381,12 +8531,7 @@
         if (!api) throw new Error("Miro API bridge is not available.");
         const defaults = await api.getSetupDefaults(countryKey);
         const precheck = await api.precheckSimulation(countryKey);
-        if (!precheck?.ready) {
-          const error = new Error(precheck?.recommendedAction || `Learning precheck is not ready for ${countryKey}.`);
-          error.code = precheck?.reason || "learning_precheck_not_ready";
-          error.payload = precheck;
-          throw error;
-        }
+        const { skipLearningPrecheck } = await resolveLearningPrecheck(precheck, countryKey);
         const simulation = await api.createSimulation({
           countryKey,
           meetingType: defaults.meetingType,
@@ -8396,7 +8541,12 @@
           voiceProfileId: defaults.voiceProfileId,
           constraints: buildSimulationConstraints(draft)
         });
-        return api.generateSimulationStrategy(simulation.simulationId);
+        const strategy = await api.generateSimulationStrategy(simulation.simulationId);
+        return {
+          ...strategy,
+          skipLearningPrecheck,
+          learningPrecheck: precheck
+        };
       }
 
       async function startBackendLiveSession(draft) {
@@ -8411,7 +8561,9 @@
         });
 
         writeLiveApiState("creating_realtime_session");
-        const realtimeSession = await window.miroApi.createRealtimeSession(simulation.simulationId);
+        const realtimeSession = await window.miroApi.createRealtimeSession(simulation.simulationId, {
+          skipLearningPrecheck: simulation.skipLearningPrecheck === true
+        });
         window.updateAppState?.({
           runtimeIds: {
             simulationId: simulation.simulationId,
