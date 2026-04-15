@@ -30,6 +30,15 @@ class SimulationPrecheckResponse(StrictModel):
     warningMode: str | None = None
 
 
+class SimulationSetupDefaultsResponse(StrictModel):
+    countryKey: str
+    meetingType: str
+    goal: str
+    durationMinutes: int = Field(ge=1)
+    voiceStyle: str
+    voiceProfileId: str
+
+
 class SimulationCreateRequest(StrictModel):
     countryKey: str
     meetingType: str | None = None

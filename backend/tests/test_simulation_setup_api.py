@@ -25,6 +25,27 @@ COUNTRY_SETUP = {
 }
 
 
+def test_get_simulation_setup_defaults_returns_launch_fields(client):
+    response = client.get("/api/v1/simulations/setup-defaults/Japan")
+
+    assert response.status_code == 200
+    assert response.json() == {
+        "countryKey": "Japan",
+        "meetingType": "first_introduction",
+        "goal": "establish_trust_before_pricing",
+        "durationMinutes": 10,
+        "voiceStyle": "formal_measured",
+        "voiceProfileId": "vp_japan_female_01",
+    }
+
+
+def test_get_simulation_setup_defaults_rejects_unknown_country(client):
+    response = client.get("/api/v1/simulations/setup-defaults/Atlantis")
+
+    assert response.status_code == 404
+    assert response.json()["error"]["code"] == "country_not_found"
+
+
 def _create_simulation(client, country_key: str, *, full_setup: bool) -> dict:
     payload = {"countryKey": country_key}
     if full_setup:

@@ -11,6 +11,7 @@ from app.api.schemas.simulation import (
     SimulationPrecheckRequest,
     SimulationPrecheckResponse,
     SimulationResponse,
+    SimulationSetupDefaultsResponse,
 )
 from app.db.session import get_db
 from app.modules.simulation import service as simulation_service
@@ -28,6 +29,23 @@ def create_simulation(
     actor: ActorDep,
 ) -> SimulationResponse:
     return simulation_service.create_simulation(db, actor, payload)
+
+
+@router.post("/from-review/{reviewId}", response_model=SimulationResponse)
+def create_simulation_from_review(
+    reviewId: str,
+    db: DbSession,
+    actor: ActorDep,
+) -> SimulationResponse:
+    return simulation_service.create_simulation_from_review(db, actor, reviewId)
+
+
+@router.get("/setup-defaults/{countryKey}", response_model=SimulationSetupDefaultsResponse)
+def get_simulation_setup_defaults(
+    countryKey: str,
+    db: DbSession,
+) -> SimulationSetupDefaultsResponse:
+    return simulation_service.get_setup_defaults(db, countryKey)
 
 
 @router.get("/{simulationId}", response_model=SimulationResponse)

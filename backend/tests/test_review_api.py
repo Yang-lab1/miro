@@ -279,6 +279,23 @@ def test_create_review_from_ended_session_returns_detail_snapshot(client):
     assert payload["goal"] == "establish_trust_before_pricing"
     assert payload["voiceProfileId"] == "vp_japan_female_01"
     assert len(payload["lines"]) == 2
+    assert payload["summary"]["headline"] == "Good momentum with room to sharpen."
+    assert set(payload["analysis"]) == {
+        "overallScore",
+        "dimensions",
+        "trend",
+        "focusItems",
+        "evidenceMoments",
+        "derivedInsights",
+    }
+    assert [item["dimensionKey"] for item in payload["analysis"]["dimensions"]] == [
+        "goalFit",
+        "cultureFit",
+        "pacing",
+        "clarity",
+        "grounding",
+        "objection",
+    ]
 
 
 def test_create_review_from_failed_session_after_runtime_sync(client, db_session):
@@ -292,6 +309,9 @@ def test_create_review_from_failed_session_after_runtime_sync(client, db_session
     payload = response.json()
     assert payload["status"] == "ready"
     assert payload["sourceSessionId"] == created["sessionId"]
+    assert payload["analysis"]["evidenceMoments"] == []
+    assert len(payload["analysis"]["trend"]) == 1
+    assert payload["analysis"]["trend"][0]["minuteLabel"] == "00:00"
     session_record = db_session.scalar(
         select(RealtimeSession).where(RealtimeSession.id == created["sessionId"])
     )
@@ -452,6 +472,16 @@ def test_review_lines_keep_user_and_assistant_and_map_alerts(client):
     assert payload["lines"][1]["lineIndex"] == 2
     assert payload["lines"][1]["speaker"] == "assistant"
     assert payload["lines"][1]["alertIssueKeys"] == []
+    assert payload["analysis"]["focusItems"]
+    assert payload["analysis"]["evidenceMoments"]
+    assert payload["analysis"]["derivedInsights"]["weakest"] in {
+        "goalFit",
+        "cultureFit",
+        "pacing",
+        "clarity",
+        "grounding",
+        "objection",
+    }
 
 
 def test_review_top_issue_keys_sort_by_frequency_then_first_seen(client):
@@ -519,6 +549,24 @@ def test_review_detail_reflects_uploaded_grounding_context(client):
     assert assistant_lines
     assert "uploaded brief" in assistant_lines[0]["text"].lower()
     assert "renewal timing" in assistant_lines[0]["text"].lower()
+    grounding_dimension = next(
+        item for item in payload["analysis"]["dimensions"] if item["dimensionKey"] == "grounding"
+    )
+    assert grounding_dimension["score"] >= 70
+
+
+def test_review_detail_returns_analysis_for_low_data_review(client):
+    _, realtime_session = _create_active_realtime_session(client, "Japan")
+    assert _end_realtime_session(client, realtime_session["sessionId"]).status_code == 200
+
+    detail = _bridge_review(client, realtime_session["sessionId"])
+
+    assert detail.status_code == 200
+    payload = detail.json()
+    assert payload["metrics"]["turnCount"] == 0
+    assert payload["analysis"]["evidenceMoments"] == []
+    assert len(payload["analysis"]["trend"]) == 1
+    assert 1 <= len(payload["analysis"]["focusItems"]) <= 3
 
 
 def test_review_overall_assessment_mixed(client):
@@ -584,6 +632,13 @@ def test_review_list_and_detail_are_actor_scoped(client, db_session):
     assert other_review.id not in listed_ids
 
     detail = client.get(f"/api/v1/reviews/{other_review.id}")
+    assert detail.status_code == 404
+    assert detail.json()["error"]["code"] == "review_not_found"
+
+
+def test_review_detail_returns_404_for_missing_id(client):
+    detail = client.get("/api/v1/reviews/review_missing")
+
     assert detail.status_code == 404
     assert detail.json()["error"]["code"] == "review_not_found"
 

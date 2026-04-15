@@ -5,6 +5,7 @@ from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
 from app.api.schemas.review import (
+    ReviewAnalysisResponse,
     ReviewDetailResponse,
     ReviewLineResponse,
     ReviewListItemResponse,
@@ -16,6 +17,11 @@ from app.models.review import Review, ReviewLine
 from app.models.simulation import RealtimeSessionAlert, RealtimeSessionTurn, VoiceProfileCatalog
 from app.modules.realtime import service as realtime_service
 from app.modules.realtime.grounding import build_realtime_grounding_context
+from app.modules.review.analysis import (
+    ReviewAnalysisInput,
+    ReviewAnalysisLineInput,
+    build_review_analysis_snapshot,
+)
 from app.services.current_actor import CurrentActor
 
 REVIEW_SOURCE_REALTIME_SESSION = "realtime_session"
@@ -320,6 +326,41 @@ def _build_review_line_response(review_line: ReviewLine, fallback_index: int) ->
     )
 
 
+def _build_review_analysis(
+    review: Review,
+    *,
+    summary: ReviewSummaryResponse,
+    metrics: ReviewMetricsResponse,
+    lines: list[ReviewLineResponse],
+) -> ReviewAnalysisResponse:
+    payload = build_review_analysis_snapshot(
+        ReviewAnalysisInput(
+            country_key=review.country_key,
+            duration_minutes=review.duration_minutes or 0,
+            overall_assessment=review.overall_assessment or "mixed",
+            summary_headline=summary.headline,
+            summary_coach_summary=summary.coachSummary,
+            turn_count=metrics.turnCount,
+            alert_count=metrics.alertCount,
+            high_severity_count=metrics.highSeverityCount,
+            medium_severity_count=metrics.mediumSeverityCount,
+            top_issue_keys=metrics.topIssueKeys,
+            lines=[
+                ReviewAnalysisLineInput(
+                    line_index=line.lineIndex,
+                    turn_index=line.turnIndex,
+                    speaker=line.speaker,
+                    text=line.text,
+                    alert_issue_keys=line.alertIssueKeys,
+                    created_at=line.createdAt,
+                )
+                for line in lines
+            ],
+        )
+    )
+    return ReviewAnalysisResponse.model_validate(payload)
+
+
 def _build_review_detail_response(
     session: Session,
     review: Review,
@@ -334,6 +375,17 @@ def _build_review_detail_response(
         )
     ).all()
     metrics = _normalize_metrics_payload(review)
+    summary = _normalize_summary_payload(review)
+    line_responses = [
+        _build_review_line_response(review_line, index)
+        for index, review_line in enumerate(lines, start=1)
+    ]
+    analysis = _build_review_analysis(
+        review,
+        summary=summary,
+        metrics=metrics,
+        lines=line_responses,
+    )
 
     return ReviewDetailResponse(
         reviewId=review.id,
@@ -349,12 +401,10 @@ def _build_review_detail_response(
         setupRevision=review.setup_revision or 0,
         strategyForSetupRevision=review.strategy_for_setup_revision or 0,
         overallAssessment=review.overall_assessment or "mixed",
-        summary=_normalize_summary_payload(review),
+        summary=summary,
         metrics=metrics,
-        lines=[
-            _build_review_line_response(review_line, index)
-            for index, review_line in enumerate(lines, start=1)
-        ],
+        analysis=analysis,
+        lines=line_responses,
         createdAt=review.created_at,
         endedAt=review.ended_at,
     )

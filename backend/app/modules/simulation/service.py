@@ -12,6 +12,7 @@ from app.api.schemas.simulation import (
     SimulationPrecheckLearningState,
     SimulationPrecheckResponse,
     SimulationResponse,
+    SimulationSetupDefaultsResponse,
     SimulationStrategyBullets,
     SimulationStrategyGeneratedFrom,
     SimulationStrategyItem,
@@ -21,12 +22,20 @@ from app.api.schemas.simulation import (
 from app.api.schemas.voice_profiles import VoiceProfileResponseItem
 from app.core.errors import AppError
 from app.core.shared_catalog import load_enum_keys
+from app.models.review import Review
 from app.models.simulation import (
+    RealtimeSession,
     Simulation,
     SimulationUploadedFile,
     VoiceProfileCatalog,
 )
 from app.modules.learning import service as learning_service
+from app.modules.simulation.continuation import (
+    ReviewContinuationSource,
+    UploadedContextCloneSource,
+    build_continued_simulation_seed,
+    review_can_continue,
+)
 from app.modules.simulation.file_extraction import extract_uploaded_file_content
 from app.services.current_actor import CurrentActor
 
@@ -38,6 +47,25 @@ class RealtimeLaunchPrerequisites:
     setup_revision: int
     precheck: SimulationPrecheckResponse
     strategy: SimulationStrategyResponse
+
+
+SETUP_DEFAULTS_BY_COUNTRY = {
+    "Japan": {
+        "durationMinutes": 10,
+        "voiceStyle": "formal_measured",
+        "voiceProfileId": "vp_japan_female_01",
+    },
+    "Germany": {
+        "durationMinutes": 12,
+        "voiceStyle": "direct_structured",
+        "voiceProfileId": "vp_germany_male_01",
+    },
+    "UAE": {
+        "durationMinutes": 10,
+        "voiceStyle": "warm_relational",
+        "voiceProfileId": "vp_uae_female_01",
+    },
+}
 
 
 def _fallback_country_name(country_key: str) -> LocalizedText:
@@ -129,6 +157,27 @@ def _get_simulation_for_actor(
     return simulation
 
 
+def _get_review_for_actor(
+    session: Session,
+    actor: CurrentActor,
+    review_id: str,
+) -> Review:
+    review = session.scalar(
+        select(Review)
+        .where(Review.id == review_id, Review.user_id == actor.user_id)
+        .limit(1)
+    )
+
+    if review is None:
+        raise AppError(
+            status_code=404,
+            code="review_not_found",
+            message=f"Review '{review_id}' was not found.",
+        )
+
+    return review
+
+
 def _get_uploaded_files(
     session: Session,
     simulation_id: str,
@@ -141,6 +190,59 @@ def _get_uploaded_files(
             SimulationUploadedFile.id.asc(),
         )
     ).all()
+
+
+def _build_review_continuation_source(
+    session: Session,
+    review: Review,
+    actor: CurrentActor,
+) -> ReviewContinuationSource:
+    source_simulation: Simulation | None = None
+    if review.realtime_session_id is not None:
+        realtime_session = session.scalar(
+            select(RealtimeSession)
+            .where(RealtimeSession.id == review.realtime_session_id)
+            .limit(1)
+        )
+        if realtime_session is not None:
+            source_simulation = session.scalar(
+                select(Simulation)
+                .where(
+                    Simulation.id == realtime_session.simulation_id,
+                    Simulation.user_id == actor.user_id,
+                )
+                .limit(1)
+            )
+
+    uploaded_files = (
+        [
+            UploadedContextCloneSource(
+                file_name=file_record.file_name,
+                content_type=file_record.content_type,
+                size_bytes=file_record.size_bytes,
+                upload_status=file_record.upload_status,
+                storage_key=file_record.storage_key,
+                parse_status=file_record.parse_status,
+                source_type=file_record.source_type,
+                extracted_summary_text=file_record.extracted_summary_text,
+                extracted_excerpt_text=file_record.extracted_excerpt_text,
+            )
+            for file_record in _get_uploaded_files(session, source_simulation.id)
+        ]
+        if source_simulation is not None
+        else []
+    )
+
+    return ReviewContinuationSource(
+        country_key=review.country_key,
+        meeting_type_key=review.meeting_type_key,
+        goal_key=review.goal_key,
+        duration_minutes=review.duration_minutes,
+        voice_style_key=review.voice_style_key,
+        voice_profile_catalog_id=review.voice_profile_catalog_id,
+        constraints_text=source_simulation.constraints_text if source_simulation else None,
+        uploaded_files=uploaded_files,
+    )
 
 
 def _invalidate_strategy(simulation: Simulation) -> None:
@@ -461,6 +563,63 @@ def list_voice_profiles(session: Session, country_key: str) -> list[VoiceProfile
     ]
 
 
+def get_setup_defaults(
+    session: Session,
+    country_key: str,
+) -> SimulationSetupDefaultsResponse:
+    country = learning_service._get_active_country(session, country_key)  # noqa: SLF001
+    if country is None:
+        raise AppError(
+            status_code=404,
+            code="country_not_found",
+            message=f"Country '{country_key}' is not supported.",
+        )
+
+    defaults = SETUP_DEFAULTS_BY_COUNTRY.get(
+        country_key,
+        {
+            "durationMinutes": 10,
+            "voiceStyle": "formal_measured",
+            "voiceProfileId": None,
+        },
+    )
+    preferred_voice_profile_id = defaults.get("voiceProfileId")
+    profile_query = select(VoiceProfileCatalog).where(
+        VoiceProfileCatalog.country_key == country_key,
+        VoiceProfileCatalog.is_active.is_(True),
+    )
+    if preferred_voice_profile_id:
+        preferred_profile = session.scalar(
+            profile_query.where(
+                VoiceProfileCatalog.voice_profile_id == preferred_voice_profile_id,
+            ).limit(1)
+        )
+    else:
+        preferred_profile = None
+
+    voice_profile = preferred_profile or session.scalar(
+        profile_query.order_by(
+            VoiceProfileCatalog.gender.asc(),
+            VoiceProfileCatalog.display_name.asc(),
+        ).limit(1)
+    )
+    if voice_profile is None:
+        raise AppError(
+            status_code=404,
+            code="voice_profile_not_found",
+            message=f"No active voice profile exists for country '{country_key}'.",
+        )
+
+    return SimulationSetupDefaultsResponse(
+        countryKey=country.country_key,
+        meetingType=country.default_meeting_type_key,
+        goal=country.default_goal_key,
+        durationMinutes=int(defaults["durationMinutes"]),
+        voiceStyle=str(defaults["voiceStyle"]),
+        voiceProfileId=voice_profile.voice_profile_id,
+    )
+
+
 def create_simulation(
     session: Session,
     actor: CurrentActor,
@@ -484,6 +643,60 @@ def create_simulation(
     session.flush()
 
     _apply_simulation_changes(session, simulation, payload, bump_revision=False)
+
+    session.commit()
+    session.refresh(simulation)
+    return _build_simulation_response(session, simulation)
+
+
+def create_simulation_from_review(
+    session: Session,
+    actor: CurrentActor,
+    review_id: str,
+) -> SimulationResponse:
+    review = _get_review_for_actor(session, actor, review_id)
+    continuation_source = _build_review_continuation_source(session, review, actor)
+    if not review_can_continue(continuation_source):
+        raise AppError(
+            status_code=400,
+            code="review_continue_not_ready",
+            message="Review does not contain enough setup to create the next simulation.",
+            details={"reviewId": review_id},
+        )
+
+    seed = build_continued_simulation_seed(continuation_source)
+    simulation = Simulation(
+        user_id=actor.user_id,
+        country_key=seed.country_key,
+        meeting_type_key=seed.meeting_type_key,
+        goal_key=seed.goal_key,
+        duration_minutes=seed.duration_minutes,
+        voice_style_key=seed.voice_style_key,
+        voice_profile_catalog_id=seed.voice_profile_catalog_id,
+        constraints_text=seed.constraints_text,
+        simulation_status="draft",
+        setup_revision=1,
+    )
+    session.add(simulation)
+    session.flush()
+
+    for file_record in seed.uploaded_files:
+        session.add(
+            SimulationUploadedFile(
+                simulation_id=simulation.id,
+                file_name=file_record.file_name,
+                content_type=file_record.content_type,
+                size_bytes=file_record.size_bytes,
+                upload_status=file_record.upload_status,
+                storage_key=file_record.storage_key,
+                parse_status=file_record.parse_status,
+                source_type=file_record.source_type,
+                extracted_summary_text=file_record.extracted_summary_text,
+                extracted_excerpt_text=file_record.extracted_excerpt_text,
+            )
+        )
+
+    simulation.simulation_status = _derive_simulation_status(simulation)
 
     session.commit()
     session.refresh(simulation)

@@ -6,7 +6,6 @@
 .ruff_cache
 artifacts
 backend
-docs
 node_modules
 output
 test-artifacts
