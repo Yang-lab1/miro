@@ -39,6 +39,16 @@ class Settings(BaseSettings):
     demo_user_email: str = "demo@miro.local"
     realtime_provider_mode: str = "stub"
 
+    # --- Doubao / Volcengine Realtime Dialogue ---
+    doubao_app_id: str = ""
+    doubao_access_token: str = ""
+    doubao_secret_key: str = ""
+    doubao_resource_id: str = "volc.speech.dialog"
+    doubao_app_key: str = "PlgvMymc7f3tQnJ6"
+    doubao_speaker: str = "zh_female_vv_jupiter_bigtts"
+    doubao_model: str = "1.2.1.1"
+    doubao_ws_url: str = "wss://openspeech.bytedance.com/api/v3/realtime/dialogue"
+
     @field_validator("cors_origins", mode="before")
     @classmethod
     def _parse_cors_origins(cls, value: object) -> object:
