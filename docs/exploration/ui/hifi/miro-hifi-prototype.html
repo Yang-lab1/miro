@@ -1467,9 +1467,9 @@
             <div class="setup-flow-top">
               <div>
                 <div class="flow-label">Question flow</div>
-                <h3 data-live-flow-title>Lock the round context.</h3>
+                <h3 data-live-flow-title>Prepare your live.</h3>
               </div>
-              <div class="flow-step" data-live-flow-step>Step 1 of 4</div>
+              <div class="flow-step" data-live-flow-step>Step 1 of 5</div>
             </div>
             <div class="flow-progress" data-live-flow-progress></div>
             <div class="flow-origin-summary" data-live-origin-summary hidden aria-live="polite">
@@ -1481,8 +1481,10 @@
             <div class="flow-summary" data-live-flow-summary hidden></div>
             <div class="flow-actions">
               <button class="flow-nav-btn flow-nav-back" type="button" data-action="live-setup-back" data-back data-live-flow-back>Back</button>
+              <button class="flow-nav-btn flow-nav-skip" type="button" data-action="live-setup-skip-upload" data-live-flow-skip hidden>Skip</button>
+              <button class="flow-nav-btn flow-nav-learn" type="button" data-action="live-setup-go-learn" data-route="learning" data-live-flow-learn hidden>Go to Learn</button>
               <button class="flow-nav-btn flow-nav-next" type="button" data-action="live-setup-next" data-live-flow-next>Next</button>
-              <button class="flow-nav-btn flow-nav-start" type="button" data-action="live-setup-start" data-live-flow-start hidden>Start new simulation</button>
+              <button class="flow-nav-btn flow-nav-start" type="button" data-action="live-setup-start" data-live-flow-start hidden>Start</button>
             </div>
           </div>
         </div>
@@ -1556,67 +1558,51 @@
         <p>Same page language, but with a visible utility tray. Controls remain icon-first and compact.</p>
       </div>
       <div class="canvas">
-        <div class="window-shell">
-          <div class="window">
-            <div class="window-top">
-              <span data-live-session-meta>Meeting info / 00:53 / 45 min</span>
-              <span data-live-source-meta>Case memory on / 3 grounded materials</span>
+        <div class="live-experience" data-live-experience data-camera-state="off">
+          <div class="live-topline">
+            <div class="live-meta-stack">
+              <span data-live-session-meta>Meeting info / live</span>
+              <strong data-live-source-meta>Saved source / saved-pack</strong>
             </div>
-            <div class="window-video">
-              <div class="floating-chat" style="right: 22px; bottom: 90px; width: 250px;">
-                <div class="bubble">You recognized the timeline concern quickly, but your ask still came too fast.</div>
-                <div class="bubble self">This round I'll slow the pace and confirm internal alignment first.</div>
+            <div class="live-fullscreen-actions">
+              <button type="button" class="live-icon-btn" data-live-fullscreen aria-label="Fullscreen">
+                <svg t="1776308827125" class="icon" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg" p-id="7302" width="200" height="200"><path d="M629.556904 391.972323c17.328667 17.319457 47.028083 17.319457 66.814732 0l168.302147-165.81449 0 133.63765c0 19.805068 14.85022 34.646078 34.636868 34.646078l24.743544 0c19.806091 0 34.656311-12.371772 34.656311-29.691229L958.710506 119.732965l-2.478448 0 2.478448-17.318434c0-9.903557-2.478448-17.328667-7.435343-24.75173-4.936429-4.947685-14.848173-9.894348-24.743544-9.894348l-17.326621 0 0 0L664.211169 65.290005c-19.805068 0-34.654264 17.328667-34.654264 34.646078l0 24.75173c2.478448 22.274306 19.788695 34.646078 39.59274 34.646078l128.690988 0L632.035352 325.149405C609.751836 342.467839 609.751836 372.175441 629.556904 391.972323L629.556904 391.972323 629.556904 391.972323zM394.441049 629.557416c-17.310248-17.327644-47.00864-17.327644-66.814732 0l-168.301124 165.806303L159.325194 664.195308c0-19.787672-14.8318-34.637892-34.636868-34.637892l-24.76094 0c-19.787672 0-34.637892 12.371772-34.637892 29.698392l0 242.532779 2.477424 0-2.477424 17.327644c0 9.893324 2.477424 17.310248 7.4159 24.743544 4.955872 4.955872 14.867616 9.894348 24.76094 9.894348l17.327644 0 0 0 244.992807 2.477424c19.823488 0 34.655288-17.327644 34.655288-34.637892l0-24.759917c-2.478448-22.26612-19.787672-34.637892-39.59274-34.637892l-128.690988 0 168.283728-165.8237C411.768693 679.044504 411.768693 649.345088 394.441049 629.557416L394.441049 629.557416 394.441049 629.557416zM956.231035 904.266012 956.231035 661.71686c0-19.787672-17.328667-29.680996-34.638915-29.680996l-24.758893 0c-19.788695 0-34.638915 17.309224-34.638915 34.637892l0 131.168412L693.893188 632.035864c-17.308201-17.328667-47.00864-17.328667-66.814732 0-17.326621 17.309224-17.326621 47.00864 0 66.813708l168.283728 165.806303-128.690988 0c-19.786649 0-37.115316 12.388145-39.59274 34.654264l0 24.744567c0 19.805068 17.328667 34.654264 34.638915 34.654264l240.071727-2.478448 0 0 17.328667 0c9.893324 0 17.310248-2.477424 24.743544-9.893324 4.954849-4.955872 7.414877-14.85022 7.414877-24.744567L956.231035 904.266012C953.752588 904.266012 956.231035 904.266012 956.231035 904.266012L956.231035 904.266012 956.231035 904.266012zM228.635769 159.334915l128.690988 0c19.805068 0 37.115316-12.372795 39.59274-34.646078L396.919497 99.936083c0-19.796882-17.309224-34.646078-34.654264-34.646078l-244.992807 2.478448 0 0-17.34504 0c-9.875928 0-17.310248 2.477424-24.743544 9.894348-4.938476 4.955872-7.4159 14.849196-7.4159 24.75173l2.477424 17.318434-2.477424 0 0 245.01839c0 19.796882 14.85022 29.691229 34.637892 29.691229l24.743544 0c19.822464 0 34.654264-14.84101 34.654264-34.646078L161.803641 226.157833l168.283728 165.81449c17.34504 17.319457 47.044456 17.319457 66.832128 0 17.328667-17.327644 17.328667-47.026036 0-66.822918L228.635769 159.334915 228.635769 159.334915 228.635769 159.334915zM228.635769 159.334915" fill="#ffffff" p-id="7303"></path></svg>
+              </button>
+              <button type="button" class="live-icon-btn" data-live-exit-fullscreen aria-label="Exit fullscreen" hidden>
+                <svg t="1776308893655" class="icon" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg" p-id="8545" width="200" height="200"><path d="M144 612h140c69.986 0 126.853 56.167 127.983 125.883L412 740v140c0 17.496-14.042 31.713-31.47 31.996L380 912c-17.496 0-31.713-14.042-31.996-31.47L348 880V740l-0.009-1.058c-0.56-34.51-28.432-62.38-62.943-62.934L284 676H144c-17.496 0-31.713-14.042-31.996-31.47L112 644c0-17.496 14.042-31.713 31.47-31.996L144 612z m736.5 0c17.397 0 31.5 14.103 31.5 31.5S897.897 675 880.5 675l-40.5-0.001V676H740c-34.993 0-63.426 28.084-63.991 62.942L676 740v140c0 17.496-14.042 31.713-31.47 31.996L644 912c-17.673 0-32-14.327-32-32V740c0-70.692 57.308-128 128-128h140.5zM380 112c17.673 0 32 14.327 32 32v140c0 70.692-57.308 128-128 128H144c-17.673 0-32-14.327-32-32 0-17.673 14.327-32 32-32h140c34.993 0 63.426-28.084 63.991-62.942L348 284V144c0-17.496 14.042-31.713 31.47-31.996L380 112z m264 0c17.496 0 31.713 14.042 31.996 31.47l0.004 0.53v140l0.009 1.058c0.56 34.51 28.432 62.38 62.943 62.934L740 348h140c17.673 0 32 14.327 32 32 0 17.496-14.042 31.713-31.47 31.996L880 412H740c-69.986 0-126.853-56.167-127.983-125.883L612 284V144c0-17.496 14.042-31.713 31.47-31.996L644 112z" fill="#ffffff" p-id="8546"></path></svg>
+              </button>
+            </div>
+          </div>
+          <div class="live-stage-v2">
+            <video class="live-user-video" data-live-video playsinline muted hidden></video>
+            <div class="live-waveform" data-live-waveform aria-label="Microphone waveform">
+              <span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span>
+              <span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span>
+              <span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span>
+            </div>
+            <div class="live-camera-fallback" data-live-camera-fallback hidden>Camera unavailable. Waveform stays active.</div>
+            <div class="live-chat-stack" data-live-chat-stack aria-live="polite"></div>
+          </div>
+          <div class="live-controlbar">
+            <div class="live-volume-control">
+              <button type="button" class="live-control-btn" data-live-volume-toggle aria-label="Volume">
+                <span class="live-volume-icon" aria-hidden="true"></span>
+              </button>
+              <div class="live-volume-popover" data-live-volume-panel hidden>
+                <span>Volume</span>
+                <input type="range" min="0" max="100" value="72" data-live-volume aria-label="Volume level">
               </div>
             </div>
-            <div class="toolbar">
-              <div class="toolbar-group">
-                <button type="button" class="tool-pill is-blue" aria-label="Mute">
-                  <svg class="control-svg" viewBox="0 0 24 24" aria-hidden="true">
-                    <rect x="9" y="3.5" width="6" height="11" rx="3"></rect>
-                    <path d="M6.5 11.5a5.5 5.5 0 0 0 11 0"></path>
-                    <path d="M12 17v3.5"></path>
-                    <path d="M9 20.5h6"></path>
-                  </svg>
-                </button>
-                <button type="button" class="tool-pill is-purple" aria-label="Live text">
-                  <svg class="control-svg" viewBox="0 0 24 24" aria-hidden="true">
-                    <rect x="3.5" y="6" width="17" height="12" rx="3"></rect>
-                    <path d="M7.5 10.5h9"></path>
-                    <path d="M7.5 13.5h6"></path>
-                  </svg>
-                </button>
-                <button type="button" class="tool-pill is-gold" aria-label="Coach">
-                  <svg class="control-svg" viewBox="0 0 24 24" aria-hidden="true">
-                    <path d="M12 3.8l1.8 4.4 4.4 1.8-4.4 1.8L12 16.2l-1.8-4.4-4.4-1.8 4.4-1.8L12 3.8z"></path>
-                    <path d="M18.4 15.8l.9 2.1 2.1.9-2.1.9-.9 2.1-.9-2.1-2.1-.9 2.1-.9.9-2.1z"></path>
-                  </svg>
-                </button>
-              </div>
-              <div class="toolbar-group">
-                <button type="button" class="tool-pill is-neutral" aria-label="Fullscreen" data-route="live-fullscreen">
-                  <svg class="control-svg" viewBox="0 0 24 24" aria-hidden="true">
-                    <path d="M8 4.5H4.5V8"></path>
-                    <path d="M16 4.5h3.5V8"></path>
-                    <path d="M8 19.5H4.5V16"></path>
-                    <path d="M16 19.5h3.5V16"></path>
-                  </svg>
-                </button>
-                <button type="button" class="tool-pill is-neutral" aria-label="Tray">
-                  <svg class="control-svg" viewBox="0 0 24 24" aria-hidden="true">
-                    <rect x="4.5" y="5" width="15" height="14" rx="2.5"></rect>
-                    <path d="M9 5.5v13"></path>
-                    <path d="M12.5 9h4"></path>
-                    <path d="M12.5 12h4"></path>
-                    <path d="M12.5 15h3"></path>
-                  </svg>
-                </button>
-                <button type="button" class="tool-pill is-danger" data-action="end-live-session" aria-label="End session">
-                  <svg class="control-svg" viewBox="0 0 24 24" aria-hidden="true">
-                    <circle class="control-stop-bg" cx="12" cy="12" r="10"></circle>
-                    <rect class="control-stop" x="9" y="9" width="6" height="6" rx="1.3"></rect>
-                  </svg>
-                </button>
-              </div>
+            <div class="live-center-controls">
+              <button type="button" class="live-control-btn" data-live-mic-toggle aria-label="Microphone on">
+                <svg class="control-svg" viewBox="0 0 24 24" aria-hidden="true"><rect x="9" y="3.5" width="6" height="11" rx="3"></rect><path d="M6.5 11.5a5.5 5.5 0 0 0 11 0"></path><path d="M12 17v3.5"></path><path d="M9 20.5h6"></path></svg>
+              </button>
+              <button type="button" class="live-control-btn" data-live-camera-toggle aria-label="Camera off">
+                <svg class="control-svg" viewBox="0 0 24 24" aria-hidden="true"><rect x="3.8" y="6.5" width="12.5" height="11" rx="3"></rect><path d="M16.3 10.2l4-2.2v8l-4-2.2"></path></svg>
+              </button>
+              <button type="button" class="live-control-btn live-control-danger" data-action="end-live-session" aria-label="End session">
+                <svg class="control-svg" viewBox="0 0 24 24" aria-hidden="true"><path d="M6.8 13.2c3.4-2.4 7-2.4 10.4 0l1.2 1c.8.7.8 1.9.1 2.6l-.8.8c-.5.5-1.2.6-1.8.2l-1.8-1.1a4.4 4.4 0 0 0-4.2 0l-1.8 1.1c-.6.4-1.3.3-1.8-.2l-.8-.8c-.7-.7-.7-1.9.1-2.6l1.2-1z"></path></svg>
+              </button>
             </div>
           </div>
         </div>
@@ -6412,6 +6398,640 @@
     }
   </style>
 
+  <style id="live-apple-glass-v1-scope">
+    :root {
+      --lg-blur:18px;
+      --lg-border:rgba(255,255,255,.18);
+      --lg-stroke-strong:rgba(255,255,255,.28);
+      --lg-fill:rgba(255,255,255,.08);
+      --lg-fill-strong:rgba(255,255,255,.12);
+      --lg-highlight-soft:rgba(255,255,255,.55);
+      --lg-highlight-strong:rgba(255,255,255,.82);
+      --lg-shadow-outer:0 10px 30px rgba(0,0,0,.26);
+      --lg-shadow-outer-soft:0 4px 12px rgba(0,0,0,.18);
+      --lg-blue-glow:rgba(94,156,255,.22);
+    }
+
+    body.hifi-route-mode #wire-4-1-live-setup .setup-shell {
+      display:grid;
+      grid-template-rows:auto 1px minmax(0, 1fr);
+      min-height:calc(100svh - 88px);
+      padding:24px;
+    }
+
+    body.hifi-route-mode #wire-4-1-live-setup .setup-flow-card {
+      align-self:center;
+      width:min(620px, calc(100vw - 72px));
+      max-height:min(690px, calc(100svh - 132px));
+      margin:0 auto;
+      padding:24px;
+      border-radius:30px;
+      overflow:hidden;
+      border:1px solid var(--lg-border);
+      background:
+        linear-gradient(45deg, rgba(255,255,255,.18), rgba(255,255,255,.05) 24%, transparent 45%, rgba(255,255,255,.09) 100%),
+        linear-gradient(180deg, rgba(255,255,255,.09), rgba(255,255,255,.035)),
+        rgba(255,255,255,.055);
+      box-shadow:
+        inset 1px 1px 0 rgba(255,255,255,.28),
+        inset -1px -1px 0 rgba(255,255,255,.06),
+        0 30px 90px rgba(0,0,0,.34),
+        0 0 50px rgba(92,157,255,.1);
+      backdrop-filter:blur(var(--lg-blur)) saturate(140%);
+      -webkit-backdrop-filter:blur(var(--lg-blur)) saturate(140%);
+    }
+
+    body.hifi-route-mode #wire-4-1-live-setup .setup-flow-top h3 {
+      max-width:420px;
+      font-size:clamp(30px, 3.8vw, 44px);
+      letter-spacing:-.055em;
+    }
+
+    body.hifi-route-mode #wire-4-1-live-setup .flow-progress {
+      grid-template-columns:repeat(5, 1fr);
+      margin:18px 0 16px;
+    }
+
+    body.hifi-route-mode #wire-4-1-live-setup .flow-question {
+      min-height:286px;
+      padding:20px;
+      border-radius:24px;
+      background:
+        linear-gradient(180deg, rgba(255,255,255,.05), rgba(255,255,255,.018)),
+        rgba(255,255,255,.03);
+      backdrop-filter:blur(12px);
+    }
+
+    body.hifi-route-mode #wire-4-1-live-setup .flow-question h4 {
+      margin-top:9px;
+      font-size:20px;
+      letter-spacing:-.04em;
+    }
+
+    body.hifi-route-mode #wire-4-1-live-setup .flow-question p {
+      max-width:430px;
+      margin-top:8px;
+      font-size:12px;
+      line-height:1.55;
+    }
+
+    body.hifi-route-mode #wire-4-1-live-setup .flow-options {
+      gap:10px;
+      margin-top:16px;
+    }
+
+    body.hifi-route-mode #wire-4-1-live-setup .flow-option-btn {
+      min-height:52px;
+      border-radius:18px;
+      background:rgba(255,255,255,.035);
+    }
+
+    body.hifi-route-mode #wire-4-1-live-setup .flow-upload-card {
+      display:grid;
+      gap:12px;
+      margin-top:16px;
+    }
+
+    body.hifi-route-mode #wire-4-1-live-setup .flow-upload-drop {
+      position:relative;
+      display:grid;
+      place-items:center;
+      min-height:138px;
+      border-radius:24px;
+      border:1px dashed rgba(190,214,255,.34);
+      background:
+        radial-gradient(circle at 50% 18%, rgba(92,157,255,.13), transparent 30%),
+        rgba(255,255,255,.028);
+      cursor:pointer;
+      overflow:hidden;
+      transition:border-color 180ms ease, background 180ms ease, transform 180ms ease;
+    }
+
+    body.hifi-route-mode #wire-4-1-live-setup .flow-upload-drop:hover,
+    body.hifi-route-mode #wire-4-1-live-setup .flow-upload-drop.is-dragging {
+      transform:translateY(-1px);
+      border-color:rgba(159,208,255,.68);
+      background:rgba(92,157,255,.08);
+    }
+
+    body.hifi-route-mode #wire-4-1-live-setup .flow-upload-drop input {
+      position:absolute;
+      inset:0;
+      opacity:0;
+      cursor:pointer;
+      z-index:2;
+    }
+
+    body.hifi-route-mode #wire-4-1-live-setup .flow-upload-copy {
+      position:relative;
+      z-index:1;
+      display:grid;
+      place-items:center;
+      gap:8px;
+      text-align:center;
+      pointer-events:none;
+    }
+
+    body.hifi-route-mode #wire-4-1-live-setup .flow-upload-icon {
+      width:44px;
+      height:44px;
+      border-radius:16px;
+      display:grid;
+      place-items:center;
+      background:linear-gradient(180deg, rgba(255,255,255,.14), rgba(255,255,255,.045));
+      box-shadow:inset 1px 1px 0 rgba(255,255,255,.24), 0 10px 26px rgba(0,0,0,.2);
+    }
+
+    body.hifi-route-mode #wire-4-1-live-setup .flow-upload-copy strong {
+      font-size:15px;
+    }
+
+    body.hifi-route-mode #wire-4-1-live-setup .flow-upload-copy span {
+      color:rgba(214,223,232,.55);
+      font-size:11px;
+    }
+
+    body.hifi-route-mode #wire-4-1-live-setup .flow-upload-progress {
+      min-height:58px;
+      padding:12px 14px;
+      border-radius:18px;
+      border:1px solid rgba(255,255,255,.1);
+      background:rgba(255,255,255,.035);
+    }
+
+    body.hifi-route-mode #wire-4-1-live-setup .flow-upload-line {
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:14px;
+      color:rgba(245,248,255,.88);
+      font-size:12px;
+    }
+
+    body.hifi-route-mode #wire-4-1-live-setup .flow-upload-actions {
+      display:flex;
+      gap:8px;
+    }
+
+    body.hifi-route-mode #wire-4-1-live-setup .flow-upload-actions button {
+      min-width:28px;
+      height:28px;
+      padding:0 9px;
+      border:0;
+      border-radius:999px;
+      background:rgba(255,255,255,.08);
+      color:rgba(255,255,255,.82);
+      cursor:pointer;
+    }
+
+    body.hifi-route-mode #wire-4-1-live-setup .flow-upload-bar {
+      height:3px;
+      margin-top:10px;
+      overflow:hidden;
+      border-radius:999px;
+      background:rgba(255,255,255,.08);
+    }
+
+    body.hifi-route-mode #wire-4-1-live-setup .flow-upload-bar span {
+      display:block;
+      width:var(--upload-progress, 0%);
+      height:100%;
+      border-radius:inherit;
+      background:linear-gradient(90deg, rgba(159,208,255,.95), rgba(255,218,145,.92));
+      transition:width 180ms ease;
+    }
+
+    body.hifi-route-mode #wire-4-1-live-setup .flow-ready-card {
+      display:grid;
+      grid-template-columns:repeat(2, minmax(0, 1fr));
+      gap:10px;
+      margin-top:16px;
+    }
+
+    body.hifi-route-mode #wire-4-1-live-setup .flow-ready-card div {
+      min-height:64px;
+      padding:14px;
+      border-radius:18px;
+      border:1px solid rgba(255,255,255,.09);
+      background:rgba(255,255,255,.026);
+    }
+
+    body.hifi-route-mode #wire-4-1-live-setup .flow-ready-card b,
+    body.hifi-route-mode #wire-4-1-live-setup .flow-ready-card span {
+      display:block;
+    }
+
+    body.hifi-route-mode #wire-4-1-live-setup .flow-ready-card b {
+      color:rgba(225,191,114,.86);
+      font-size:10px;
+      letter-spacing:.15em;
+      text-transform:uppercase;
+    }
+
+    body.hifi-route-mode #wire-4-1-live-setup .flow-ready-card span {
+      margin-top:7px;
+      font-size:14px;
+      font-weight:650;
+    }
+
+    body.hifi-route-mode #wire-4-1-live-setup .flow-actions {
+      margin-top:14px;
+    }
+
+    body.hifi-route-mode #wire-4-1-live-setup .flow-nav-btn {
+      min-height:44px;
+      border-radius:999px;
+      border:1px solid var(--lg-border);
+      background:linear-gradient(180deg, rgba(255,255,255,.1), rgba(255,255,255,.04)), var(--lg-fill);
+      box-shadow:inset 1px 1px 0 rgba(255,255,255,.22), inset -1px -1px 0 rgba(255,255,255,.06), var(--lg-shadow-outer-soft);
+      backdrop-filter:blur(16px) saturate(135%);
+      -webkit-backdrop-filter:blur(16px) saturate(135%);
+    }
+
+    body.hifi-route-mode #wire-4-1-live-setup .flow-nav-start,
+    body.hifi-route-mode #wire-4-1-live-setup .flow-nav-next {
+      border-color:rgba(122,174,255,.42);
+      background:linear-gradient(180deg, rgba(122,180,255,.92), rgba(78,126,222,.88));
+      color:#06101f;
+    }
+
+    body.hifi-route-mode #wire-4-1-live-setup .flow-nav-skip,
+    body.hifi-route-mode #wire-4-1-live-setup .flow-nav-learn {
+      margin-left:auto;
+    }
+
+    .live-countdown-overlay {
+      position:fixed;
+      inset:0;
+      z-index:85;
+      display:none;
+      place-items:center;
+      background:radial-gradient(circle at 50% 50%, rgba(92,157,255,.14), transparent 38%), rgba(3,5,12,.74);
+      backdrop-filter:blur(18px);
+    }
+
+    .live-countdown-overlay.is-open {
+      display:grid;
+    }
+
+    .live-countdown-orb {
+      width:164px;
+      border-radius:999px;
+      aspect-ratio:1/1;
+      display:grid;
+      place-items:center;
+      color:rgba(255,255,255,.94);
+      font-size:68px;
+      font-weight:500;
+      letter-spacing:-.07em;
+      border:1px solid var(--lg-border);
+      background:
+        linear-gradient(45deg, rgba(255,255,255,.22), rgba(255,255,255,.06) 24%, transparent 48%, rgba(255,255,255,.15)),
+        rgba(255,255,255,.08);
+      box-shadow:
+        inset 1px 1px 0 rgba(255,255,255,.32),
+        inset -1px -1px 0 rgba(255,255,255,.08),
+        0 22px 70px rgba(0,0,0,.36),
+        0 0 70px rgba(92,157,255,.2);
+      backdrop-filter:blur(22px) saturate(145%);
+      transform:scale(.96);
+      animation:live-count-pulse 900ms ease infinite;
+    }
+
+    @keyframes live-count-pulse {
+      50% { transform:scale(1.02); }
+    }
+
+    body.hifi-route-mode #wire-4-1-1-live-windowed .canvas {
+      padding:0;
+      background:#02040a;
+    }
+
+    .live-experience {
+      position:relative;
+      min-height:calc(100svh - 104px);
+      overflow:hidden;
+      background:
+        radial-gradient(circle at 50% 74%, rgba(92,157,255,.2), transparent 28%),
+        radial-gradient(circle at 12% 18%, rgba(255,255,255,.06), transparent 24%),
+        linear-gradient(180deg, #04050b, #02040a 62%, #06101d);
+      isolation:isolate;
+    }
+
+    .live-experience.is-fullscreen {
+      min-height:100svh;
+    }
+
+    .live-topline {
+      position:absolute;
+      z-index:5;
+      top:22px;
+      left:28px;
+      right:28px;
+      display:flex;
+      align-items:flex-start;
+      justify-content:space-between;
+      gap:18px;
+      pointer-events:none;
+    }
+
+    .live-meta-stack {
+      display:grid;
+      gap:5px;
+      color:rgba(255,255,255,.74);
+      font-size:11px;
+      letter-spacing:.08em;
+      text-transform:uppercase;
+    }
+
+    .live-meta-stack strong {
+      color:rgba(255,255,255,.9);
+      font-size:12px;
+      letter-spacing:0;
+      text-transform:none;
+    }
+
+    .live-fullscreen-actions {
+      display:flex;
+      gap:10px;
+      pointer-events:auto;
+    }
+
+    .live-icon-btn,
+    .live-control-btn {
+      position:relative;
+      border:1px solid var(--lg-border);
+      background:linear-gradient(180deg, rgba(255,255,255,.1), rgba(255,255,255,.035)), var(--lg-fill);
+      color:#fff;
+      box-shadow:inset 1px 1px 0 rgba(255,255,255,.22), inset -1px -1px 0 rgba(255,255,255,.06), var(--lg-shadow-outer-soft);
+      backdrop-filter:blur(16px) saturate(135%);
+      -webkit-backdrop-filter:blur(16px) saturate(135%);
+      transition:transform 180ms ease, border-color 180ms ease, background 180ms ease, box-shadow 180ms ease, opacity 180ms ease;
+      cursor:pointer;
+    }
+
+    .live-icon-btn {
+      width:48px;
+      height:48px;
+      border-radius:999px;
+      display:grid;
+      place-items:center;
+    }
+
+    .live-icon-btn[hidden],
+    .live-user-video[hidden],
+    .live-camera-fallback[hidden],
+    .live-volume-popover[hidden],
+    body.hifi-route-mode #wire-4-1-live-setup .flow-nav-btn[hidden] {
+      display:none !important;
+    }
+
+    .live-icon-btn svg {
+      width:19px;
+      height:19px;
+      display:block;
+    }
+
+    .live-control-btn:hover,
+    .live-icon-btn:hover {
+      transform:translateY(-1px);
+      border-color:rgba(255,255,255,.28);
+      box-shadow:inset 1px 1px 0 rgba(255,255,255,.28), 0 12px 28px rgba(0,0,0,.24), 0 0 24px var(--lg-blue-glow);
+    }
+
+    .live-control-btn:focus-visible,
+    .live-icon-btn:focus-visible {
+      outline:2px solid rgba(159,208,255,.7);
+      outline-offset:3px;
+    }
+
+    .live-stage-v2 {
+      position:absolute;
+      inset:0;
+      display:grid;
+      place-items:center;
+    }
+
+    .live-user-video {
+      width:min(1180px, calc(100vw - 92px));
+      max-height:calc(100svh - 210px);
+      aspect-ratio:16/9;
+      object-fit:cover;
+      border-radius:34px;
+      border:1px solid rgba(255,255,255,.16);
+      box-shadow:0 32px 110px rgba(0,0,0,.5), inset 0 1px 0 rgba(255,255,255,.12);
+      transform:scaleX(-1);
+      background:#0c111c;
+    }
+
+    .live-waveform {
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      gap:5px;
+      width:min(420px, 54vw);
+      height:120px;
+      opacity:.92;
+      filter:drop-shadow(0 0 24px rgba(255,255,255,.18));
+    }
+
+    .live-waveform span {
+      width:3px;
+      height:calc(8px + var(--level, .18) * 92px);
+      border-radius:999px;
+      background:linear-gradient(180deg, rgba(255,255,255,.98), rgba(204,225,255,.64));
+      transform-origin:center;
+      transition:height 80ms linear, opacity 120ms ease;
+      opacity:calc(.36 + var(--level, .18) * .62);
+    }
+
+    .live-camera-fallback {
+      position:absolute;
+      top:54%;
+      left:50%;
+      transform:translate(-50%, 82px);
+      padding:10px 14px;
+      border-radius:999px;
+      border:1px solid rgba(255,255,255,.12);
+      background:rgba(255,255,255,.06);
+      color:rgba(255,255,255,.68);
+      font-size:12px;
+      backdrop-filter:blur(14px);
+    }
+
+    .live-chat-stack {
+      position:absolute;
+      right:28px;
+      bottom:112px;
+      z-index:4;
+      display:flex;
+      flex-direction:column;
+      align-items:flex-end;
+      gap:9px;
+      width:min(360px, calc(100vw - 56px));
+      pointer-events:none;
+    }
+
+    .live-chat-bubble {
+      max-width:310px;
+      padding:12px 14px;
+      border-radius:20px;
+      border:1px solid rgba(255,255,255,.14);
+      background:
+        linear-gradient(135deg, rgba(255,255,255,.16), rgba(255,255,255,.04)),
+        rgba(255,255,255,.07);
+      color:rgba(255,255,255,.88);
+      font-size:12px;
+      line-height:1.42;
+      box-shadow:var(--lg-shadow-outer-soft);
+      backdrop-filter:blur(18px) saturate(140%);
+      -webkit-backdrop-filter:blur(18px) saturate(140%);
+      animation:live-bubble-in 260ms ease both;
+    }
+
+    .live-chat-bubble.ai {
+      align-self:flex-start;
+      border-bottom-left-radius:8px;
+    }
+
+    .live-chat-bubble.me {
+      align-self:flex-end;
+      border-bottom-right-radius:8px;
+      background:
+        linear-gradient(135deg, rgba(159,208,255,.19), rgba(255,255,255,.045)),
+        rgba(255,255,255,.07);
+    }
+
+    .live-chat-bubble.is-fading {
+      opacity:.34;
+      transform:translateY(-4px) scale(.98);
+    }
+
+    @keyframes live-bubble-in {
+      from { opacity:0; transform:translateY(8px) scale(.98); }
+      to { opacity:1; transform:translateY(0) scale(1); }
+    }
+
+    .live-controlbar {
+      position:absolute;
+      z-index:6;
+      left:50%;
+      bottom:26px;
+      transform:translateX(-50%);
+      width:min(640px, calc(100vw - 54px));
+      min-height:72px;
+      display:grid;
+      grid-template-columns:1fr auto 1fr;
+      align-items:center;
+      gap:20px;
+      padding:11px 14px;
+      border-radius:999px;
+      border:1px solid var(--lg-border);
+      background:linear-gradient(180deg, rgba(255,255,255,.11), rgba(255,255,255,.05)), rgba(255,255,255,.08);
+      box-shadow:inset 1px 1px 0 rgba(255,255,255,.24), inset -1px -1px 0 rgba(255,255,255,.06), 0 18px 60px rgba(0,0,0,.34);
+      backdrop-filter:blur(22px) saturate(145%);
+      -webkit-backdrop-filter:blur(22px) saturate(145%);
+    }
+
+    .live-volume-control {
+      position:relative;
+      display:flex;
+      justify-content:flex-start;
+    }
+
+    .live-volume-popover {
+      position:absolute;
+      left:0;
+      bottom:62px;
+      width:176px;
+      padding:12px;
+      border-radius:18px;
+      border:1px solid var(--lg-border);
+      background:rgba(12,16,26,.78);
+      box-shadow:var(--lg-shadow-outer);
+      backdrop-filter:blur(18px);
+    }
+
+    .live-volume-popover span {
+      display:block;
+      margin-bottom:8px;
+      color:rgba(255,255,255,.66);
+      font-size:11px;
+    }
+
+    .live-volume-popover input {
+      width:100%;
+      accent-color:#9fd0ff;
+    }
+
+    .live-center-controls {
+      display:flex;
+      gap:10px;
+      justify-content:center;
+    }
+
+    .live-control-btn {
+      width:50px;
+      height:50px;
+      border-radius:999px;
+      display:grid;
+      place-items:center;
+    }
+
+    .live-control-btn svg {
+      width:22px;
+      height:22px;
+      fill:none;
+      stroke:currentColor;
+      stroke-width:1.9;
+      stroke-linecap:round;
+      stroke-linejoin:round;
+    }
+
+    .live-control-btn.is-off {
+      opacity:.56;
+    }
+
+    .live-control-danger {
+      border-color:rgba(255,166,166,.34);
+      background:linear-gradient(180deg, rgba(255,92,92,.88), rgba(214,51,51,.88));
+      box-shadow:inset 1px 1px 0 rgba(255,255,255,.2), 0 10px 24px rgba(120,0,0,.26);
+    }
+
+    .live-volume-icon {
+      width:22px;
+      height:22px;
+      display:block;
+      background:
+        linear-gradient(90deg, transparent 0 2px, currentColor 2px 5px, transparent 5px 8px, currentColor 8px 11px, transparent 11px 14px, currentColor 14px 17px, transparent 17px);
+      opacity:.86;
+      border-radius:3px;
+    }
+
+    @media (max-width:760px) {
+      body.hifi-route-mode #wire-4-1-live-setup .setup-flow-card {
+        width:min(100%, calc(100vw - 32px));
+        max-height:none;
+        padding:20px;
+      }
+      body.hifi-route-mode #wire-4-1-live-setup .flow-ready-card {
+        grid-template-columns:1fr;
+      }
+      .live-topline {
+        left:18px;
+        right:18px;
+      }
+      .live-controlbar {
+        grid-template-columns:auto 1fr;
+        width:calc(100vw - 28px);
+      }
+      .live-chat-stack {
+        right:14px;
+        bottom:108px;
+      }
+    }
+  </style>
+
   <style id="review-overview-20260414-scope">
     #wire-6-review-overview .review-dashboard-shell {
       min-height:calc(100vh - 104px);
@@ -7797,7 +8417,7 @@
         }
 
         const explicit = event.target.closest("[data-route]");
-        if (explicit) {
+        if (explicit && explicit !== document.body) {
           event.preventDefault();
           navigateFromElement(explicit, explicit.getAttribute("data-route"));
           return;
@@ -8024,6 +8644,8 @@
       const questionEl = liveSetupScreen.querySelector("[data-live-flow-question]");
       const summaryEl = liveSetupScreen.querySelector("[data-live-flow-summary]");
       const backBtn = liveSetupScreen.querySelector("[data-live-flow-back]");
+      const skipBtn = liveSetupScreen.querySelector("[data-live-flow-skip]");
+      const learnBtn = liveSetupScreen.querySelector("[data-live-flow-learn]");
       const nextBtn = liveSetupScreen.querySelector("[data-live-flow-next]");
       const startBtn = liveSetupScreen.querySelector("[data-live-flow-start]");
 
@@ -8063,10 +8685,16 @@
           ]
         },
         {
-          key:"confirm",
-          stepLabel:"Confirm",
-          title:"Confirm the round setup.",
-          description:"Review the selected frame, then open the live window only when the context is locked."
+          key:"upload",
+          stepLabel:"Upload files",
+          title:"Add supporting documents.",
+          description:"Optional. Keep it light: one deck, transcript, or brief is enough for this round."
+        },
+        {
+          key:"ready",
+          stepLabel:"Start",
+          title:"Ready for live.",
+          description:"You can learn first or start now with the selected setup."
         }
       ];
 
@@ -8076,7 +8704,12 @@
             market:"",
             language:"",
             source:"",
-            contextMode:""
+            contextMode:"",
+            uploadSkipped:false,
+            uploadedFile:null,
+            uploadProgress:0,
+            uploadStatus:"idle",
+            uploadPaused:false
           }
         };
 
@@ -8098,7 +8731,11 @@
           reviewFocusId: null,
           reviewFocusTitle: null,
           resumeMode: false,
-          originRoundTag: null
+          originRoundTag: null,
+          uploadedFileName: null,
+          uploadedFileType: null,
+          uploadProgress: 0,
+          uploadStatus: "idle"
         };
       }
 
@@ -8160,6 +8797,14 @@
         flowState.answers.language = existing.language || "";
         flowState.answers.source = existing.sourcePack || "";
         flowState.answers.contextMode = existing.contextMode || "";
+        flowState.answers.uploadedFile = existing.uploadedFileName ? {
+          name: existing.uploadedFileName,
+          type: existing.uploadedFileType || "document"
+        } : null;
+        flowState.answers.uploadProgress = existing.uploadProgress || 0;
+        flowState.answers.uploadStatus = existing.uploadStatus || "idle";
+        flowState.answers.uploadSkipped = existing.uploadStatus === "skipped";
+        flowState.answers.uploadPaused = false;
         window.updateAppState?.({
           liveSetupDraft: {
             ...existing,
@@ -8194,42 +8839,71 @@
         `;
       }
 
-      function renderSummary() {
-        const draft = selectedSetupDraft();
-        const origin = sourceContextSummary(draft);
-        summaryEl.hidden = false;
-        summaryEl.innerHTML = `
-          <div class="flow-summary-intro">
-            <strong>Ready to open the live rehearsal.</strong>
-            <p>The next round will inherit the market frame, language, and source pack below. You can still go back if the context is not right.</p>
-          </div>
-          <div class="flow-summary-grid">
-            <div class="flow-summary-card">
-              <b>Market</b>
-              <span>${draft.market || "Not selected"}</span>
-            </div>
-            <div class="flow-summary-card">
-              <b>Language</b>
-              <span>${draft.language || "Not selected"}</span>
-            </div>
-            <div class="flow-summary-card">
-              <b>Source / pack</b>
-              <span>${draft.sourcePack || "Not selected"}</span>
-            </div>
-            <div class="flow-summary-card">
-              <b>Context mode</b>
-              <span>${draft.contextMode || "Not selected"}</span>
-            </div>
-            <div class="flow-summary-card">
-              <b>Source type</b>
-              <span>${origin?.type || "Direct live entry"}</span>
-            </div>
-            <div class="flow-summary-card">
-              <b>Selected source</b>
-              <span>${origin?.title || "No upstream context attached"}</span>
+      function renderUploadStep() {
+        const file = flowState.answers.uploadedFile;
+        const progress = Math.max(0, Math.min(100, flowState.answers.uploadProgress || 0));
+        const status = flowState.answers.uploadStatus || "idle";
+        const statusText = status === "success" ? "Completed" : status === "paused" ? "Paused" : status === "uploading" ? "Uploading..." : status === "skipped" ? "Skipped" : "No file selected";
+        summaryEl.hidden = true;
+        summaryEl.innerHTML = "";
+        questionEl.innerHTML = `
+          <div class="flow-question-kicker">Upload files</div>
+          <h4>Add supporting documents.</h4>
+          <p>Optional. Attach a deck, transcript, or brief. You can skip and still start.</p>
+          <div class="flow-upload-card">
+            <label class="flow-upload-drop" data-flow-upload-drop>
+              <input type="file" data-live-upload-input accept=".pdf,.ppt,.pptx,.doc,.docx,application/pdf,application/vnd.ms-powerpoint,application/vnd.openxmlformats-officedocument.presentationml.presentation,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document">
+              <span class="flow-upload-copy">
+                <span class="flow-upload-icon" aria-hidden="true">
+                  <svg class="control-svg" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 16V5"></path><path d="M7.5 9.5 12 5l4.5 4.5"></path><path d="M5 17.5v1.2c0 .8.7 1.5 1.5 1.5h11c.8 0 1.5-.7 1.5-1.5v-1.2"></path></svg>
+                </span>
+                <strong>Drop your files here, or browse</strong>
+                <span>Supports PDF, PPT, PPTX, DOC, DOCX</span>
+              </span>
+            </label>
+            <div class="flow-upload-progress" style="--upload-progress:${progress}%;" data-live-upload-progress>
+              <div class="flow-upload-line">
+                <span><strong>${statusText}</strong>${file ? ` / ${file.name}` : ""}</span>
+                <span class="flow-upload-actions">
+                  <button type="button" data-live-upload-pause aria-label="Pause upload">${flowState.answers.uploadPaused ? "Play" : "Pause"}</button>
+                  <button type="button" data-live-upload-cancel aria-label="Cancel upload">Cancel</button>
+                  <button type="button" data-live-upload-more aria-label="More upload options">More</button>
+                </span>
+              </div>
+              <div class="flow-upload-bar"><span></span></div>
             </div>
           </div>
         `;
+      }
+
+      function renderReadyStep() {
+        const draft = selectedSetupDraft();
+        const origin = sourceContextSummary(draft);
+        summaryEl.hidden = false;
+        questionEl.innerHTML = `
+          <div class="flow-question-kicker">Go to Learn / Start</div>
+          <h4>Ready for live.</h4>
+          <p>Small setup, clear context. Learn first if you want, or start now.</p>
+          <div class="flow-ready-card">
+            <div><b>Market</b><span>${draft.market || "Not selected"}</span></div>
+            <div><b>Language</b><span>${draft.language || "Not selected"}</span></div>
+            <div><b>Source</b><span>${draft.sourcePack || "Not selected"}</span></div>
+            <div><b>Files</b><span>${draft.uploadedFileName || (draft.uploadStatus === "skipped" ? "Skipped" : "Optional")}</span></div>
+          </div>
+        `;
+        summaryEl.innerHTML = origin ? `
+          <div class="flow-summary-intro">
+            <strong>${origin.type}</strong>
+            <p>${origin.title}</p>
+          </div>
+        ` : "";
+        if (startBtn) {
+          startBtn.textContent = "Start";
+          startBtn.dataset.uiState = "";
+        }
+        if (learnBtn) {
+          learnBtn.textContent = "Go to Learn";
+        }
       }
 
       function renderLiveSetupFlow() {
@@ -8237,26 +8911,33 @@
         if (!currentStep) return;
         const draft = selectedSetupDraft();
 
-        titleEl.textContent = "Lock the round context.";
+        titleEl.textContent = "Prepare your live.";
         stepEl.textContent = `Step ${flowState.step + 1} of ${flowSteps.length}`;
         renderProgress();
         updateLiveSetupStepIndex();
         renderOriginSummary(draft);
 
         backBtn.hidden = false;
-        nextBtn.hidden = currentStep.key === "confirm";
-        startBtn.hidden = currentStep.key !== "confirm";
+        skipBtn.hidden = currentStep.key !== "upload";
+        learnBtn.hidden = currentStep.key !== "ready";
+        nextBtn.hidden = currentStep.key === "ready";
+        startBtn.hidden = currentStep.key !== "ready";
         backBtn.setAttribute("aria-disabled", "false");
 
-        if (currentStep.key === "confirm") {
-          questionEl.innerHTML = `
-            <div class="flow-question-kicker">${currentStep.stepLabel}</div>
-            <h4>${currentStep.title}</h4>
-            <p>${currentStep.description}</p>
-          `;
-          renderSummary();
-          startBtn.disabled = !isSetupDraftReady(draft);
-          startBtn.setAttribute("aria-disabled", String(startBtn.disabled));
+        if (currentStep.key === "upload") {
+          renderUploadStep();
+          nextBtn.disabled = !(flowState.answers.uploadStatus === "success" || flowState.answers.uploadSkipped);
+          nextBtn.setAttribute("aria-disabled", String(nextBtn.disabled));
+          startBtn.setAttribute("aria-disabled", "true");
+          return;
+        }
+
+        if (currentStep.key === "ready") {
+          renderReadyStep();
+          const readyOk = isSetupDraftReady(draft);
+          startBtn.disabled = false;
+          startBtn.setAttribute("aria-disabled", String(!readyOk));
+          startBtn.dataset.ready = String(readyOk);
           nextBtn.setAttribute("aria-disabled", "true");
           return;
         }
@@ -8296,7 +8977,11 @@
           reviewFocusId: existing.reviewFocusId || null,
           reviewFocusTitle: existing.reviewFocusTitle || null,
           resumeMode: Boolean(existing.resumeMode),
-          originRoundTag: existing.originRoundTag || null
+          originRoundTag: existing.originRoundTag || null,
+          uploadedFileName: existing.uploadedFileName || flowState.answers.uploadedFile?.name || null,
+          uploadedFileType: existing.uploadedFileType || flowState.answers.uploadedFile?.type || null,
+          uploadProgress: existing.uploadProgress ?? flowState.answers.uploadProgress ?? 0,
+          uploadStatus: existing.uploadStatus || flowState.answers.uploadStatus || "idle"
         };
       }
 
@@ -8311,6 +8996,80 @@
             lastError: lastError ? (lastError.message || String(lastError)) : null
           }
         });
+      }
+
+      let uploadTimer = null;
+
+      function writeUploadState(patch) {
+        const next = {
+          uploadProgress: flowState.answers.uploadProgress,
+          uploadStatus: flowState.answers.uploadStatus,
+          uploadedFileName: flowState.answers.uploadedFile?.name || null,
+          uploadedFileType: flowState.answers.uploadedFile?.type || null,
+          ...patch
+        };
+        window.updateAppState?.({ liveSetupDraft: next });
+      }
+
+      function clearUploadTimer() {
+        if (uploadTimer) window.clearInterval(uploadTimer);
+        uploadTimer = null;
+      }
+
+      function startUploadProgress(file) {
+        clearUploadTimer();
+        flowState.answers.uploadedFile = {
+          name: file.name,
+          type: file.type || file.name.split(".").pop() || "document"
+        };
+        flowState.answers.uploadProgress = 0;
+        flowState.answers.uploadStatus = "uploading";
+        flowState.answers.uploadPaused = false;
+        flowState.answers.uploadSkipped = false;
+        writeUploadState({});
+        renderLiveSetupFlow();
+        uploadTimer = window.setInterval(() => {
+          if (flowState.answers.uploadPaused) return;
+          flowState.answers.uploadProgress = Math.min(100, flowState.answers.uploadProgress + 14);
+          if (flowState.answers.uploadProgress >= 100) {
+            flowState.answers.uploadStatus = "success";
+            clearUploadTimer();
+          }
+          writeUploadState({});
+          if (flowState.step === 3) renderLiveSetupFlow();
+        }, 220);
+      }
+
+      function skipUploadStep() {
+        clearUploadTimer();
+        flowState.answers.uploadSkipped = true;
+        flowState.answers.uploadedFile = null;
+        flowState.answers.uploadProgress = 0;
+        flowState.answers.uploadStatus = "skipped";
+        flowState.answers.uploadPaused = false;
+        writeUploadState({
+          uploadedFileName: null,
+          uploadedFileType: null,
+          uploadProgress: 0,
+          uploadStatus: "skipped"
+        });
+        flowState.step = Math.min(flowState.step + 1, flowSteps.length - 1);
+        renderLiveSetupFlow();
+      }
+
+      function cancelUploadStep() {
+        clearUploadTimer();
+        flowState.answers.uploadedFile = null;
+        flowState.answers.uploadProgress = 0;
+        flowState.answers.uploadStatus = "idle";
+        flowState.answers.uploadPaused = false;
+        writeUploadState({
+          uploadedFileName: null,
+          uploadedFileType: null,
+          uploadProgress: 0,
+          uploadStatus: "idle"
+        });
+        renderLiveSetupFlow();
       }
 
       function countryKeyFromMarket(market) {
@@ -8333,6 +9092,7 @@
         if (draft.reviewFocusTitle) parts.push(`Review focus: ${draft.reviewFocusTitle}.`);
         if (draft.originSessionId) parts.push(`Origin session: ${draft.originSessionId}.`);
         if (draft.originReviewId) parts.push(`Origin review: ${draft.originReviewId}.`);
+        if (draft.uploadedFileName) parts.push(`Uploaded file: ${draft.uploadedFileName}.`);
         return parts.join(" ");
       }
 
@@ -8748,30 +9508,65 @@
         if (contextNode) contextNode.textContent = `${round.market} / ${round.language} / ${round.sourcePack} / ${round.contextMode} / ${reviewSeed.focus || reviewDetail?.summary?.nextStep || "review seed"}`;
       }
 
+      function ensureCountdownOverlay() {
+        let overlay = document.querySelector("[data-live-countdown]");
+        if (overlay) return overlay;
+        overlay = document.createElement("div");
+        overlay.className = "live-countdown-overlay";
+        overlay.dataset.liveCountdown = "";
+        overlay.setAttribute("aria-live", "polite");
+        overlay.innerHTML = `<div class="live-countdown-orb" data-live-countdown-number>3</div>`;
+        document.body.appendChild(overlay);
+        return overlay;
+      }
+
+      function runLiveCountdown() {
+        const overlay = ensureCountdownOverlay();
+        const number = overlay.querySelector("[data-live-countdown-number]");
+        overlay.classList.add("is-open");
+        const values = ["3", "2", "1"];
+        let index = 0;
+        if (number) number.textContent = values[index];
+        return new Promise((resolve) => {
+          const timer = window.setInterval(() => {
+            index += 1;
+            if (index >= values.length) {
+              window.clearInterval(timer);
+              window.setTimeout(() => {
+                overlay.classList.remove("is-open");
+                resolve();
+              }, 260);
+              return;
+            }
+            if (number) number.textContent = values[index];
+          }, 760);
+        });
+      }
+
       async function startLiveSession() {
         const currentStep = flowSteps[flowState.step];
         const draft = selectedSetupDraft();
-        if (currentStep?.key !== "confirm" || !isSetupDraftReady(draft)) return false;
-        startBtn.disabled = true;
-        startBtn.dataset.uiState = "loading";
-        startBtn.textContent = "Starting...";
-        try {
-          const currentRound = await startBackendLiveSession(draft);
-          syncLiveRoomContext(currentRound);
-          window.navigateToRoute("live-windowed");
-          return true;
-        } catch (error) {
-          writeLiveApiState("error", error);
-          startBtn.textContent = "Start new simulation";
-          renderLiveSetupFlow();
+        if (currentStep?.key !== "ready" || !isSetupDraftReady(draft)) {
+          console.warn("[live] start blocked — setup not ready", draft);
           return false;
-        } finally {
-          startBtn.dataset.uiState = "";
         }
+        startBtn.dataset.uiState = "loading";
+        // Kick the countdown immediately so it is visible even if the backend is unreachable.
+        const countdownPromise = runLiveCountdown();
+        const backendPromise = Promise.resolve()
+          .then(() => startBackendLiveSession(draft))
+          .catch((error) => { writeLiveApiState("error", error); return null; });
+        const [, currentRound] = await Promise.all([countdownPromise, backendPromise]);
+        if (currentRound) syncLiveRoomContext(currentRound);
+        startBtn.textContent = "Start";
+        startBtn.dataset.uiState = "";
+        window.navigateToRoute("live-windowed");
+        return true;
       }
 
       async function endLiveSession() {
         try {
+          stopLiveExperience();
           const currentRound = await endBackendLiveSession();
           syncReviewCurrentRound(currentRound);
           window.navigateToRoute("review");
@@ -8779,6 +9574,212 @@
         } catch (error) {
           writeLiveApiState("error", error);
           return false;
+        }
+      }
+
+      const liveExperienceState = {
+        audioContext: null,
+        audioStream: null,
+        analyser: null,
+        raf: 0,
+        fallbackRaf: 0,
+        videoStream: null,
+        micOn: true,
+        cameraOn: false,
+        chatTimer: 0,
+        chatIndex: 0,
+        initialized: false
+      };
+
+      const liveChatMessages = [
+        { side:"ai", text:"Let's start softly. What matters most before pricing?" },
+        { side:"me", text:"Trust and timing. I want to understand their internal path first." },
+        { side:"ai", text:"Good. Slow the ask and invite them to name the safest next step." },
+        { side:"me", text:"I'll confirm alignment before asking for commitment." },
+        { side:"ai", text:"Their concern is pace. Reflect that before you move forward." },
+        { side:"me", text:"Understood. I'll ask what would make the next step feel safe." }
+      ];
+
+      function liveExperienceNode() {
+        return document.querySelector("[data-live-experience]");
+      }
+
+      function liveWaveBars() {
+        return Array.from(document.querySelectorAll("[data-live-waveform] span"));
+      }
+
+      function setWaveLevels(levels) {
+        const bars = liveWaveBars();
+        bars.forEach((bar, index) => {
+          const level = levels[index % levels.length] || 0.12;
+          bar.style.setProperty("--level", String(Math.max(0.04, Math.min(1, level))));
+        });
+      }
+
+      function startFallbackWaveform() {
+        window.cancelAnimationFrame(liveExperienceState.fallbackRaf);
+        let phase = 0;
+        const tick = () => {
+          phase += 0.08;
+          const levels = liveWaveBars().map((_, index) => {
+            const crest = Math.sin(phase + index * .62);
+            const centerWeight = 1 - Math.min(1, Math.abs(index - 11.5) / 12);
+            return .08 + Math.abs(crest) * (.16 + centerWeight * .42);
+          });
+          setWaveLevels(levels);
+          liveExperienceState.fallbackRaf = window.requestAnimationFrame(tick);
+        };
+        tick();
+      }
+
+      async function startAudioWaveform() {
+        if (!navigator.mediaDevices?.getUserMedia) {
+          startFallbackWaveform();
+          return;
+        }
+        try {
+          const stream = await navigator.mediaDevices.getUserMedia({ audio:true, video:false });
+          liveExperienceState.audioStream = stream;
+          liveExperienceState.audioContext = new (window.AudioContext || window.webkitAudioContext)();
+          const source = liveExperienceState.audioContext.createMediaStreamSource(stream);
+          const analyser = liveExperienceState.audioContext.createAnalyser();
+          analyser.fftSize = 128;
+          source.connect(analyser);
+          liveExperienceState.analyser = analyser;
+          const data = new Uint8Array(analyser.frequencyBinCount);
+          const tick = () => {
+            if (!liveExperienceState.micOn || !liveExperienceState.analyser) {
+              setWaveLevels([.08,.12,.1,.14,.09,.11]);
+              liveExperienceState.raf = window.requestAnimationFrame(tick);
+              return;
+            }
+            analyser.getByteFrequencyData(data);
+            const bars = liveWaveBars();
+            const bucket = Math.max(1, Math.floor(data.length / Math.max(1, bars.length)));
+            const levels = bars.map((_, index) => {
+              let total = 0;
+              for (let i = index * bucket; i < Math.min(data.length, (index + 1) * bucket); i += 1) total += data[i];
+              const avg = total / bucket / 255;
+              return .08 + avg * .92;
+            });
+            setWaveLevels(levels);
+            liveExperienceState.raf = window.requestAnimationFrame(tick);
+          };
+          tick();
+        } catch {
+          startFallbackWaveform();
+        }
+      }
+
+      function stopAudioWaveform() {
+        window.cancelAnimationFrame(liveExperienceState.raf);
+        window.cancelAnimationFrame(liveExperienceState.fallbackRaf);
+        liveExperienceState.raf = 0;
+        liveExperienceState.fallbackRaf = 0;
+        liveExperienceState.audioStream?.getTracks().forEach((track) => track.stop());
+        liveExperienceState.audioStream = null;
+        liveExperienceState.audioContext?.close?.();
+        liveExperienceState.audioContext = null;
+        liveExperienceState.analyser = null;
+      }
+
+      async function setCameraEnabled(enabled) {
+        const experience = liveExperienceNode();
+        const video = document.querySelector("[data-live-video]");
+        const waveform = document.querySelector("[data-live-waveform]");
+        const fallback = document.querySelector("[data-live-camera-fallback]");
+        const cameraBtn = document.querySelector("[data-live-camera-toggle]");
+        if (!experience || !video || !waveform) return;
+
+        if (!enabled) {
+          liveExperienceState.videoStream?.getTracks().forEach((track) => track.stop());
+          liveExperienceState.videoStream = null;
+          liveExperienceState.cameraOn = false;
+          video.hidden = true;
+          video.srcObject = null;
+          waveform.hidden = false;
+          fallback.hidden = true;
+          experience.dataset.cameraState = "off";
+          cameraBtn?.classList.add("is-off");
+          cameraBtn?.setAttribute("aria-label", "Camera off");
+          return;
+        }
+
+        try {
+          const stream = await navigator.mediaDevices.getUserMedia({ video:true, audio:false });
+          liveExperienceState.videoStream = stream;
+          liveExperienceState.cameraOn = true;
+          video.srcObject = stream;
+          await video.play();
+          video.hidden = false;
+          waveform.hidden = true;
+          fallback.hidden = true;
+          experience.dataset.cameraState = "on";
+          cameraBtn?.classList.remove("is-off");
+          cameraBtn?.setAttribute("aria-label", "Camera on");
+        } catch {
+          await setCameraEnabled(false);
+          fallback.hidden = false;
+        }
+      }
+
+      function pushLiveChatMessage(message) {
+        const stack = document.querySelector("[data-live-chat-stack]");
+        if (!stack) return;
+        const bubble = document.createElement("div");
+        bubble.className = `live-chat-bubble ${message.side === "me" ? "me" : "ai"}`;
+        bubble.textContent = message.text;
+        stack.appendChild(bubble);
+        const bubbles = Array.from(stack.children);
+        while (bubbles.length > 4) {
+          const old = bubbles.shift();
+          old?.classList.add("is-fading");
+          window.setTimeout(() => old?.remove(), 220);
+        }
+      }
+
+      function startLiveChatLoop() {
+        const stack = document.querySelector("[data-live-chat-stack]");
+        if (!stack) return;
+        stack.innerHTML = "";
+        liveExperienceState.chatIndex = 0;
+        pushLiveChatMessage(liveChatMessages[liveExperienceState.chatIndex++]);
+        window.clearInterval(liveExperienceState.chatTimer);
+        liveExperienceState.chatTimer = window.setInterval(() => {
+          const message = liveChatMessages[liveExperienceState.chatIndex % liveChatMessages.length];
+          liveExperienceState.chatIndex += 1;
+          pushLiveChatMessage(message);
+        }, 2600);
+      }
+
+      function syncFullscreenButtons() {
+        const isFull = Boolean(document.fullscreenElement);
+        const experience = liveExperienceNode();
+        experience?.classList.toggle("is-fullscreen", isFull);
+        document.querySelector("[data-live-fullscreen]")?.toggleAttribute("hidden", isFull);
+        document.querySelector("[data-live-exit-fullscreen]")?.toggleAttribute("hidden", !isFull);
+      }
+
+      function startLiveExperience() {
+        if (liveExperienceState.initialized) return;
+        liveExperienceState.initialized = true;
+        liveExperienceState.micOn = true;
+        document.querySelector("[data-live-mic-toggle]")?.classList.remove("is-off");
+        document.querySelector("[data-live-camera-toggle]")?.classList.add("is-off");
+        setCameraEnabled(false);
+        startAudioWaveform();
+        startLiveChatLoop();
+        syncFullscreenButtons();
+      }
+
+      function stopLiveExperience() {
+        liveExperienceState.initialized = false;
+        window.clearInterval(liveExperienceState.chatTimer);
+        liveExperienceState.chatTimer = 0;
+        stopAudioWaveform();
+        setCameraEnabled(false);
+        if (document.fullscreenElement) {
+          document.exitFullscreen?.().catch?.(() => {});
         }
       }
 
@@ -8801,6 +9802,17 @@
           return;
         }
 
+        const uploadDrop = event.target.closest("#wire-4-1-live-setup [data-flow-upload-drop]");
+        if (uploadDrop && !event.target.closest("[data-live-upload-input]")) {
+          const input = uploadDrop.querySelector("[data-live-upload-input]");
+          if (input) {
+            event.preventDefault();
+            try { input.value = ""; } catch (_) {}
+            input.click();
+            return;
+          }
+        }
+
         const backControl = event.target.closest("#wire-4-1-live-setup [data-live-flow-back]");
         if (backControl) {
           event.preventDefault();
@@ -8814,11 +9826,42 @@
           return;
         }
 
+        const skipControl = event.target.closest("#wire-4-1-live-setup [data-live-flow-skip]");
+        if (skipControl) {
+          event.preventDefault();
+          skipUploadStep();
+          return;
+        }
+
+        const pauseUpload = event.target.closest("#wire-4-1-live-setup [data-live-upload-pause]");
+        if (pauseUpload) {
+          event.preventDefault();
+          if (flowState.answers.uploadStatus === "uploading" || flowState.answers.uploadStatus === "paused") {
+            flowState.answers.uploadPaused = !flowState.answers.uploadPaused;
+            flowState.answers.uploadStatus = flowState.answers.uploadPaused ? "paused" : "uploading";
+            writeUploadState({});
+            renderLiveSetupFlow();
+          }
+          return;
+        }
+
+        const cancelUpload = event.target.closest("#wire-4-1-live-setup [data-live-upload-cancel]");
+        if (cancelUpload) {
+          event.preventDefault();
+          cancelUploadStep();
+          return;
+        }
+
         const nextControl = event.target.closest("#wire-4-1-live-setup [data-live-flow-next]");
         if (nextControl) {
           event.preventDefault();
           const currentStep = flowSteps[flowState.step];
-          if (!currentStep || currentStep.key === "confirm" || !flowState.answers[currentStep.key]) return;
+          if (!currentStep || currentStep.key === "ready") return;
+          if (currentStep.key === "upload") {
+            if (!(flowState.answers.uploadStatus === "success" || flowState.answers.uploadSkipped)) return;
+          } else if (!flowState.answers[currentStep.key]) {
+            return;
+          }
           flowState.step = Math.min(flowState.step + 1, flowSteps.length - 1);
           renderLiveSetupFlow();
           return;
@@ -8831,12 +9874,93 @@
           return;
         }
 
+        const volumeToggle = event.target.closest("[data-live-volume-toggle]");
+        if (volumeToggle) {
+          event.preventDefault();
+          const panel = document.querySelector("[data-live-volume-panel]");
+          if (panel) panel.hidden = !panel.hidden;
+          return;
+        }
+
+        const micToggle = event.target.closest("[data-live-mic-toggle]");
+        if (micToggle) {
+          event.preventDefault();
+          liveExperienceState.micOn = !liveExperienceState.micOn;
+          micToggle.classList.toggle("is-off", !liveExperienceState.micOn);
+          micToggle.setAttribute("aria-label", liveExperienceState.micOn ? "Microphone on" : "Microphone off");
+          return;
+        }
+
+        const cameraToggle = event.target.closest("[data-live-camera-toggle]");
+        if (cameraToggle) {
+          event.preventDefault();
+          await setCameraEnabled(!liveExperienceState.cameraOn);
+          return;
+        }
+
+        const fullscreenToggle = event.target.closest("[data-live-fullscreen]");
+        if (fullscreenToggle) {
+          event.preventDefault();
+          const experience = liveExperienceNode();
+          await experience?.requestFullscreen?.();
+          syncFullscreenButtons();
+          return;
+        }
+
+        const exitFullscreenToggle = event.target.closest("[data-live-exit-fullscreen]");
+        if (exitFullscreenToggle) {
+          event.preventDefault();
+          await document.exitFullscreen?.();
+          syncFullscreenButtons();
+          return;
+        }
+
         const endControl = event.target.closest("[data-action='end-live-session']");
         if (endControl) {
           event.preventDefault();
           await endLiveSession();
           return;
         }
+      });
+
+      document.addEventListener("fullscreenchange", syncFullscreenButtons);
+
+      document.addEventListener("input", (event) => {
+        const volume = event.target.closest?.("[data-live-volume]");
+        if (!volume) return;
+        window.updateAppState?.({ ui: { liveVolume: Number(volume.value) } });
+        const waveform = document.querySelector("[data-live-waveform]");
+        if (waveform) waveform.style.opacity = String(.4 + Number(volume.value) / 170);
+      });
+
+      document.addEventListener("change", (event) => {
+        const uploadInput = event.target.closest?.("#wire-4-1-live-setup [data-live-upload-input]");
+        if (!uploadInput) return;
+        const file = uploadInput.files?.[0];
+        if (!file) return;
+        startUploadProgress(file);
+      });
+
+      document.addEventListener("dragover", (event) => {
+        const drop = event.target.closest?.("#wire-4-1-live-setup [data-flow-upload-drop]");
+        if (!drop) return;
+        event.preventDefault();
+        drop.classList.add("is-dragging");
+      });
+
+      document.addEventListener("dragleave", (event) => {
+        const drop = event.target.closest?.("#wire-4-1-live-setup [data-flow-upload-drop]");
+        if (!drop) return;
+        drop.classList.remove("is-dragging");
+      });
+
+      document.addEventListener("drop", (event) => {
+        const drop = event.target.closest?.("#wire-4-1-live-setup [data-flow-upload-drop]");
+        if (!drop) return;
+        event.preventDefault();
+        drop.classList.remove("is-dragging");
+        const file = event.dataTransfer?.files?.[0];
+        if (file) startUploadProgress(file);
       });
 
       const originalNavigateToRoute = window.navigateToRoute;
@@ -8850,6 +9974,9 @@
           }
           if (activeId === "wire-4-1-1-live-windowed" || activeId === "wire-4-1-2-live-fullscreen") {
             syncLiveRoomContext();
+            startLiveExperience();
+          } else if (previousActiveId === "wire-4-1-1-live-windowed" || previousActiveId === "wire-4-1-2-live-fullscreen") {
+            stopLiveExperience();
           }
           if (activeId === "wire-6-review-overview") {
             syncReviewCurrentRound();
@@ -8862,6 +9989,10 @@
         resetLiveSetupFlow();
       } else {
         renderLiveSetupFlow();
+        const activeId = document.querySelector(".screen.is-active:not(#wire-8-me-panel)")?.id || "";
+        if (activeId === "wire-4-1-1-live-windowed" || activeId === "wire-4-1-2-live-fullscreen") {
+          startLiveExperience();
+        }
       }
     })();
   </script>
