@@ -5,6 +5,19 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Miro Low-Fi Layouts v24</title>
   <script src="../../../../runtime-config.js"></script>
+  <script>
+    // Local-first API base override. Lets developers point the prototype at a local FastAPI
+    // backend (e.g. http://localhost:8000/api/v1) without editing runtime-config.js.
+    // Usage in DevTools: localStorage.setItem("MIRO_API_BASE", "http://localhost:8000/api/v1").
+    (() => {
+      try {
+        const stored = window.localStorage?.getItem?.("MIRO_API_BASE");
+        if (stored && typeof stored === "string" && stored.trim()) {
+          window.MIRO_API_BASE = stored.trim();
+        }
+      } catch (_) { /* localStorage may be blocked in some contexts */ }
+    })();
+  </script>
   <style>
     :root { --bg:#080812; --panel:rgba(255,255,255,.03); --line:rgba(255,255,255,.1); --text:#f4f0ea; --muted:rgba(244,240,234,.64); --brand:#5c9dff; --brand-2:#3a7bbf; --danger:#ff5068; }
     * { box-sizing:border-box; }
@@ -1441,9 +1454,7 @@
             </h3>
           </div>
           <a class="live-entry-link voice-orb-link" href="#wire-4-1-live-setup" data-route="live-setup" data-live-entry-orb="true" aria-label="Enter live setup">
-            <span class="voice-orb" aria-hidden="true">
-              <span class="voice-orb-sheen"></span>
-            </span>
+            <span class="voice-orb" aria-hidden="true"></span>
           </a>
         </div>
       </div>
@@ -1492,70 +1503,10 @@
       <div class="note">Intent: setup is a guided question flow, not the interview window itself.</div>
     </section>
 
-    <section class="screen" id="wire-4-1-2-live-fullscreen">
+    <section class="screen" id="wire-4-1-0-live-main">
       <div class="screen-head">
-        <h2>4.1.2 Live / fullscreen</h2>
-        <p>Video-first, center-weighted, with only a few controls at the bottom. No play icon in the middle.</p>
-      </div>
-      <div class="canvas">
-        <div class="fullscreen-shell">
-          <div class="micro-line">
-            <span data-live-session-meta>Japan CEO rehearsal / 00:53 / 45 min</span>
-            <span data-live-source-meta>Case memory on / 3 grounded materials</span>
-          </div>
-          <div class="live-stage">
-            <div class="video-frame"></div>
-            <div class="floating-chat">
-              <div class="bubble">The main concern from the first real meeting was pacing. I still need more confidence that your team can align internally.</div>
-              <div class="bubble self">Understood. I'll clarify your decision process before I ask for the next commitment.</div>
-            </div>
-            <div class="assist-dock">
-              <div class="assist-dock-title">Live assist</div>
-              <div class="assist-dock-list">
-                <div class="assist-dock-item"><div class="assist-left"><span class="assist-dot blue"></span><span>Grounded docs</span></div><span>3</span></div>
-                <div class="assist-dock-item"><div class="assist-left"><span class="assist-dot purple"></span><span>Translate</span></div><span>on</span></div>
-                <div class="assist-dock-item"><div class="assist-left"><span class="assist-dot gold"></span><span>Coach cue</span></div><span>live</span></div>
-              </div>
-            </div>
-            <div class="bottom-controls">
-              <button type="button" class="control-btn is-blue" aria-label="Microphone">
-                <svg class="control-svg" viewBox="0 0 24 24" aria-hidden="true">
-                  <rect x="9" y="3.5" width="6" height="11" rx="3"></rect>
-                  <path d="M6.5 11.5a5.5 5.5 0 0 0 11 0"></path>
-                  <path d="M12 17v3.5"></path>
-                  <path d="M9 20.5h6"></path>
-                </svg>
-              </button>
-              <button type="button" class="control-btn is-purple" aria-label="Translate">
-                <svg class="control-svg" viewBox="0 0 24 24" aria-hidden="true">
-                  <rect x="3.5" y="6" width="17" height="12" rx="3"></rect>
-                  <path d="M7.5 10.5h9"></path>
-                  <path d="M7.5 13.5h6"></path>
-                </svg>
-              </button>
-              <button type="button" class="control-btn is-gold" aria-label="Coach cue">
-                <svg class="control-svg" viewBox="0 0 24 24" aria-hidden="true">
-                  <path d="M12 3.8l1.8 4.4 4.4 1.8-4.4 1.8L12 16.2l-1.8-4.4-4.4-1.8 4.4-1.8L12 3.8z"></path>
-                  <path d="M18.4 15.8l.9 2.1 2.1.9-2.1.9-.9 2.1-.9-2.1-2.1-.9 2.1-.9.9-2.1z"></path>
-                </svg>
-              </button>
-              <button type="button" class="control-btn is-danger" data-action="end-live-session" aria-label="End session">
-                <svg class="control-svg" viewBox="0 0 24 24" aria-hidden="true">
-                  <circle class="control-stop-bg" cx="12" cy="12" r="10"></circle>
-                  <rect class="control-stop" x="9" y="9" width="6" height="6" rx="1.3"></rect>
-                </svg>
-              </button>
-            </div>
-          </div>
-        </div>
-      </div>
-      <div class="note">Intent: this should read as a rehearsal stage, not a chat app or conferencing admin screen.</div>
-    </section>
-
-    <section class="screen" id="wire-4-1-1-live-windowed">
-      <div class="screen-head">
-        <h2>4.1.1 Live / windowed</h2>
-        <p>Same page language, but with a visible utility tray. Controls remain icon-first and compact.</p>
+        <h2>4.1.0 Live / main</h2>
+        <p>Default live stage. Windowed keeps the Miro shell; fullscreen becomes the immersive layer of the same scene.</p>
       </div>
       <div class="canvas">
         <div class="live-experience" data-live-experience data-camera-state="off">
@@ -1582,11 +1533,15 @@
             </div>
             <div class="live-camera-fallback" data-live-camera-fallback hidden>Camera unavailable. Waveform stays active.</div>
             <div class="live-chat-stack" data-live-chat-stack aria-live="polite"></div>
+            <div class="live-voice-status" data-live-voice-status aria-live="polite">Preparing microphone…</div>
+            <audio data-live-ai-audio preload="auto"></audio>
           </div>
           <div class="live-controlbar">
             <div class="live-volume-control">
               <button type="button" class="live-control-btn" data-live-volume-toggle aria-label="Volume">
-                <span class="live-volume-icon" aria-hidden="true"></span>
+                <span class="live-volume-icon" aria-hidden="true">
+                  <svg t="1776418780125" class="icon" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg" p-id="4804" width="200" height="200"><path d="M701.78095 343.629034c-10.378519-21.239297-37.17735-28.335921-56.709772-15.025913-19.534229 13.31362-22.731232 40.847581-6.766086 58.279374 49.241068 76.142853 49.241068 174.092156 0 250.236816-15.965146 17.431793-12.768143 44.96756 6.766086 58.279374 19.532423 13.311814 46.331254 6.211578 56.709772-15.022301M888.624993 858.76011c161.822529-202.863375 161.822529-490.660458 0-693.518414-12.538753-18.529973-38.181606-22.503649-55.743447-8.637326-17.560035 13.86271-19.648021 39.725921-4.535409 56.225706 137.182126 175.856829 137.182126 422.483018 0 598.34346-15.112612 16.499786-13.024626 42.362997 4.535409 56.2239 17.563647 13.86271 43.204693 9.889034 55.743447-8.637326zM239.651485 324.076743c78.274189-62.115778 156.544765-124.23878 234.818953-186.356364 23.488036-18.643764 58.118621-1.912783 58.118621 28.074019v692.41301c0 29.988609-34.630585 46.712365-58.118621 28.072213L239.651485 699.921451H51.201716c-19.794324 0-35.838943-16.046425-35.838943-35.84075V359.919299c0-19.792518 16.044619-35.84075 35.838943-35.84075l188.449769-0.001806z m-147.488396 76.800316v222.245882h174.26194l189.367327 150.284419V250.590834l-189.367327 150.288031H92.163089zM695.538667 689.537513c75.32825-106.375301 75.32825-248.701532 0-355.075026" fill="#ffffff" p-id="4805"></path></svg>
+                </span>
               </button>
               <div class="live-volume-popover" data-live-volume-panel hidden>
                 <span>Volume</span>
@@ -1595,7 +1550,8 @@
             </div>
             <div class="live-center-controls">
               <button type="button" class="live-control-btn" data-live-mic-toggle aria-label="Microphone on">
-                <svg class="control-svg" viewBox="0 0 24 24" aria-hidden="true"><rect x="9" y="3.5" width="6" height="11" rx="3"></rect><path d="M6.5 11.5a5.5 5.5 0 0 0 11 0"></path><path d="M12 17v3.5"></path><path d="M9 20.5h6"></path></svg>
+                <svg class="control-svg control-svg-on" viewBox="0 0 24 24" aria-hidden="true"><rect x="9" y="3.5" width="6" height="11" rx="3"></rect><path d="M6.5 11.5a5.5 5.5 0 0 0 11 0"></path><path d="M12 17v3.5"></path><path d="M9 20.5h6"></path></svg>
+                <svg class="control-svg control-svg-off" viewBox="0 0 24 24" aria-hidden="true"><rect x="9" y="3.5" width="6" height="11" rx="3"></rect><path d="M6.5 11.5a5.5 5.5 0 0 0 11 0"></path><path d="M12 17v3.5"></path><path d="M9 20.5h6"></path><path class="mic-slash-bg" d="M4.2 4.2 L19.8 19.8"></path><path class="mic-slash-fg" d="M4.2 4.2 L19.8 19.8"></path></svg>
               </button>
               <button type="button" class="live-control-btn" data-live-camera-toggle aria-label="Camera off">
                 <svg class="control-svg" viewBox="0 0 24 24" aria-hidden="true"><rect x="3.8" y="6.5" width="12.5" height="11" rx="3"></rect><path d="M16.3 10.2l4-2.2v8l-4-2.2"></path></svg>
@@ -1607,7 +1563,7 @@
           </div>
         </div>
       </div>
-      <div class="note">Intent: windowed live still feels premium and sparse, not utility-heavy.</div>
+      <div class="note">Intent: default live should feel like one clean Miro stage, not a separate conferencing screen.</div>
     </section>
 
     <section class="screen" id="wire-5-pricing">
@@ -1626,11 +1582,6 @@
           <div class="orb"></div>
           <div class="pricing-head">
             <div class="pricing-title">Pricing</div>
-            <div class="pricing-selection-summary" data-pricing-plan-summary data-ui-state="empty">
-              <span class="pricing-selection-label">Chosen plan</span>
-              <strong data-pricing-selected-plan>Plan pending</strong>
-              <p data-pricing-plan-status>Choose a lane to continue.</p>
-            </div>
           </div>
           <div class="plans">
             <div class="plan side-left" data-plan-card="free">
@@ -2308,13 +2259,6 @@
           <div class="auth-form">
             <h3>Log In</h3>
             <p>Sign in to keep the selected plan attached to your next step.</p>
-            <div class="auth-plan-summary" data-auth-plan-summary>
-              <div class="auth-plan-summary-top">
-                <span data-auth-flow-label>Login flow</span>
-                <strong data-auth-selected-plan>Plan pending</strong>
-              </div>
-              <p data-auth-plan-status>Choose a plan from Pricing to continue with a specific lane.</p>
-            </div>
             <div class="form">
               <div class="field-group"><label class="field-label" for="auth-email">Email</label><input id="auth-email" class="input" type="email" autocomplete="email" placeholder="you@company.com" data-auth-input="email" /></div>
               <div class="field-group"><label class="field-label" for="auth-password">Password</label><input id="auth-password" class="input" type="password" autocomplete="current-password" placeholder="Password" data-auth-input="password" /></div>
@@ -6542,6 +6486,13 @@
       box-shadow:inset 1px 1px 0 rgba(255,255,255,.24), 0 10px 26px rgba(0,0,0,.2);
     }
 
+    body.hifi-route-mode #wire-4-1-live-setup .flow-upload-icon .control-svg {
+      width:22px;
+      height:22px;
+      stroke:rgba(159,208,255,.96);
+      fill:none;
+    }
+
     body.hifi-route-mode #wire-4-1-live-setup .flow-upload-copy strong {
       font-size:15px;
     }
@@ -6702,7 +6653,7 @@
       50% { transform:scale(1.02); }
     }
 
-    body.hifi-route-mode #wire-4-1-1-live-windowed .canvas {
+    body.hifi-route-mode #wire-4-1-0-live-main .canvas {
       padding:0;
       background:#02040a;
     }
@@ -6716,6 +6667,32 @@
         radial-gradient(circle at 12% 18%, rgba(255,255,255,.06), transparent 24%),
         linear-gradient(180deg, #04050b, #02040a 62%, #06101d);
       isolation:isolate;
+      /* UI-8: shared Live scene design tokens so every surface matches the homepage glass language. */
+      --live-fs-meta:11px;
+      --live-fs-meta-strong:12px;
+      --live-fs-body:12.5px;
+      --live-fs-hint:12px;
+      --live-fs-caption:11px;
+      --live-fs-popover-label:11px;
+      --live-lh-body:1.42;
+      --live-lh-hint:1.35;
+      --live-ls-meta:.08em;
+      --live-ls-body:.005em;
+      --live-fw-regular:400;
+      --live-fw-medium:500;
+      --live-fw-strong:600;
+      --live-pad-bubble:12px 14px;
+      --live-pad-pill:0 16px;
+      --live-pad-popover:12px 14px;
+      --live-r-bubble:20px;
+      --live-r-card:18px;
+      --live-r-pill:999px;
+      --live-stroke-soft:var(--lg-border);
+      --live-stroke-strong:var(--lg-stroke-strong);
+      --live-fill-bubble: linear-gradient(135deg, rgba(255,255,255,.14), rgba(255,255,255,.045)), rgba(255,255,255,.07);
+      --live-fill-bubble-me: linear-gradient(135deg, rgba(159,208,255,.2), rgba(255,255,255,.05)), rgba(255,255,255,.07);
+      --live-fill-pill: linear-gradient(135deg, rgba(255,255,255,.12), rgba(255,255,255,.04)), rgba(14,14,18,.42);
+      --live-fill-popover: linear-gradient(180deg, rgba(255,255,255,.12), rgba(255,255,255,.045)), rgba(12,16,26,.62);
     }
 
     .live-experience.is-fullscreen {
@@ -6733,21 +6710,26 @@
       justify-content:space-between;
       gap:18px;
       pointer-events:none;
+      transition:transform 220ms ease, opacity 220ms ease;
     }
 
     .live-meta-stack {
       display:grid;
       gap:5px;
       color:rgba(255,255,255,.74);
-      font-size:11px;
-      letter-spacing:.08em;
+      font-family:"Geist Sans","Inter",system-ui,sans-serif;
+      font-size:var(--live-fs-meta);
+      font-weight:var(--live-fw-regular);
+      letter-spacing:var(--live-ls-meta);
+      line-height:1.32;
       text-transform:uppercase;
     }
 
     .live-meta-stack strong {
       color:rgba(255,255,255,.9);
-      font-size:12px;
-      letter-spacing:0;
+      font-size:var(--live-fs-meta-strong);
+      font-weight:var(--live-fw-medium);
+      letter-spacing:var(--live-ls-body);
       text-transform:none;
     }
 
@@ -6755,6 +6737,7 @@
       display:flex;
       gap:10px;
       pointer-events:auto;
+      transition:transform 220ms ease, opacity 220ms ease;
     }
 
     .live-icon-btn,
@@ -6810,18 +6793,32 @@
       inset:0;
       display:grid;
       place-items:center;
+      padding:0;
     }
 
+    /* UI-1: non-fullscreen fills the main stage (top bar + control bar stay).
+       Fullscreen (below) fills the entire viewport. */
     .live-user-video {
-      width:min(1180px, calc(100vw - 92px));
-      max-height:calc(100svh - 210px);
-      aspect-ratio:16/9;
+      position:absolute;
+      inset:0;
+      width:100%;
+      height:100%;
+      max-height:none;
       object-fit:cover;
-      border-radius:34px;
-      border:1px solid rgba(255,255,255,.16);
-      box-shadow:0 32px 110px rgba(0,0,0,.5), inset 0 1px 0 rgba(255,255,255,.12);
+      border-radius:0;
+      border:0;
+      box-shadow:none;
       transform:scaleX(-1);
       background:#0c111c;
+    }
+
+    .live-experience.is-fullscreen .live-user-video {
+      width:100vw;
+      height:100svh;
+      max-height:none;
+      border-radius:0;
+      border-color:transparent;
+      box-shadow:none;
     }
 
     .live-waveform {
@@ -6850,19 +6847,25 @@
       top:54%;
       left:50%;
       transform:translate(-50%, 82px);
-      padding:10px 14px;
-      border-radius:999px;
-      border:1px solid rgba(255,255,255,.12);
-      background:rgba(255,255,255,.06);
-      color:rgba(255,255,255,.68);
-      font-size:12px;
-      backdrop-filter:blur(14px);
+      padding:10px 16px;
+      border-radius:var(--live-r-pill);
+      border:1px solid var(--live-stroke-soft);
+      background:var(--live-fill-pill);
+      color:rgba(255,255,255,.76);
+      font-family:"Geist Sans","Inter",system-ui,sans-serif;
+      font-size:var(--live-fs-hint);
+      font-weight:var(--live-fw-regular);
+      line-height:var(--live-lh-hint);
+      letter-spacing:var(--live-ls-body);
+      box-shadow:var(--lg-shadow-outer-soft);
+      backdrop-filter:blur(18px) saturate(140%);
+      -webkit-backdrop-filter:blur(18px) saturate(140%);
     }
 
     .live-chat-stack {
       position:absolute;
       right:28px;
-      bottom:112px;
+      bottom:114px;
       z-index:4;
       display:flex;
       flex-direction:column;
@@ -6874,16 +6877,17 @@
 
     .live-chat-bubble {
       max-width:310px;
-      padding:12px 14px;
-      border-radius:20px;
-      border:1px solid rgba(255,255,255,.14);
-      background:
-        linear-gradient(135deg, rgba(255,255,255,.16), rgba(255,255,255,.04)),
-        rgba(255,255,255,.07);
-      color:rgba(255,255,255,.88);
-      font-size:12px;
-      line-height:1.42;
-      box-shadow:var(--lg-shadow-outer-soft);
+      padding:var(--live-pad-bubble);
+      border-radius:var(--live-r-bubble);
+      border:1px solid var(--live-stroke-soft);
+      background:var(--live-fill-bubble);
+      color:rgba(255,255,255,.9);
+      font-family:"Geist Sans","Inter",system-ui,sans-serif;
+      font-size:var(--live-fs-body);
+      font-weight:var(--live-fw-regular);
+      line-height:var(--live-lh-body);
+      letter-spacing:var(--live-ls-body);
+      box-shadow:inset 1px 1px 0 rgba(255,255,255,.18), inset -1px -1px 0 rgba(255,255,255,.04), var(--lg-shadow-outer-soft);
       backdrop-filter:blur(18px) saturate(140%);
       -webkit-backdrop-filter:blur(18px) saturate(140%);
       animation:live-bubble-in 260ms ease both;
@@ -6897,14 +6901,50 @@
     .live-chat-bubble.me {
       align-self:flex-end;
       border-bottom-right-radius:8px;
-      background:
-        linear-gradient(135deg, rgba(159,208,255,.19), rgba(255,255,255,.045)),
-        rgba(255,255,255,.07);
+      background:var(--live-fill-bubble-me);
     }
 
     .live-chat-bubble.is-fading {
       opacity:.34;
       transform:translateY(-4px) scale(.98);
+    }
+
+    .live-voice-status {
+      position:absolute;
+      right:28px;
+      bottom:40px;
+      z-index:5;
+      display:inline-flex;
+      align-items:center;
+      justify-content:center;
+      min-height:38px;
+      max-width:min(360px, calc(100vw - 56px));
+      padding:var(--live-pad-pill);
+      border-radius:var(--live-r-pill);
+      border:1px solid var(--live-stroke-soft);
+      background:var(--live-fill-pill);
+      backdrop-filter:blur(22px) saturate(160%);
+      -webkit-backdrop-filter:blur(22px) saturate(160%);
+      box-shadow:inset 1px 1px 0 rgba(255,255,255,.18), var(--lg-shadow-outer-soft);
+      color:rgba(255,255,255,.82);
+      font-family:"Geist Sans","Inter",system-ui,sans-serif;
+      font-size:var(--live-fs-hint);
+      font-weight:var(--live-fw-regular);
+      line-height:var(--live-lh-hint);
+      letter-spacing:var(--live-ls-body);
+      text-align:center;
+      transition:border-color .18s ease, box-shadow .18s ease, opacity .18s ease, transform .18s ease;
+    }
+
+    .live-voice-status[data-state="recording"] {
+      border-color:rgba(159,208,255,.52);
+      box-shadow:0 0 0 3px rgba(159,208,255,.1), var(--lg-shadow-outer-soft);
+      color:rgba(231,242,255,.96);
+    }
+
+    .live-voice-status[data-state="error"] {
+      color:rgba(255,198,198,.94);
+      border-color:rgba(255,146,146,.26);
     }
 
     @keyframes live-bubble-in {
@@ -6918,19 +6958,20 @@
       left:50%;
       bottom:26px;
       transform:translateX(-50%);
-      width:min(640px, calc(100vw - 54px));
+      width:auto;
       min-height:72px;
-      display:grid;
-      grid-template-columns:1fr auto 1fr;
+      display:flex;
       align-items:center;
-      gap:20px;
-      padding:11px 14px;
+      align-items:center;
+      gap:14px;
+      padding:10px 12px;
       border-radius:999px;
       border:1px solid var(--lg-border);
       background:linear-gradient(180deg, rgba(255,255,255,.11), rgba(255,255,255,.05)), rgba(255,255,255,.08);
       box-shadow:inset 1px 1px 0 rgba(255,255,255,.24), inset -1px -1px 0 rgba(255,255,255,.06), 0 18px 60px rgba(0,0,0,.34);
       backdrop-filter:blur(22px) saturate(145%);
       -webkit-backdrop-filter:blur(22px) saturate(145%);
+      transition:transform 220ms ease, opacity 220ms ease;
     }
 
     .live-volume-control {
@@ -6943,20 +6984,25 @@
       position:absolute;
       left:0;
       bottom:62px;
-      width:176px;
-      padding:12px;
-      border-radius:18px;
-      border:1px solid var(--lg-border);
-      background:rgba(12,16,26,.78);
-      box-shadow:var(--lg-shadow-outer);
-      backdrop-filter:blur(18px);
+      width:180px;
+      padding:var(--live-pad-popover);
+      border-radius:var(--live-r-card);
+      border:1px solid var(--live-stroke-soft);
+      background:var(--live-fill-popover);
+      box-shadow:inset 1px 1px 0 rgba(255,255,255,.18), inset -1px -1px 0 rgba(255,255,255,.04), var(--lg-shadow-outer);
+      backdrop-filter:blur(22px) saturate(145%);
+      -webkit-backdrop-filter:blur(22px) saturate(145%);
     }
 
     .live-volume-popover span {
       display:block;
-      margin-bottom:8px;
-      color:rgba(255,255,255,.66);
-      font-size:11px;
+      margin-bottom:10px;
+      color:rgba(255,255,255,.72);
+      font-family:"Geist Sans","Inter",system-ui,sans-serif;
+      font-size:var(--live-fs-popover-label);
+      font-weight:var(--live-fw-medium);
+      letter-spacing:var(--live-ls-meta);
+      text-transform:uppercase;
     }
 
     .live-volume-popover input {
@@ -6978,7 +7024,7 @@
       place-items:center;
     }
 
-    .live-control-btn svg {
+    .live-control-btn .control-svg {
       width:22px;
       height:22px;
       fill:none;
@@ -6988,8 +7034,59 @@
       stroke-linejoin:round;
     }
 
+    /* UI-8: default the "off" icon out of flow so the mic button reads as "mic on".
+       When the button gains .is-off we swap the two SVGs with no layout shift. */
+    .live-control-btn .control-svg-off { display:none; }
+    .live-control-btn.is-off .control-svg-on { display:none; }
+    .live-control-btn.is-off .control-svg-off { display:block; }
+
+    /* UI-8: two-pass slash so the diagonal reads clearly against the mic body.
+       The background stroke cuts a small gap through the mic, the foreground
+       stroke restates the slash in the button's foreground color. Both share
+       the 1.9px weight + rounded caps used by every other Live icon. */
+    .live-control-btn .mic-slash-bg {
+      stroke:#120f18;
+      stroke-width:4;
+      stroke-linecap:round;
+      opacity:.82;
+    }
+
+    .live-control-btn .mic-slash-fg {
+      stroke:currentColor;
+      stroke-width:1.9;
+      stroke-linecap:round;
+    }
+
+    /* Neutral off-state for any icon button that isn't the mic — slight desaturation only. */
     .live-control-btn.is-off {
-      opacity:.56;
+      opacity:.68;
+    }
+
+    /* The mic "off" state is load-bearing: it has to read as muted at a glance,
+       so it gets a soft danger tint AND the slashed icon. */
+    .live-control-btn[data-live-mic-toggle].is-off {
+      opacity:1;
+      color:#ffb0b0;
+      border-color:rgba(255,176,176,.34);
+      background:linear-gradient(180deg, rgba(255,176,176,.12), rgba(255,176,176,.04)), var(--lg-fill);
+      box-shadow:inset 1px 1px 0 rgba(255,255,255,.18), inset -1px -1px 0 rgba(255,160,160,.05), var(--lg-shadow-outer-soft);
+    }
+
+    .live-control-btn[data-live-mic-toggle].is-off:hover {
+      border-color:rgba(255,176,176,.5);
+      box-shadow:inset 1px 1px 0 rgba(255,255,255,.24), 0 12px 28px rgba(60,0,0,.22), 0 0 24px rgba(255,120,120,.18);
+    }
+
+    .live-control-btn.is-recording {
+      border-color:rgba(159,208,255,.42);
+      box-shadow:inset 1px 1px 0 rgba(255,255,255,.28), 0 0 0 4px rgba(159,208,255,.08), 0 14px 30px rgba(0,0,0,.24);
+    }
+
+    .live-control-btn:disabled {
+      opacity:.54;
+      cursor:not-allowed;
+      transform:none;
+      box-shadow:inset 1px 1px 0 rgba(255,255,255,.14), inset -1px -1px 0 rgba(255,255,255,.04), var(--lg-shadow-outer-soft);
     }
 
     .live-control-danger {
@@ -7001,11 +7098,29 @@
     .live-volume-icon {
       width:22px;
       height:22px;
+      display:inline-flex;
+      align-items:center;
+      justify-content:center;
+      color:#fff;
+      opacity:.92;
+    }
+    .live-volume-icon svg {
+      width:100%;
+      height:100%;
       display:block;
-      background:
-        linear-gradient(90deg, transparent 0 2px, currentColor 2px 5px, transparent 5px 8px, currentColor 8px 11px, transparent 11px 14px, currentColor 14px 17px, transparent 17px);
-      opacity:.86;
-      border-radius:3px;
+    }
+
+    .live-experience.is-fullscreen.is-ui-hidden .live-topline,
+    .live-experience.is-fullscreen.is-ui-hidden .live-fullscreen-actions {
+      opacity:0;
+      transform:translateY(-22px);
+      pointer-events:none;
+    }
+
+    .live-experience.is-fullscreen.is-ui-hidden .live-controlbar {
+      opacity:0;
+      transform:translate(-50%, 28px);
+      pointer-events:none;
     }
 
     @media (max-width:760px) {
@@ -7021,13 +7136,15 @@
         left:18px;
         right:18px;
       }
-      .live-controlbar {
-        grid-template-columns:auto 1fr;
-        width:calc(100vw - 28px);
-      }
+      .live-controlbar { width:calc(100vw - 28px); justify-content:space-between; }
       .live-chat-stack {
         right:14px;
         bottom:108px;
+      }
+      .live-voice-status {
+        right:14px;
+        bottom:38px;
+        max-width:calc(100vw - 28px);
       }
     }
   </style>
@@ -7493,6 +7610,361 @@
     }
   </style>
 
+  <style id="ds-unify-20260418">
+    /* ==========================================================================
+       DS-UNIFY 20260418
+       --------------------------------------------------------------------------
+       Site-wide design system unification.
+
+       RULES OF ENGAGEMENT
+       - Home is the ONLY visual master. Home selectors (.lang-btn, .signup-btn,
+         .glass-btn, .solid-btn, .danger-btn, .icon-btn, .chip, .tool-pill,
+         .profile-btn, .home-*, the generic .bubble / .bottom-controls /
+         .control-btn recipes that live in Home's fullscreen live-stage) are
+         NOT touched here. Their rules at :root / lines 46-58 / 195-196 / 209 /
+         220-221 remain authoritative.
+       - This stylesheet declares global --ds-* tokens derived verbatim from
+         Home's expression, and retrofits non-Home surfaces (Live page, Review
+         page, Subpage, modals, setup flow, countdown) onto those tokens.
+       - No rule here changes backend, business logic, routing, transcript
+         plumbing, mic click handler, fullscreen toggle, or chrome auto-hide.
+       ========================================================================== */
+
+    :root {
+      /* Glass pill recipe (Home line 47 — .glass-btn / .icon-btn / .chip) */
+      --ds-glass-border: var(--line);
+      --ds-glass-fill:   rgba(255,255,255,.03);
+      --ds-glass-blur:   blur(8px);
+      --ds-glass-inset:  inset 0 1px 1px rgba(255,255,255,.1);
+
+      /* Soft panel recipe (Home line 195 — .soft-card / .soft-panel / .mini-card) */
+      --ds-panel-border:   rgba(255,255,255,.08);
+      --ds-panel-fill:     rgba(255,255,255,.018);
+      --ds-panel-fill-mid: linear-gradient(180deg, rgba(255,255,255,.034), rgba(255,255,255,.014));
+      --ds-panel-radius:   26px;
+      --ds-panel-shadow:   0 18px 34px rgba(0,0,0,.18), inset 0 1px 0 rgba(255,255,255,.045);
+      --ds-surface-radius: 30px;
+
+      /* Bubble recipe (Home line 209 — .bubble) */
+      --ds-bubble-radius: 18px;
+      --ds-bubble-pad:    12px 14px;
+      --ds-bubble-fs:     12px;
+      --ds-bubble-lh:     1.6;
+
+      /* Bottom-controls recipe (Home line 220 — .bottom-controls) */
+      --ds-controlbar-border: rgba(255,255,255,.08);
+      --ds-controlbar-fill:   rgba(12,16,30,.36);
+      --ds-controlbar-blur:   blur(10px);
+      --ds-controlbar-pad:    10px 14px;
+
+      /* Icon button recipe in the bar (Home line 221 — .control-btn) */
+      --ds-ctrlbtn-border: rgba(255,255,255,.08);
+      --ds-ctrlbtn-fill:   rgba(255,255,255,.035);
+      --ds-ctrlbtn-inset:  inset 0 1px 0 rgba(255,255,255,.06);
+
+      /* Primary solid gradient (Home line 53 — .solid-btn) */
+      --ds-primary-border:   rgba(255,255,255,.08);
+      --ds-primary-gradient: linear-gradient(135deg, rgba(92,157,255,.98), rgba(58,123,191,.92));
+
+      /* Danger (Home line 54 — .danger-btn) */
+      --ds-danger-fill: var(--danger);
+
+      /* Danger-soft dialect (mic-off — token-driven, not an orphan rule) */
+      --ds-danger-soft-text:   #ffb0b0;
+      --ds-danger-soft-border: rgba(255,176,176,.34);
+      --ds-danger-soft-fill:
+        linear-gradient(180deg, rgba(255,176,176,.12), rgba(255,176,176,.04)),
+        rgba(255,255,255,.035);
+
+      /* Pill + hover */
+      --ds-pill-radius:  999px;
+      --ds-pill-pad:     10px 16px;
+      --ds-hover-border: rgba(255,255,255,.18);
+      --ds-hover-fill:   rgba(255,255,255,.055);
+      --ds-hover-shadow: inset 0 1px 1px rgba(255,255,255,.14), 0 18px 42px rgba(0,0,0,.25);
+
+      /* Text */
+      --ds-text-strong: var(--text);
+      --ds-text-soft:   rgba(244,240,234,.88);
+      --ds-text-muted:  var(--muted);
+
+      /* Typography — matches Home's prose scale */
+      --ds-ff:      "Geist Sans","Inter",system-ui,sans-serif;
+      --ds-fs-meta: 11px;
+      --ds-fs-body: 12.5px;
+      --ds-fs-hint: 12px;
+      --ds-lh-body: 1.42;
+      --ds-lh-hint: 1.35;
+      --ds-ls-meta: .08em;
+      --ds-ls-body: .005em;
+    }
+
+    /* ==========================================================================
+       SHARED BUTTON PRIMITIVES
+       All button-like non-Home selectors derive from these three recipes:
+         · glass pill     (Home .glass-btn / .icon-btn)
+         · solid gradient (Home .solid-btn)
+         · danger         (Home .danger-btn)
+       ========================================================================== */
+
+    /* Glass pill (neutral) — default secondary action across the app */
+    .live-icon-btn,
+    .live-control-btn,
+    #wire-6-review-overview .review-secondary-action,
+    #wire-6-review-overview .review-row-action,
+    #wire-6-1-review-focus .review-secondary-action,
+    #wire-6-1-review-focus .review-back-control,
+    #wire-6-1-review-focus .subpage-back,
+    #wire-7-device .device-modal-action,
+    #wire-7-device .device-modal-close,
+    body.hifi-route-mode .flow-nav-btn,
+    body.hifi-route-mode #wire-3-history .history-scroll-top,
+    body.hifi-route-mode #wire-3-1-history-detail .history-scroll-top {
+      border: 1px solid var(--ds-glass-border);
+      background: var(--ds-glass-fill);
+      box-shadow: var(--ds-glass-inset);
+      backdrop-filter: var(--ds-glass-blur);
+      -webkit-backdrop-filter: var(--ds-glass-blur);
+      color: var(--ds-text-soft);
+    }
+
+    /* Solid gradient (primary action) */
+    #wire-6-review-overview .review-primary-action,
+    #wire-6-1-review-focus .review-primary-action {
+      border: 1px solid var(--ds-primary-border);
+      background: var(--ds-primary-gradient);
+      color: #fff;
+      box-shadow: 0 18px 46px rgba(58,123,191,.28), var(--ds-glass-inset);
+      backdrop-filter: none;
+      -webkit-backdrop-filter: none;
+    }
+
+    /* Danger variant (modal destructive action) */
+    #wire-7-device .device-modal-action.danger {
+      border-color: rgba(255,176,176,.34);
+      color: rgba(255,196,196,.94);
+      background: linear-gradient(180deg, rgba(255,176,176,.1), rgba(255,176,176,.03)), var(--ds-glass-fill);
+    }
+
+    /* Icon-bar buttons in the Live controlbar — Home .control-btn recipe verbatim. */
+    .live-control-btn {
+      border: 1px solid var(--ds-ctrlbtn-border);
+      background: var(--ds-ctrlbtn-fill);
+      box-shadow: var(--ds-ctrlbtn-inset);
+      backdrop-filter: none;
+      -webkit-backdrop-filter: none;
+      color: var(--ds-text-soft);
+    }
+
+    /* Hover / focus uniformity — matches Home's feel without touching Home rules. */
+    .live-icon-btn:hover,
+    .live-control-btn:hover,
+    #wire-6-review-overview .review-secondary-action:hover,
+    #wire-6-review-overview .review-row-action:hover,
+    #wire-6-1-review-focus .review-secondary-action:hover,
+    #wire-6-1-review-focus .review-back-control:hover,
+    #wire-6-1-review-focus .subpage-back:hover,
+    #wire-7-device .device-modal-action:hover,
+    #wire-7-device .device-modal-close:hover,
+    body.hifi-route-mode .flow-nav-btn:hover {
+      border-color: var(--ds-hover-border);
+      background: var(--ds-hover-fill);
+      box-shadow: var(--ds-hover-shadow);
+    }
+    #wire-6-review-overview .review-primary-action:hover,
+    #wire-6-1-review-focus .review-primary-action:hover {
+      border-color: rgba(159,208,255,.32);
+      background: linear-gradient(135deg, rgba(107,170,255,.98), rgba(70,137,203,.94));
+      box-shadow: 0 22px 52px rgba(58,123,191,.36), var(--ds-glass-inset);
+    }
+
+    /* ==========================================================================
+       MIC TOGGLE — preserve dual-SVG slash, integrate into unified system
+       The slash SVG markup (lines ~1554-1556) and the display-swap CSS
+       (lines ~7051-7055) stay. This block only re-expresses the mic-off
+       color dialect through the unified tokens.
+       ========================================================================== */
+    .live-control-btn[data-live-mic-toggle].is-off {
+      opacity: 1;
+      color: var(--ds-danger-soft-text);
+      border-color: var(--ds-danger-soft-border);
+      background: var(--ds-danger-soft-fill);
+      box-shadow: var(--ds-glass-inset);
+    }
+    .live-control-btn[data-live-mic-toggle].is-off:hover {
+      border-color: rgba(255,176,176,.52);
+      background: linear-gradient(180deg, rgba(255,176,176,.16), rgba(255,176,176,.05)), var(--ds-ctrlbtn-fill);
+      box-shadow: var(--ds-glass-inset), 0 12px 28px rgba(60,0,0,.2);
+    }
+    /* Neutral off-state (camera etc.) stays unchanged from the Live scope. */
+
+    /* ==========================================================================
+       SHARED SURFACE PRIMITIVES
+         · panel       (Home .soft-card / .soft-panel recipe)
+         · mini panel  (Home .mini-card recipe)
+         · bubble      (Home .bubble recipe)
+         · status pill (Home .chip / .glass-btn recipe)
+         · controlbar  (Home .bottom-controls recipe)
+         · popover     (panel recipe + soft shadow)
+       ========================================================================== */
+
+    /* Live transcript + AI bubble — Home .bubble recipe */
+    .live-chat-bubble {
+      max-width: 92%;
+      padding: var(--ds-bubble-pad);
+      border-radius: var(--ds-bubble-radius);
+      border: 1px solid var(--ds-glass-border);
+      background: var(--ds-glass-fill);
+      color: var(--ds-text-soft);
+      font-family: var(--ds-ff);
+      font-size: var(--ds-bubble-fs);
+      line-height: var(--ds-bubble-lh);
+      letter-spacing: var(--ds-ls-body);
+      box-shadow: var(--ds-glass-inset);
+      backdrop-filter: var(--ds-glass-blur);
+      -webkit-backdrop-filter: var(--ds-glass-blur);
+    }
+    .live-chat-bubble.ai {
+      /* default recipe, slight corner tweak stays from Live scope */
+    }
+    .live-chat-bubble.me {
+      background: linear-gradient(135deg, rgba(92,157,255,.2), rgba(92,157,255,.04)), var(--ds-glass-fill);
+      border-color: rgba(159,208,255,.22);
+    }
+
+    /* Live voice status + camera fallback — Home glass pill recipe */
+    .live-voice-status,
+    .live-camera-fallback {
+      padding: var(--ds-pill-pad);
+      border-radius: var(--ds-pill-radius);
+      border: 1px solid var(--ds-glass-border);
+      background: var(--ds-glass-fill);
+      box-shadow: var(--ds-glass-inset);
+      color: var(--ds-text-soft);
+      backdrop-filter: var(--ds-glass-blur);
+      -webkit-backdrop-filter: var(--ds-glass-blur);
+      font-family: var(--ds-ff);
+      font-size: var(--ds-fs-hint);
+      line-height: var(--ds-lh-hint);
+      letter-spacing: var(--ds-ls-body);
+    }
+    /* Recording accent state: crisp brand-blue rim only — no heavy glow. */
+    .live-voice-status[data-state="recording"] {
+      border-color: rgba(159,208,255,.44);
+      box-shadow: 0 0 0 3px rgba(159,208,255,.1), var(--ds-glass-inset);
+      color: rgba(231,242,255,.96);
+    }
+
+    /* Live bottom control bar — Home .bottom-controls recipe verbatim */
+    .live-controlbar {
+      gap: 12px;
+      padding: var(--ds-controlbar-pad);
+      border-radius: var(--ds-pill-radius);
+      border: 1px solid var(--ds-controlbar-border);
+      background: var(--ds-controlbar-fill);
+      box-shadow: var(--ds-glass-inset);
+      backdrop-filter: var(--ds-controlbar-blur);
+      -webkit-backdrop-filter: var(--ds-controlbar-blur);
+    }
+
+    /* Live volume popover — panel recipe with gentler blur */
+    .live-volume-popover {
+      border-radius: var(--ds-panel-radius);
+      border: 1px solid var(--ds-panel-border);
+      background: var(--ds-panel-fill-mid);
+      box-shadow: var(--ds-panel-shadow);
+      backdrop-filter: blur(14px);
+      -webkit-backdrop-filter: blur(14px);
+    }
+
+    /* Review panels — already land on the 30px surface radius; this binds the fill. */
+    body.hifi-route-mode #wire-6-review-overview .review-score-stage,
+    body.hifi-route-mode #wire-6-review-overview .review-trend-board,
+    body.hifi-route-mode #wire-6-review-overview .metrics-panel,
+    body.hifi-route-mode #wire-6-review-overview .focus-panel,
+    body.hifi-route-mode #wire-6-review-overview .review-finder,
+    body.hifi-route-mode #wire-6-review-overview .evidence-panel {
+      border: 1px solid var(--ds-panel-border);
+      background: var(--ds-panel-fill-mid);
+      box-shadow: var(--ds-panel-shadow);
+    }
+
+    /* Review score stage keeps its radial brand-blue wash, on top of the panel fill. */
+    body.hifi-route-mode #wire-6-review-overview .review-score-stage {
+      background:
+        radial-gradient(circle at 30% 20%, rgba(112,158,255,.14), transparent 28%),
+        var(--ds-panel-fill-mid);
+    }
+
+    /* Mini cards within Review — glass pill fill, consistent border */
+    #wire-6-review-overview .review-round-item,
+    #wire-6-review-overview .radar-metric,
+    #wire-6-review-overview .voice-rank-item,
+    #wire-6-1-review-focus .report-arc-card,
+    #wire-6-1-review-focus .report-pack-card {
+      border: 1px solid var(--ds-panel-border);
+      background: var(--ds-panel-fill);
+    }
+    #wire-6-review-overview .review-round-item.active {
+      border-color: rgba(159,208,255,.3);
+      background: rgba(92,157,255,.06);
+    }
+
+    /* Device transfer modal — panel recipe, soft wash instead of heavy gradient */
+    body.hifi-route-mode #wire-7-device .device-modal-card {
+      border: 1px solid var(--ds-panel-border);
+      background:
+        radial-gradient(circle at 28% 0%, rgba(159,208,255,.14), transparent 32%),
+        var(--ds-panel-fill-mid);
+      box-shadow: var(--ds-panel-shadow), 0 34px 110px rgba(0,0,0,.32);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+    }
+
+    /* Setup flow card — panel recipe (replaces the 6380 heavy-layered override) */
+    body.hifi-route-mode #wire-4-1-live-setup .setup-flow-card {
+      border: 1px solid var(--ds-panel-border);
+      background: var(--ds-panel-fill-mid);
+      box-shadow: var(--ds-panel-shadow), 0 28px 90px rgba(0,0,0,.28);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+    }
+
+    /* Countdown orb — lighter rim, same animation (heavy luma shell was muddy) */
+    .live-countdown-orb {
+      border: 1px solid var(--ds-glass-border);
+      background:
+        radial-gradient(circle at 30% 18%, rgba(255,255,255,.18), transparent 42%),
+        rgba(255,255,255,.05);
+      box-shadow:
+        var(--ds-glass-inset),
+        0 22px 60px rgba(0,0,0,.32),
+        0 0 50px rgba(92,157,255,.16);
+      backdrop-filter: blur(18px) saturate(130%);
+      -webkit-backdrop-filter: blur(18px) saturate(130%);
+    }
+
+    /* Hint badges / chips / status pills — Home .chip recipe */
+    .subpage-chip,
+    .prep-signal,
+    .prep-pill,
+    #wire-6-1-review-focus .compact-pill {
+      border: 1px solid var(--ds-glass-border);
+      background: var(--ds-glass-fill);
+      backdrop-filter: var(--ds-glass-blur);
+      -webkit-backdrop-filter: var(--ds-glass-blur);
+    }
+
+    /* Subpage rail / main / panel / mini-panel already use the panel recipe at
+       lines 387 / 435 / 508 — no override needed; they inherit the 30px
+       surface-radius and the 0.08 border automatically. */
+
+    /* Deprecate the prior solid/heavy tints on Live icon-btn and controlbar
+       by resetting their old .live-fill-* drivers in this scope. The tokens
+       still exist for any rule that explicitly references them, but the
+       surfaces above now use --ds-* values. */
+  </style>
+
   <script id="hifi-route-upgrade-script">
     (() => {
       const routeIds = {
@@ -7506,8 +7978,9 @@
         live:"wire-4-live-entry",
         "live-entry":"wire-4-live-entry",
         "live-setup":"wire-4-1-live-setup",
-        "live-windowed":"wire-4-1-1-live-windowed",
-        "live-fullscreen":"wire-4-1-2-live-fullscreen",
+        "live-main":"wire-4-1-0-live-main",
+        "live-windowed":"wire-4-1-0-live-main",
+        "live-fullscreen":"wire-4-1-0-live-main",
         pricing:"wire-5-pricing",
         review:"wire-6-review-overview",
         "review-focus":"wire-6-1-review-focus",
@@ -7666,8 +8139,7 @@
         "wire-3-1-history-detail",
         "wire-4-live-entry",
         "wire-4-1-live-setup",
-        "wire-4-1-1-live-windowed",
-        "wire-4-1-2-live-fullscreen",
+        "wire-4-1-0-live-main",
         "wire-5-pricing",
         "wire-6-review-overview",
         "wire-6-1-review-focus",
@@ -8622,6 +9094,7 @@
         endRealtimeSession: (sessionId) => request(`/realtime/sessions/${encodeURIComponent(sessionId)}/end`, {
           method: "POST"
         }),
+        listRealtimeTurns: (sessionId) => request(`/realtime/sessions/${encodeURIComponent(sessionId)}/turns`),
         createReviewFromRealtime: (sessionId) => request(`/reviews/from-realtime/${encodeURIComponent(sessionId)}`, {
           method: "POST"
         }),
@@ -9475,6 +9948,7 @@
         const runtimeMeta = roundDraft.sessionId ? ` / ${roundDraft.sessionId}` : "";
         const sessionMeta = origin ? `${origin.type} / ${origin.title}${runtimeMeta}` : `${market} rehearsal / ${language} / live${runtimeMeta}`;
         const sourceMeta = origin ? `${market} / ${language} / ${sourcePack} / ${contextMode}` : `${sourcePack} / ${contextMode}`;
+        liveExperienceState.sessionId = roundDraft.sessionId || window.appState?.runtimeIds?.sessionId || liveExperienceState.sessionId || null;
         for (const node of document.querySelectorAll("[data-live-session-meta]")) {
           node.textContent = sessionMeta;
         }
@@ -9551,16 +10025,16 @@
           return false;
         }
         startBtn.dataset.uiState = "loading";
-        // Kick the countdown immediately so it is visible even if the backend is unreachable.
-        const countdownPromise = runLiveCountdown();
+        // The countdown owns the scene transition. Backend setup continues in parallel.
         const backendPromise = Promise.resolve()
           .then(() => startBackendLiveSession(draft))
           .catch((error) => { writeLiveApiState("error", error); return null; });
-        const [, currentRound] = await Promise.all([countdownPromise, backendPromise]);
-        if (currentRound) syncLiveRoomContext(currentRound);
+        await runLiveCountdown();
         startBtn.textContent = "Start";
         startBtn.dataset.uiState = "";
-        window.navigateToRoute("live-windowed");
+        window.navigateToRoute("live-main");
+        const currentRound = await backendPromise;
+        if (currentRound) syncLiveRoomContext(currentRound);
         return true;
       }
 
@@ -9580,25 +10054,42 @@
       const liveExperienceState = {
         audioContext: null,
         audioStream: null,
+        audioBootPromise: null,
         analyser: null,
         raf: 0,
         fallbackRaf: 0,
         videoStream: null,
         micOn: true,
         cameraOn: false,
-        chatTimer: 0,
-        chatIndex: 0,
-        initialized: false
+        sessionId: null,
+        chatBusy: false,
+        initialized: false,
+        listening: false,
+        listeningPromise: null,
+        hideUiTimer: 0,
+        activeAudioUrl: null,
+        // --- Doubao realtime voice WS pipeline ---
+        voiceSocket: null,
+        voiceSocketReady: false,
+        voiceSessionId: null,
+        voiceOpenPromise: null,
+        voiceLastErrorMessage: "",
+        captureNode: null,
+        captureSource: null,
+        captureContext: null,
+        captureBuffer: new Int16Array(0),
+        captureActive: false,
+        speechDetectedAt: 0,
+        lastVoiceActivityAt: 0,
+        turnAwaitingReply: false,
+        userBubble: null,
+        userBubbleText: "",
+        assistantBubble: null,
+        assistantBubbleText: "",
+        ttsContext: null,
+        ttsNextStartTime: 0,
+        ttsActiveSources: []
       };
-
-      const liveChatMessages = [
-        { side:"ai", text:"Let's start softly. What matters most before pricing?" },
-        { side:"me", text:"Trust and timing. I want to understand their internal path first." },
-        { side:"ai", text:"Good. Slow the ask and invite them to name the safest next step." },
-        { side:"me", text:"I'll confirm alignment before asking for commitment." },
-        { side:"ai", text:"Their concern is pace. Reflect that before you move forward." },
-        { side:"me", text:"Understood. I'll ask what would make the next step feel safe." }
-      ];
 
       function liveExperienceNode() {
         return document.querySelector("[data-live-experience]");
@@ -9633,42 +10124,55 @@
       }
 
       async function startAudioWaveform() {
+        if (liveExperienceState.audioStream) {
+          return liveExperienceState.audioStream;
+        }
+        if (liveExperienceState.audioBootPromise) {
+          return liveExperienceState.audioBootPromise;
+        }
         if (!navigator.mediaDevices?.getUserMedia) {
           startFallbackWaveform();
-          return;
+          return null;
         }
-        try {
-          const stream = await navigator.mediaDevices.getUserMedia({ audio:true, video:false });
-          liveExperienceState.audioStream = stream;
-          liveExperienceState.audioContext = new (window.AudioContext || window.webkitAudioContext)();
-          const source = liveExperienceState.audioContext.createMediaStreamSource(stream);
-          const analyser = liveExperienceState.audioContext.createAnalyser();
-          analyser.fftSize = 128;
-          source.connect(analyser);
-          liveExperienceState.analyser = analyser;
-          const data = new Uint8Array(analyser.frequencyBinCount);
-          const tick = () => {
-            if (!liveExperienceState.micOn || !liveExperienceState.analyser) {
-              setWaveLevels([.08,.12,.1,.14,.09,.11]);
+        liveExperienceState.audioBootPromise = (async () => {
+          try {
+            const stream = await navigator.mediaDevices.getUserMedia({ audio:true, video:false });
+            liveExperienceState.audioStream = stream;
+            liveExperienceState.audioContext = new (window.AudioContext || window.webkitAudioContext)();
+            const source = liveExperienceState.audioContext.createMediaStreamSource(stream);
+            const analyser = liveExperienceState.audioContext.createAnalyser();
+            analyser.fftSize = 128;
+            source.connect(analyser);
+            liveExperienceState.analyser = analyser;
+            const data = new Uint8Array(analyser.frequencyBinCount);
+            const tick = () => {
+              if (!liveExperienceState.micOn || !liveExperienceState.analyser) {
+                setWaveLevels([.08,.12,.1,.14,.09,.11]);
+                liveExperienceState.raf = window.requestAnimationFrame(tick);
+                return;
+              }
+              analyser.getByteFrequencyData(data);
+              const bars = liveWaveBars();
+              const bucket = Math.max(1, Math.floor(data.length / Math.max(1, bars.length)));
+              const levels = bars.map((_, index) => {
+                let total = 0;
+                for (let i = index * bucket; i < Math.min(data.length, (index + 1) * bucket); i += 1) total += data[i];
+                const avg = total / bucket / 255;
+                return .08 + avg * .92;
+              });
+              setWaveLevels(levels);
               liveExperienceState.raf = window.requestAnimationFrame(tick);
-              return;
-            }
-            analyser.getByteFrequencyData(data);
-            const bars = liveWaveBars();
-            const bucket = Math.max(1, Math.floor(data.length / Math.max(1, bars.length)));
-            const levels = bars.map((_, index) => {
-              let total = 0;
-              for (let i = index * bucket; i < Math.min(data.length, (index + 1) * bucket); i += 1) total += data[i];
-              const avg = total / bucket / 255;
-              return .08 + avg * .92;
-            });
-            setWaveLevels(levels);
-            liveExperienceState.raf = window.requestAnimationFrame(tick);
-          };
-          tick();
-        } catch {
-          startFallbackWaveform();
-        }
+            };
+            tick();
+            return stream;
+          } catch {
+            startFallbackWaveform();
+            return null;
+          } finally {
+            liveExperienceState.audioBootPromise = null;
+          }
+        })();
+        return liveExperienceState.audioBootPromise;
       }
 
       function stopAudioWaveform() {
@@ -9681,6 +10185,599 @@
         liveExperienceState.audioContext?.close?.();
         liveExperienceState.audioContext = null;
         liveExperienceState.analyser = null;
+        liveExperienceState.audioBootPromise = null;
+      }
+
+      function liveVoiceStatusNode() {
+        return document.querySelector("[data-live-voice-status]");
+      }
+
+      function liveAudioNode() {
+        return document.querySelector("[data-live-ai-audio]");
+      }
+
+      function setLiveChatHint(text, state = "idle") {
+        const hint = liveVoiceStatusNode();
+        if (!hint) return;
+        hint.dataset.state = state;
+        hint.textContent = text || "Listening. Speak naturally.";
+      }
+
+      function setMicTurnState(state = "idle") {
+        const micBtn = document.querySelector("[data-live-mic-toggle]");
+        if (!micBtn) return;
+        micBtn.classList.toggle("is-recording", state === "live");
+        micBtn.classList.toggle("is-off", state === "muted");
+        micBtn.disabled = state === "processing";
+        const labelMap = {
+          idle: "Turn microphone on",
+          live: "Mute microphone",
+          processing: "Connecting microphone",
+          muted: "Unmute microphone"
+        };
+        micBtn.setAttribute("aria-label", labelMap[state] || "Turn microphone on");
+      }
+
+      function setLiveChatBusy(busy) {
+        liveExperienceState.chatBusy = Boolean(busy);
+      }
+
+      function applyLiveVoiceStatusHint() {
+        if (!liveExperienceState.micOn) {
+          setLiveChatHint("Microphone muted. Tap mic to rejoin.", "muted");
+          return;
+        }
+        if (liveExperienceState.chatBusy || liveExperienceState.turnAwaitingReply) {
+          setLiveChatHint("AI replying… microphone stays on.", "busy");
+          return;
+        }
+        if (liveExperienceState.listening || liveExperienceState.captureActive || liveExperienceState.turnAwaitingReply) {
+          setLiveChatHint("Listening. Speak naturally.", "live");
+          return;
+        }
+        setLiveChatHint("Preparing microphone…", "processing");
+      }
+
+      function applyMicStateFromLiveExperience() {
+        if (!liveExperienceState.micOn) {
+          setMicTurnState("muted");
+          return;
+        }
+        if (liveExperienceState.captureActive || liveExperienceState.turnAwaitingReply) {
+          setMicTurnState("live");
+          return;
+        }
+        if (liveExperienceState.listeningPromise || liveExperienceState.voiceOpenPromise) {
+          setMicTurnState("processing");
+          return;
+        }
+        setMicTurnState("idle");
+      }
+
+      function resolveLiveSessionId() {
+        return liveExperienceState.sessionId
+          || window.appState?.runtimeIds?.sessionId
+          || window.appState?.currentRound?.sessionId
+          || null;
+      }
+
+      async function waitForLiveSessionId(timeoutMs = 5000) {
+        const startedAt = Date.now();
+        let sessionId = resolveLiveSessionId();
+        while (!sessionId && Date.now() - startedAt < timeoutMs) {
+          await new Promise((resolve) => window.setTimeout(resolve, 120));
+          sessionId = resolveLiveSessionId();
+        }
+        return sessionId;
+      }
+
+      function clearLiveChatStack() {
+        const stack = document.querySelector("[data-live-chat-stack]");
+        if (stack) stack.innerHTML = "";
+      }
+
+      function pushLiveChatMessage(message) {
+        const stack = document.querySelector("[data-live-chat-stack]");
+        if (!stack) return null;
+        const text = typeof message?.text === "string" ? message.text.trim() : "";
+        if (!text) return null;
+        const bubble = document.createElement("div");
+        bubble.className = `live-chat-bubble ${message.side === "me" ? "me" : "ai"}`;
+        bubble.textContent = text;
+        stack.appendChild(bubble);
+        const bubbles = Array.from(stack.children);
+        while (bubbles.length > 4) {
+          const old = bubbles.shift();
+          old?.classList.add("is-fading");
+          window.setTimeout(() => old?.remove(), 220);
+        }
+        return bubble;
+      }
+
+      async function ensureLiveAudioStream() {
+        const stream = liveExperienceState.audioStream || await startAudioWaveform();
+        if (!stream) {
+          throw new Error("Microphone access is unavailable for live voice turns.");
+        }
+        return stream;
+      }
+
+      // --- Doubao realtime voice WebSocket pipeline ---------------------------------
+      // Derives ws(s)://host from the apiBase that `window.miroApi` uses. Falls back to
+      // the current page origin when apiBase is relative (e.g. "/api/v1").
+      function resolveVoiceSocketUrl(sessionId) {
+        if (!sessionId) return null;
+        const rawBase = (window.MIRO_API_BASE || "/api/v1").replace(/\/$/, "");
+        let httpBase = rawBase;
+        if (/^\//.test(httpBase)) {
+          httpBase = `${window.location.origin}${httpBase}`;
+        }
+        const wsBase = httpBase.replace(/^http:/i, "ws:").replace(/^https:/i, "wss:");
+        return `${wsBase}/realtime/sessions/${encodeURIComponent(sessionId)}/voice`;
+      }
+
+      function base64ToUint8Array(base64) {
+        const binary = atob(base64);
+        const bytes = new Uint8Array(binary.length);
+        for (let i = 0; i < binary.length; i += 1) bytes[i] = binary.charCodeAt(i);
+        return bytes;
+      }
+
+      function uint8ArrayToBase64(bytes) {
+        let binary = "";
+        const chunk = 0x8000;
+        for (let i = 0; i < bytes.length; i += chunk) {
+          binary += String.fromCharCode.apply(null, bytes.subarray(i, i + chunk));
+        }
+        return btoa(binary);
+      }
+
+      // Float32 mono @ mic sample rate -> Int16 mono @ 16kHz (linear interpolation).
+      function resampleFloat32ToPcm16(input, inputSampleRate, targetSampleRate = 16000) {
+        if (!input || !input.length) return new Int16Array(0);
+        if (inputSampleRate === targetSampleRate) {
+          const out = new Int16Array(input.length);
+          for (let i = 0; i < input.length; i += 1) {
+            const s = Math.max(-1, Math.min(1, input[i]));
+            out[i] = s < 0 ? s * 0x8000 : s * 0x7fff;
+          }
+          return out;
+        }
+        const ratio = inputSampleRate / targetSampleRate;
+        const outLen = Math.floor(input.length / ratio);
+        const out = new Int16Array(outLen);
+        for (let i = 0; i < outLen; i += 1) {
+          const srcIdx = i * ratio;
+          const i0 = Math.floor(srcIdx);
+          const i1 = Math.min(input.length - 1, i0 + 1);
+          const t = srcIdx - i0;
+          const sample = input[i0] * (1 - t) + input[i1] * t;
+          const clipped = Math.max(-1, Math.min(1, sample));
+          out[i] = clipped < 0 ? clipped * 0x8000 : clipped * 0x7fff;
+        }
+        return out;
+      }
+
+      // Ensure the shared AudioContext used for TTS playback.
+      function ensureTtsAudioContext() {
+        if (liveExperienceState.ttsContext && liveExperienceState.ttsContext.state !== "closed") {
+          return liveExperienceState.ttsContext;
+        }
+        const Ctor = window.AudioContext || window.webkitAudioContext;
+        if (!Ctor) return null;
+        liveExperienceState.ttsContext = new Ctor({ sampleRate: 24000 });
+        liveExperienceState.ttsNextStartTime = 0;
+        return liveExperienceState.ttsContext;
+      }
+
+      function resetTtsPlayback() {
+        for (const src of liveExperienceState.ttsActiveSources) {
+          try { src.stop(); } catch (_) {}
+        }
+        liveExperienceState.ttsActiveSources = [];
+        liveExperienceState.ttsNextStartTime = 0;
+      }
+
+      function enqueueTtsPcmChunk(pcmBase64) {
+        const ctx = ensureTtsAudioContext();
+        if (!ctx || !pcmBase64) return;
+        if (ctx.state === "suspended") ctx.resume().catch(() => {});
+        const bytes = base64ToUint8Array(pcmBase64);
+        if (bytes.length < 2) return;
+        const samples = bytes.length >> 1;
+        const buffer = ctx.createBuffer(1, samples, 24000);
+        const channel = buffer.getChannelData(0);
+        const view = new DataView(bytes.buffer, bytes.byteOffset, bytes.byteLength);
+        for (let i = 0; i < samples; i += 1) {
+          channel[i] = view.getInt16(i * 2, true) / 0x8000;
+        }
+        const source = ctx.createBufferSource();
+        source.buffer = buffer;
+        source.connect(ctx.destination);
+        const now = ctx.currentTime;
+        const startAt = Math.max(now + 0.02, liveExperienceState.ttsNextStartTime || 0);
+        source.start(startAt);
+        liveExperienceState.ttsNextStartTime = startAt + buffer.duration;
+        liveExperienceState.ttsActiveSources.push(source);
+        source.onended = () => {
+          const list = liveExperienceState.ttsActiveSources;
+          const idx = list.indexOf(source);
+          if (idx >= 0) list.splice(idx, 1);
+        };
+      }
+
+      function bubbleForSide(side) {
+        const stack = document.querySelector("[data-live-chat-stack]");
+        if (!stack) return null;
+        const bubble = document.createElement("div");
+        bubble.className = `live-chat-bubble ${side === "me" ? "me" : "ai"}`;
+        bubble.textContent = "";
+        stack.appendChild(bubble);
+        const bubbles = Array.from(stack.children);
+        while (bubbles.length > 6) {
+          const old = bubbles.shift();
+          old?.classList.add("is-fading");
+          window.setTimeout(() => old?.remove(), 220);
+        }
+        return bubble;
+      }
+
+      function updateUserBubble(text, { final = false } = {}) {
+        const clean = typeof text === "string" ? text.trim() : "";
+        if (!clean && !final) return;
+        if (!liveExperienceState.userBubble) {
+          liveExperienceState.userBubble = bubbleForSide("me");
+        }
+        if (liveExperienceState.userBubble && clean) {
+          liveExperienceState.userBubble.textContent = clean;
+          liveExperienceState.userBubbleText = clean;
+        }
+        if (final) {
+          liveExperienceState.userBubble = null;
+          liveExperienceState.userBubbleText = "";
+        }
+      }
+
+      function updateAssistantBubble(text, { final = false } = {}) {
+        const clean = typeof text === "string" ? text : "";
+        if (!clean && !final) return;
+        if (!liveExperienceState.assistantBubble) {
+          liveExperienceState.assistantBubble = bubbleForSide("ai");
+        }
+        if (liveExperienceState.assistantBubble && clean) {
+          liveExperienceState.assistantBubble.textContent = clean.trim();
+          liveExperienceState.assistantBubbleText = clean;
+        }
+        if (final) {
+          liveExperienceState.assistantBubble = null;
+          liveExperienceState.assistantBubbleText = "";
+        }
+      }
+
+      function handleVoiceSocketMessage(raw) {
+        let msg;
+        try {
+          msg = JSON.parse(typeof raw === "string" ? raw : "");
+        } catch {
+          return;
+        }
+        if (!msg || typeof msg !== "object") return;
+        switch (msg.type) {
+          case "ready": {
+            liveExperienceState.voiceSocketReady = true;
+            liveExperienceState.voiceSessionId = msg.doubaoSessionId || null;
+            liveExperienceState.voiceLastErrorMessage = "";
+            liveExperienceState.turnAwaitingReply = false;
+            resetVoiceTurnDetection();
+            applyMicStateFromLiveExperience();
+            applyLiveVoiceStatusHint();
+            break;
+          }
+          case "user_transcript": {
+            updateUserBubble(msg.text || "", { final: Boolean(msg.isFinal) });
+            applyLiveVoiceStatusHint();
+            break;
+          }
+          case "assistant_text": {
+            setLiveChatBusy(true);
+            updateAssistantBubble(msg.text || "", { final: Boolean(msg.isFinal) });
+            applyLiveVoiceStatusHint();
+            break;
+          }
+          case "assistant_audio_chunk": {
+            setLiveChatBusy(true);
+            enqueueTtsPcmChunk(msg.data || msg.audioBase64 || msg.audio || "");
+            applyLiveVoiceStatusHint();
+            break;
+          }
+          case "assistant_turn_end": {
+            updateAssistantBubble(liveExperienceState.assistantBubbleText || "", { final: true });
+            setLiveChatBusy(false);
+            liveExperienceState.turnAwaitingReply = false;
+            resetVoiceTurnDetection();
+            applyLiveVoiceStatusHint();
+            applyMicStateFromLiveExperience();
+            if (liveExperienceState.initialized && liveExperienceState.micOn) {
+              void enableContinuousListening();
+            }
+            break;
+          }
+          case "session_finished": {
+            liveExperienceState.voiceSocketReady = false;
+            liveExperienceState.listening = false;
+            liveExperienceState.turnAwaitingReply = false;
+            stopPcmCapture();
+            setLiveChatHint("Voice session ended.", "idle");
+            applyMicStateFromLiveExperience();
+            break;
+          }
+          case "error": {
+            const message = msg.message || msg.code || "Voice bridge error.";
+            liveExperienceState.voiceLastErrorMessage = String(message);
+            liveExperienceState.listening = false;
+            liveExperienceState.turnAwaitingReply = false;
+            liveExperienceState.micOn = false;
+            stopPcmCapture();
+            applyMicStateFromLiveExperience();
+            setLiveChatHint(String(message), "error");
+            setLiveChatBusy(false);
+            break;
+          }
+          default:
+            break;
+        }
+      }
+
+      async function ensureVoiceSocket() {
+        const existing = liveExperienceState.voiceSocket;
+        if (existing && (existing.readyState === WebSocket.OPEN || existing.readyState === WebSocket.CONNECTING)) {
+          if (liveExperienceState.voiceOpenPromise) return liveExperienceState.voiceOpenPromise;
+          return existing;
+        }
+        const sessionId = resolveLiveSessionId();
+        if (!sessionId) {
+          throw new Error("No live session is active yet.");
+        }
+        const baseUrl = resolveVoiceSocketUrl(sessionId);
+        if (!baseUrl) throw new Error("Voice WebSocket URL is not configured.");
+        let token = null;
+        try {
+          token = await window.miroApi?.getAccessToken?.();
+        } catch (_) { token = null; }
+        const url = token ? `${baseUrl}?access_token=${encodeURIComponent(token)}` : baseUrl;
+        const ws = new WebSocket(url);
+        ws.binaryType = "arraybuffer";
+        liveExperienceState.voiceSocket = ws;
+        liveExperienceState.voiceSocketReady = false;
+        liveExperienceState.voiceOpenPromise = new Promise((resolve, reject) => {
+          const cleanup = () => {
+            ws.removeEventListener("open", onOpen);
+            ws.removeEventListener("error", onError);
+            ws.removeEventListener("close", onCloseEarly);
+          };
+          const onOpen = () => { cleanup(); resolve(ws); };
+          const onError = () => { cleanup(); reject(new Error("Voice WebSocket failed to open.")); };
+          const onCloseEarly = () => { cleanup(); reject(new Error("Voice WebSocket closed before ready.")); };
+          ws.addEventListener("open", onOpen, { once: true });
+          ws.addEventListener("error", onError, { once: true });
+          ws.addEventListener("close", onCloseEarly, { once: true });
+        }).finally(() => {
+          liveExperienceState.voiceOpenPromise = null;
+        });
+
+        ws.addEventListener("message", (event) => handleVoiceSocketMessage(event.data));
+        ws.addEventListener("close", () => {
+          if (liveExperienceState.voiceSocket === ws) {
+            liveExperienceState.voiceSocket = null;
+            liveExperienceState.voiceSocketReady = false;
+          }
+        });
+        ws.addEventListener("error", () => {
+          if (!liveExperienceState.voiceLastErrorMessage) {
+            setLiveChatHint("Voice connection error. Check backend/.env: DOUBAO_APP_ID / DOUBAO_ACCESS_TOKEN / DOUBAO_SPEAKER.", "error");
+          }
+        });
+        return liveExperienceState.voiceOpenPromise;
+      }
+
+      function sendVoiceSocketJson(payload) {
+        const ws = liveExperienceState.voiceSocket;
+        if (!ws || ws.readyState !== WebSocket.OPEN) return false;
+        try {
+          ws.send(JSON.stringify(payload));
+          return true;
+        } catch {
+          return false;
+        }
+      }
+
+      function resetVoiceTurnDetection() {
+        liveExperienceState.speechDetectedAt = 0;
+        liveExperienceState.lastVoiceActivityAt = 0;
+      }
+
+      function measureAudioRms(samples) {
+        if (!samples?.length) return 0;
+        let sum = 0;
+        for (let i = 0; i < samples.length; i += 1) {
+          const sample = samples[i] || 0;
+          sum += sample * sample;
+        }
+        return Math.sqrt(sum / samples.length);
+      }
+
+      function finalizeActiveVoiceTurn() {
+        if (!liveExperienceState.captureActive || liveExperienceState.turnAwaitingReply) {
+          return false;
+        }
+        const sent = sendVoiceSocketJson({ type: "end_segment" });
+        if (!sent) return false;
+        liveExperienceState.turnAwaitingReply = true;
+        liveExperienceState.listening = false;
+        setLiveChatBusy(true);
+        stopPcmCapture();
+        resetVoiceTurnDetection();
+        applyMicStateFromLiveExperience();
+        applyLiveVoiceStatusHint();
+        return true;
+      }
+
+      async function startPcmCapture() {
+        if (liveExperienceState.captureActive) return;
+        const stream = await ensureLiveAudioStream();
+        if (!stream) throw new Error("Microphone stream unavailable.");
+        const Ctor = window.AudioContext || window.webkitAudioContext;
+        if (!Ctor) throw new Error("Web Audio API unavailable.");
+        const captureContext = liveExperienceState.audioContext || new Ctor();
+        if (captureContext.state === "suspended") {
+          try { await captureContext.resume(); } catch (_) {}
+        }
+        liveExperienceState.captureContext = captureContext;
+        const source = captureContext.createMediaStreamSource(stream);
+        // ScriptProcessorNode is deprecated but still the most portable way to pull raw
+        // Float32 mic frames without shipping a separate AudioWorklet module.
+        const processor = captureContext.createScriptProcessor(4096, 1, 1);
+        const inputRate = captureContext.sampleRate || 48000;
+        processor.onaudioprocess = (event) => {
+          if (!liveExperienceState.captureActive) return;
+          const channel = event.inputBuffer.getChannelData(0);
+          const now = Date.now();
+          const rms = measureAudioRms(channel);
+          if (rms >= 0.015) {
+            if (!liveExperienceState.speechDetectedAt) {
+              liveExperienceState.speechDetectedAt = now;
+            }
+            liveExperienceState.lastVoiceActivityAt = now;
+          } else if (
+            liveExperienceState.speechDetectedAt
+            && liveExperienceState.lastVoiceActivityAt
+            && now - liveExperienceState.lastVoiceActivityAt >= 900
+            && liveExperienceState.lastVoiceActivityAt - liveExperienceState.speechDetectedAt >= 260
+          ) {
+            finalizeActiveVoiceTurn();
+            return;
+          }
+          const pcm16 = resampleFloat32ToPcm16(channel, inputRate, 16000);
+          if (!pcm16.length) return;
+          const bytes = new Uint8Array(pcm16.buffer, pcm16.byteOffset, pcm16.byteLength);
+          sendVoiceSocketJson({
+            type: "audio",
+            data: uint8ArrayToBase64(bytes),
+            sampleRate: 16000,
+            format: "pcm_s16le",
+            channels: 1
+          });
+        };
+        source.connect(processor);
+        processor.connect(captureContext.destination);
+        liveExperienceState.captureSource = source;
+        liveExperienceState.captureNode = processor;
+        resetVoiceTurnDetection();
+        liveExperienceState.captureActive = true;
+      }
+
+      function stopPcmCapture() {
+        liveExperienceState.captureActive = false;
+        const processor = liveExperienceState.captureNode;
+        const source = liveExperienceState.captureSource;
+        try { processor?.disconnect(); } catch (_) {}
+        try { source?.disconnect(); } catch (_) {}
+        liveExperienceState.captureNode = null;
+        liveExperienceState.captureSource = null;
+        resetVoiceTurnDetection();
+      }
+
+      function closeVoiceSocket() {
+        const ws = liveExperienceState.voiceSocket;
+        if (ws && ws.readyState === WebSocket.OPEN) {
+          try { ws.send(JSON.stringify({ type: "finish" })); } catch (_) {}
+          try { ws.close(1000, "client_finish"); } catch (_) {}
+        }
+        liveExperienceState.voiceSocket = null;
+        liveExperienceState.voiceSocketReady = false;
+        liveExperienceState.voiceSessionId = null;
+        liveExperienceState.voiceLastErrorMessage = "";
+        liveExperienceState.turnAwaitingReply = false;
+        resetVoiceTurnDetection();
+      }
+
+      async function enableContinuousListening() {
+        if (!liveExperienceState.micOn) {
+          applyMicStateFromLiveExperience();
+          applyLiveVoiceStatusHint();
+          return false;
+        }
+        if (liveExperienceState.listening || liveExperienceState.captureActive) {
+          applyMicStateFromLiveExperience();
+          applyLiveVoiceStatusHint();
+          return true;
+        }
+        if (liveExperienceState.listeningPromise) {
+          return liveExperienceState.listeningPromise;
+        }
+        liveExperienceState.listeningPromise = (async () => {
+          if (!resolveLiveSessionId()) {
+            applyMicStateFromLiveExperience();
+            setLiveChatHint("Preparing the live voice link…", "processing");
+            const sessionId = await waitForLiveSessionId(12000);
+            if (!sessionId) {
+              throw new Error("Live session is still preparing. Try again in a moment.");
+            }
+            liveExperienceState.sessionId = sessionId;
+          }
+          liveExperienceState.voiceLastErrorMessage = "";
+          liveExperienceState.turnAwaitingReply = false;
+          applyMicStateFromLiveExperience();
+          setLiveChatHint("Preparing microphone…", "processing");
+          await ensureVoiceSocket();
+          await startPcmCapture();
+          liveExperienceState.listening = true;
+          applyMicStateFromLiveExperience();
+          applyLiveVoiceStatusHint();
+          return true;
+        })().catch((error) => {
+          liveExperienceState.listening = false;
+          liveExperienceState.turnAwaitingReply = false;
+          liveExperienceState.micOn = false;
+          stopPcmCapture();
+          setLiveChatBusy(false);
+          applyMicStateFromLiveExperience();
+          setLiveChatHint(error?.message || "Microphone access was blocked.", "error");
+          return false;
+        }).finally(() => {
+          liveExperienceState.listeningPromise = null;
+        });
+        return liveExperienceState.listeningPromise;
+      }
+
+      function disableContinuousListening() {
+        liveExperienceState.listening = false;
+        liveExperienceState.turnAwaitingReply = false;
+        stopPcmCapture();
+        setLiveChatBusy(false);
+        applyMicStateFromLiveExperience();
+        applyLiveVoiceStatusHint();
+      }
+
+      function clearLiveUiHideTimer() {
+        window.clearTimeout(liveExperienceState.hideUiTimer);
+        liveExperienceState.hideUiTimer = 0;
+      }
+
+      function scheduleLiveUiHide() {
+        const experience = liveExperienceNode();
+        clearLiveUiHideTimer();
+        if (!experience || document.fullscreenElement !== experience) return;
+        liveExperienceState.hideUiTimer = window.setTimeout(() => {
+          experience.classList.add("is-ui-hidden");
+        }, 600);
+      }
+
+      function revealLiveUiChrome() {
+        const experience = liveExperienceNode();
+        if (!experience || document.fullscreenElement !== experience) return;
+        experience.classList.remove("is-ui-hidden");
+        scheduleLiveUiHide();
       }
 
       async function setCameraEnabled(enabled) {
@@ -9723,39 +10820,16 @@
         }
       }
 
-      function pushLiveChatMessage(message) {
-        const stack = document.querySelector("[data-live-chat-stack]");
-        if (!stack) return;
-        const bubble = document.createElement("div");
-        bubble.className = `live-chat-bubble ${message.side === "me" ? "me" : "ai"}`;
-        bubble.textContent = message.text;
-        stack.appendChild(bubble);
-        const bubbles = Array.from(stack.children);
-        while (bubbles.length > 4) {
-          const old = bubbles.shift();
-          old?.classList.add("is-fading");
-          window.setTimeout(() => old?.remove(), 220);
-        }
-      }
-
-      function startLiveChatLoop() {
-        const stack = document.querySelector("[data-live-chat-stack]");
-        if (!stack) return;
-        stack.innerHTML = "";
-        liveExperienceState.chatIndex = 0;
-        pushLiveChatMessage(liveChatMessages[liveExperienceState.chatIndex++]);
-        window.clearInterval(liveExperienceState.chatTimer);
-        liveExperienceState.chatTimer = window.setInterval(() => {
-          const message = liveChatMessages[liveExperienceState.chatIndex % liveChatMessages.length];
-          liveExperienceState.chatIndex += 1;
-          pushLiveChatMessage(message);
-        }, 2600);
-      }
-
       function syncFullscreenButtons() {
-        const isFull = Boolean(document.fullscreenElement);
         const experience = liveExperienceNode();
+        const isFull = Boolean(experience && document.fullscreenElement === experience);
         experience?.classList.toggle("is-fullscreen", isFull);
+        if (!isFull) {
+          experience?.classList.remove("is-ui-hidden");
+          clearLiveUiHideTimer();
+        } else {
+          scheduleLiveUiHide();
+        }
         document.querySelector("[data-live-fullscreen]")?.toggleAttribute("hidden", isFull);
         document.querySelector("[data-live-exit-fullscreen]")?.toggleAttribute("hidden", !isFull);
       }
@@ -9764,18 +10838,44 @@
         if (liveExperienceState.initialized) return;
         liveExperienceState.initialized = true;
         liveExperienceState.micOn = true;
-        document.querySelector("[data-live-mic-toggle]")?.classList.remove("is-off");
+        liveExperienceState.sessionId = resolveLiveSessionId();
+        liveExperienceState.voiceLastErrorMessage = "";
+        liveExperienceState.turnAwaitingReply = false;
+        resetVoiceTurnDetection();
+        applyMicStateFromLiveExperience();
         document.querySelector("[data-live-camera-toggle]")?.classList.add("is-off");
         setCameraEnabled(false);
         startAudioWaveform();
-        startLiveChatLoop();
+        clearLiveChatStack();
+        setLiveChatBusy(false);
+        applyLiveVoiceStatusHint();
         syncFullscreenButtons();
+        window.setTimeout(() => {
+          void enableContinuousListening();
+        }, 0);
       }
 
       function stopLiveExperience() {
         liveExperienceState.initialized = false;
-        window.clearInterval(liveExperienceState.chatTimer);
-        liveExperienceState.chatTimer = 0;
+        liveExperienceState.sessionId = null;
+        liveExperienceState.listening = false;
+        liveExperienceState.turnAwaitingReply = false;
+        stopPcmCapture();
+        closeVoiceSocket();
+        resetTtsPlayback();
+        clearLiveUiHideTimer();
+        setLiveChatBusy(false);
+        setLiveChatHint("Microphone off.", "idle");
+        const audio = liveAudioNode();
+        if (audio) {
+          audio.pause();
+          audio.removeAttribute("src");
+          audio.load?.();
+        }
+        if (liveExperienceState.activeAudioUrl) {
+          URL.revokeObjectURL(liveExperienceState.activeAudioUrl);
+          liveExperienceState.activeAudioUrl = null;
+        }
         stopAudioWaveform();
         setCameraEnabled(false);
         if (document.fullscreenElement) {
@@ -9885,9 +10985,15 @@
         const micToggle = event.target.closest("[data-live-mic-toggle]");
         if (micToggle) {
           event.preventDefault();
-          liveExperienceState.micOn = !liveExperienceState.micOn;
-          micToggle.classList.toggle("is-off", !liveExperienceState.micOn);
-          micToggle.setAttribute("aria-label", liveExperienceState.micOn ? "Microphone on" : "Microphone off");
+          if (liveExperienceState.micOn) {
+            liveExperienceState.micOn = false;
+            disableContinuousListening();
+          } else {
+            liveExperienceState.micOn = true;
+            applyMicStateFromLiveExperience();
+            applyLiveVoiceStatusHint();
+            await enableContinuousListening();
+          }
           return;
         }
 
@@ -9927,10 +11033,12 @@
 
       document.addEventListener("input", (event) => {
         const volume = event.target.closest?.("[data-live-volume]");
-        if (!volume) return;
-        window.updateAppState?.({ ui: { liveVolume: Number(volume.value) } });
-        const waveform = document.querySelector("[data-live-waveform]");
-        if (waveform) waveform.style.opacity = String(.4 + Number(volume.value) / 170);
+        if (volume) {
+          window.updateAppState?.({ ui: { liveVolume: Number(volume.value) } });
+          const waveform = document.querySelector("[data-live-waveform]");
+          if (waveform) waveform.style.opacity = String(.4 + Number(volume.value) / 170);
+          return;
+        }
       });
 
       document.addEventListener("change", (event) => {
@@ -9963,6 +11071,13 @@
         if (file) startUploadProgress(file);
       });
 
+      document.addEventListener("pointermove", (event) => {
+        const experience = liveExperienceNode();
+        if (!experience || document.fullscreenElement !== experience) return;
+        // UI-2: any motion reveals chrome; revealLiveUiChrome() resets the 600ms auto-hide timer.
+        revealLiveUiChrome();
+      });
+
       const originalNavigateToRoute = window.navigateToRoute;
       if (typeof originalNavigateToRoute === "function" && !window.__liveSetupFlowWrapped) {
         window.navigateToRoute = function(route) {
@@ -9972,10 +11087,10 @@
           if (activeId === "wire-4-1-live-setup" && previousActiveId !== activeId) {
             resetLiveSetupFlow();
           }
-          if (activeId === "wire-4-1-1-live-windowed" || activeId === "wire-4-1-2-live-fullscreen") {
+          if (activeId === "wire-4-1-0-live-main") {
             syncLiveRoomContext();
             startLiveExperience();
-          } else if (previousActiveId === "wire-4-1-1-live-windowed" || previousActiveId === "wire-4-1-2-live-fullscreen") {
+          } else if (previousActiveId === "wire-4-1-0-live-main") {
             stopLiveExperience();
           }
           if (activeId === "wire-6-review-overview") {
@@ -9990,7 +11105,7 @@
       } else {
         renderLiveSetupFlow();
         const activeId = document.querySelector(".screen.is-active:not(#wire-8-me-panel)")?.id || "";
-        if (activeId === "wire-4-1-1-live-windowed" || activeId === "wire-4-1-2-live-fullscreen") {
+        if (activeId === "wire-4-1-0-live-main") {
           startLiveExperience();
         }
       }
@@ -10149,1017 +11264,4 @@
       function displayFocusTitle(rawFocusId, round) {
         const detail = getReviewDetail(round);
         const backendFocus = backendFocusFromId(rawFocusId, detail);
-        if (backendFocus) return backendFocus.item.title;
-        if (rawFocusId === "round-05-pricing-objection") return "Round 05 / Pricing objection";
-        if (rawFocusId === "import-pack-procurement-followup") return "Import pack / Procurement follow-up";
-        if (rawFocusId === "latest-round-evidence") return "Latest round evidence";
-        if (rawFocusId === "score-driver-focus") return "Score driver focus";
-        if (rawFocusId === "live-session-current") return `Latest live review / ${round?.market || "current round"}`;
-        return focusViewCatalog[canonicalFocusKey(rawFocusId, round)]?.title || "Selected review focus";
-      }
-
-      window.resolveReviewFocusTitle = (focusId) => displayFocusTitle(focusId, getEndedRound());
-
-      function activeReviewFocusId(round) {
-        return window.appState?.selectedReviewFocus || round?.reviewFocusId || "live-session-current";
-      }
-
-      function buildOverviewModel(round) {
-        const detail = getReviewDetail(round);
-        if (detail) {
-          const score = detail.analysis?.overallScore || 0;
-          const focusItems = backendFocusItems(detail);
-          const evidenceItems = backendEvidenceItems(detail);
-          const focusCards = focusItems.slice(0, 3).map((item, index) => ({
-            id: backendFocusId(item, index),
-            index: `priority ${String(index + 1).padStart(2, "0")}`,
-            title: item.title,
-            copy: item.detail
-          }));
-          const focusEntries = focusItems.slice(0, 3).map((item, index) => ({
-            id: backendFocusId(item, index),
-            score: detail.analysis?.dimensions?.find((dimension) => dimension.dimensionKey === item.dimensionKey)?.score || score,
-            title: item.title,
-            metaPrimary: `${item.dimensionKey} / backend focus`,
-            metaSecondary: item.relatedIssueKeys?.length ? item.relatedIssueKeys.join(", ") : "No issue key"
-          }));
-          return {
-            badge: "Backend review",
-            kicker: `${detail.countryKey} / ${detail.meetingType} / ${formatShortDate(detail.endedAt || detail.createdAt)}`,
-            overallScore: score,
-            bestRail: detail.analysis?.derivedInsights?.strongest || detail.overallAssessment,
-            sessionState: `${detail.sourceSessionId} / ${detail.reviewId}`,
-            sourceState: `${detail.goal} / ${detail.voiceStyle}`,
-            focusCards: focusCards.length ? focusCards : [{
-              id: "live-session-current",
-              index: "priority 01",
-              title: detail.summary.headline,
-              copy: detail.summary.coachSummary
-            }],
-            focusEntries: focusEntries.length ? focusEntries : [{
-              id: "live-session-current",
-              score,
-              title: detail.summary.headline,
-              metaPrimary: detail.overallAssessment,
-              metaSecondary: detail.summary.nextStep
-            }],
-            evidenceItems: evidenceItems.slice(0, 3).map((item) => ({
-              time: item.minuteLabel,
-              copy: item.text
-            })).concat(evidenceItems.length ? [] : [{
-              time: "Backend review",
-              copy: detail.summary.coachSummary
-            }])
-          };
-        }
-        const reviewSeed = getReviewSeed(round);
-        const activeFocusId = activeReviewFocusId(round);
-        const activeKey = canonicalFocusKey(activeFocusId, round);
-        const score = Number(reviewSeed.score || 86);
-        const bestRailMap = {
-          pacing: "Clarity 8.8",
-          evidence: "Evidence trail 8.1",
-          clarity: "Clarity 8.8",
-          objection: "Objection 7.6",
-          imported: "Imported carry-over 7.4"
-        };
-
-        const focusCards = [
-          {
-            id: "live-session-current",
-            index: "priority 01",
-            title: displayFocusTitle("live-session-current", round),
-            copy: `${round.summary} ${reviewSeed.nextAction || "Carry one correction into the next retry."}`
-          },
-          {
-            id: "latest-round-evidence",
-            index: "priority 02",
-            title: "Keep the evidence trail visible.",
-            copy: `The ${round.sourcePack} packet and ${round.contextMode} context should stay attached while the fix is replayed.`
-          },
-          {
-            id: "score-driver-focus",
-            index: "priority 03",
-            title: "Carry the strongest rail, not a blank retry.",
-            copy: `Preserve the strongest working rail in ${round.market} while you repair ${reviewSeed.focus || "the weak rail"}.`
-          }
-        ];
-
-        const focusEntries = [
-          {
-            id: "live-session-current",
-            score,
-            title: `${round.sessionId} / ${round.market} ${round.language}`,
-            metaPrimary: `Ended / ${formatShortDate(round.endedAt)}`,
-            metaSecondary: `${reviewSeed.focus || "review"} focus / ${round.contextMode}`
-          },
-          {
-            id: "latest-round-evidence",
-            score: Math.max(score - 2, 0),
-            title: `${round.sourcePack} / Evidence lane`,
-            metaPrimary: `${round.contextMode} / carry-over`,
-            metaSecondary: "Transcript linked / review seed ready"
-          },
-          {
-            id: "score-driver-focus",
-            score: Math.min(score + 2, 99),
-            title: `${round.market} / Strongest rail`,
-            metaPrimary: `${round.language} / best driver`,
-            metaSecondary: "Use one preserved strength in the retry"
-          }
-        ];
-
-        const evidenceItems = [
-          {
-            time: "Minute 01",
-            copy: `${round.sessionId} ended on ${formatShortDate(round.endedAt)} and generated a review packet tied to ${round.sourcePack}.`
-          },
-          {
-            time: "Minute 04",
-            copy: `In ${round.market}, the ${reviewSeed.focus || "review"} rail slipped while the round still kept ${round.language} clarity intact.`
-          },
-          {
-            time: "Minute 07",
-            copy: `${round.summary} The next retry should keep ${round.contextMode} instead of restarting from zero.`
-          }
-        ];
-
-        return {
-          badge: round.sourceType === "review" ? "Review retry" : "Ended round",
-          kicker: `${round.market} / ${round.language} / ${formatShortDate(round.endedAt)}`,
-          overallScore: score,
-          bestRail: bestRailMap[activeKey] || "Clarity 8.8",
-          sessionState: `${round.sessionId} / ended`,
-          sourceState: `${round.sourcePack} / ${round.contextMode}`,
-          focusCards,
-          focusEntries,
-          evidenceItems
-        };
-      }
-
-      function buildFocusModel(rawFocusId, round) {
-        const detail = getReviewDetail(round);
-        const backendFocus = backendFocusFromId(rawFocusId, detail);
-        if (detail && backendFocus) {
-          const dimension = detail.analysis?.dimensions?.find((item) => item.dimensionKey === backendFocus.item.dimensionKey);
-          const evidenceItems = backendEvidenceItems(detail)
-            .filter((item) => {
-              const keys = backendFocus.item.relatedIssueKeys || [];
-              return !keys.length || item.relatedIssueKeys?.some((key) => keys.includes(key));
-            })
-            .slice(0, 5);
-          return {
-            kicker: `${backendFocus.item.dimensionKey} / ${detail.reviewId}`,
-            title: backendFocus.item.title,
-            summary: backendFocus.item.detail,
-            shiftTitle: detail.summary.headline,
-            shiftCopy: detail.summary.coachSummary,
-            score: String(dimension?.score || detail.analysis?.overallScore || 0),
-            scoreCopy: dimension?.reason || detail.summary.nextStep,
-            severity: dimension?.status || detail.overallAssessment,
-            nextUse: "Backend retry seed",
-            evidenceItems: (evidenceItems.length ? evidenceItems : backendEvidenceItems(detail).slice(0, 5)).map((item) => ({
-              time: item.minuteLabel,
-              title: item.text
-            })),
-            packItems: [
-              { label:"Review", title: detail.reviewId, pill:"Real" },
-              { label:"Origin session", title: detail.sourceSessionId, pill:"Linked" },
-              { label:"Issue keys", title: backendFocus.item.relatedIssueKeys?.join(", ") || "No issue key", pill:"Seed" }
-            ],
-            summaryItems: [
-              detail.summary.coachSummary,
-              `This focus is tied to ${detail.sourceSessionId} and review ${detail.reviewId}.`
-            ],
-            fixItems: [
-              detail.summary.nextStep,
-              backendFocus.item.detail,
-              `Carry ${backendFocus.item.dimensionKey} into the next live setup with origin session ${detail.sourceSessionId}.`
-            ],
-            nextAction: detail.summary.nextStep
-          };
-        }
-        const reviewSeed = getReviewSeed(round);
-        const key = canonicalFocusKey(rawFocusId, round);
-        const config = focusViewCatalog[key] || focusViewCatalog.pacing;
-        const focusTitle = displayFocusTitle(rawFocusId, round);
-        const market = round.market || "Market";
-        const language = round.language || "Language";
-        const sourcePack = round.sourcePack || "Source pack";
-        const contextMode = round.contextMode || "context";
-        const originSessionId = round.originSessionId || round.sessionId || "session pending";
-        const reviewSeedLabel = reviewSeed.focus || "review correction";
-        const dynamicSummaryMap = {
-          pacing: `${round.summary} In ${market}, the next-step ask surfaced before internal ownership was explicit.`,
-          evidence: `${round.summary} The evidence lane is strong enough to retry from the same transcript-linked packet.`,
-          clarity: `${round.summary} The strongest rail stayed stable, so the retry should preserve it rather than reset the tone.`,
-          objection: `${round.summary} The objection branch is still usable if the next ask waits for alignment.`,
-          imported: `${round.summary} The imported material is solid enough to power the next retry without losing grounding.`
-        };
-        const shiftCopyMap = {
-          pacing: `The ${market} round stayed commercially sharp, but the next-step ask surfaced before ${contextMode} ownership was clear.`,
-          evidence: `The proof trail from ${sourcePack} stayed linked, which means the retry can branch from evidence instead of a blank setup.`,
-          clarity: `Clarity stayed strong in ${language}, so the next round should protect that rail while fixing ${reviewSeedLabel}.`,
-          objection: `The objection signal was caught, but the commercial push still came early for the ${market} buyer thread.`,
-          imported: `The imported transcript stayed coherent enough that the replay seed can reopen the same buyer thread without losing context.`
-        };
-
-        return {
-          kicker: `${config.category} / ${round.sessionId}`,
-          title: focusTitle,
-          summary: dynamicSummaryMap[key] || round.summary,
-          shiftTitle: config.shiftTitle,
-          shiftCopy: shiftCopyMap[key] || round.summary,
-          score: String(reviewSeed.score || 86),
-          scoreCopy: `${config.category} is the active correction for ${market}. ${reviewSeed.nextAction || "Carry it into the next retry."}`,
-          severity: config.score,
-          nextUse: config.nextUse,
-          evidenceItems: [
-            { time:"00:53", title:`${originSessionId} closed and the review packet stayed attached to ${sourcePack}.` },
-            { time:"00:57", title:`The ${reviewSeedLabel} signal was visible, but the round still moved one step too fast.` },
-            { time:"01:02", title:`${language} clarity held, which kept the retry seed usable instead of forcing a restart.` },
-            { time:"01:05", title:`Transcript and evidence stayed linked through ${contextMode}, so the wording can still be replayed.` },
-            { time:"01:09", title:`The branch remains valid because ${market} context, source pack, and summary all stayed coherent.` }
-          ],
-          packItems: [
-            { label:"Transcript", title: sourcePack, pill:"Linked" },
-            { label:"Context mode", title: contextMode, pill:"Ready" },
-            { label:"Review seed", title: reviewSeedLabel, pill:"Branch" }
-          ],
-          summaryItems: [
-            `${round.summary}`,
-            `This focus is tied to ${round.sessionId} and still references ${sourcePack}.`
-          ],
-          fixItems: [
-            config.nextAction,
-            `Keep ${market} / ${language} unchanged so the retry stays comparable to the ended round.`,
-            `Carry ${sourcePack} and ${reviewSeedLabel} into live setup instead of opening a blank branch.`
-          ],
-          nextAction: reviewSeed.nextAction || config.nextAction
-        };
-      }
-
-      function renderOverviewFallback() {
-        if (overviewNodes.summary) overviewNodes.summary.hidden = true;
-      }
-
-      function renderReviewOverview() {
-        const round = getEndedRound();
-        if (!round) {
-          renderOverviewFallback();
-          return;
-        }
-        const model = buildOverviewModel(round);
-        const detail = getReviewDetail(round);
-        if (overviewNodes.summary) overviewNodes.summary.hidden = false;
-        if (overviewNodes.sessionId) overviewNodes.sessionId.textContent = detail ? `${detail.sourceSessionId} / ${detail.reviewId}` : `${round.sessionId} / ${round.endedAt}`;
-        if (overviewNodes.summaryCopy) overviewNodes.summaryCopy.textContent = detail?.summary?.coachSummary || round.summary || "Ended live round is ready for review.";
-        if (overviewNodes.context) overviewNodes.context.textContent = detail ? `${detail.countryKey} / ${detail.meetingType} / ${detail.goal} / ${detail.voiceStyle}` : `${round.market} / ${round.language} / ${round.sourcePack} / ${round.contextMode} / ${getReviewSeed(round).focus || "review seed"}`;
-        if (overviewNodes.badge) overviewNodes.badge.textContent = model.badge;
-        if (overviewNodes.kicker) overviewNodes.kicker.textContent = model.kicker;
-        if (overviewNodes.overallScore) overviewNodes.overallScore.textContent = String(model.overallScore);
-        const scoreOrbit = reviewOverviewScreen.querySelector(".review-dashboard-shell .score-orbit");
-        if (scoreOrbit) scoreOrbit.dataset.targetScore = String(model.overallScore);
-        if (overviewNodes.overallScore) overviewNodes.overallScore.dataset.targetScore = String(model.overallScore);
-        if (overviewNodes.bestRail) overviewNodes.bestRail.textContent = model.bestRail;
-        if (overviewNodes.sessionState) overviewNodes.sessionState.textContent = model.sessionState;
-        if (overviewNodes.sourceState) overviewNodes.sourceState.textContent = model.sourceState;
-        if (overviewNodes.focusStack) {
-          overviewNodes.focusStack.innerHTML = model.focusCards.map((item) => `
-            <div class="focus-card">
-              <div class="focus-index">${escapeHtml(item.index)}</div>
-              <strong>${escapeHtml(item.title)}</strong>
-              <p>${escapeHtml(item.copy)}</p>
-            </div>
-          `).join("");
-        }
-        if (overviewNodes.focusPrimaryLink) {
-          overviewNodes.focusPrimaryLink.setAttribute("data-review-focus", model.focusCards[0].id);
-        }
-        if (overviewNodes.roundList) {
-          const activeFocusId = activeReviewFocusId(round);
-          overviewNodes.roundList.innerHTML = model.focusEntries.map((item) => `
-            <a class="review-round-item${item.id === activeFocusId ? " active" : ""}" href="#wire-6-1-review-focus" data-route="review-focus" data-review-focus="${escapeHtml(item.id)}">
-              <div class="review-round-top">
-                <div><strong>${escapeHtml(item.title)}</strong></div>
-                <div class="review-round-score">${escapeHtml(item.score)}</div>
-              </div>
-              <div class="review-round-meta">
-                <span>${escapeHtml(item.metaPrimary)}</span>
-                <span>${escapeHtml(item.metaSecondary)}</span>
-              </div>
-            </a>
-          `).join("");
-        }
-        if (overviewNodes.evidenceList) {
-          overviewNodes.evidenceList.innerHTML = model.evidenceItems.map((item) => `
-            <div class="e-item">
-              <span class="e-time">${escapeHtml(item.time)}</span>
-              <span>${escapeHtml(item.copy)}</span>
-            </div>
-          `).join("");
-        }
-      }
-
-      function renderReviewFocusDetail() {
-        const round = getEndedRound();
-        if (!round) {
-          if (focusNodes.banner) focusNodes.banner.hidden = true;
-          return;
-        }
-        const rawFocusId = activeReviewFocusId(round);
-        const model = buildFocusModel(rawFocusId, round);
-        if (focusNodes.banner) focusNodes.banner.hidden = false;
-        if (focusNodes.kicker) focusNodes.kicker.textContent = model.kicker;
-        if (focusNodes.title) focusNodes.title.textContent = model.title;
-        if (focusNodes.summary) focusNodes.summary.textContent = model.summary;
-        if (focusNodes.shiftTitle) focusNodes.shiftTitle.textContent = model.shiftTitle;
-        if (focusNodes.shiftCopy) focusNodes.shiftCopy.textContent = model.shiftCopy;
-        if (focusNodes.score) focusNodes.score.textContent = model.score;
-        if (focusNodes.scoreCopy) focusNodes.scoreCopy.textContent = model.scoreCopy;
-        if (focusNodes.severity) focusNodes.severity.textContent = model.severity;
-        if (focusNodes.nextUse) focusNodes.nextUse.textContent = model.nextUse;
-        if (focusNodes.evidenceList) {
-          focusNodes.evidenceList.innerHTML = model.evidenceItems.map((item) => `
-            <div class="report-evidence-item">
-              <span>${escapeHtml(item.time)}</span>
-              <div><strong>${escapeHtml(item.title)}</strong></div>
-            </div>
-          `).join("");
-        }
-        if (focusNodes.packGrid) {
-          focusNodes.packGrid.innerHTML = model.packItems.map((item) => `
-            <div class="report-pack-card">
-              <div><span>${escapeHtml(item.label)}</span><strong>${escapeHtml(item.title)}</strong></div>
-              <div class="compact-pill">${escapeHtml(item.pill)}</div>
-            </div>
-          `).join("");
-        }
-        if (focusNodes.summaryList) {
-          focusNodes.summaryList.innerHTML = model.summaryItems.map((item, index) => `
-            <div class="report-side-item">
-              <span class="learning-line-mark${index === 0 ? " soft" : ""}"></span>
-              <div><strong>${escapeHtml(item)}</strong></div>
-            </div>
-          `).join("");
-        }
-        if (focusNodes.fixList) {
-          focusNodes.fixList.innerHTML = model.fixItems.map((item, index) => `
-            <div class="report-side-item">
-              <span class="learning-line-mark${index === 1 ? " soft" : ""}"></span>
-              <div><strong>${escapeHtml(item)}</strong></div>
-            </div>
-          `).join("");
-        }
-        if (focusNodes.nextAction) focusNodes.nextAction.textContent = model.nextAction;
-        for (const link of focusNodes.retryLinks) {
-          link.dataset.reviewFocus = rawFocusId;
-          link.dataset.round = `${link.dataset.action === "continue-review-live" ? "continue" : "retry"}-${rawFocusId}`;
-        }
-      }
-
-      function syncReviewScreens() {
-        renderReviewOverview();
-        renderReviewFocusDetail();
-      }
-
-      const originalUpdateAppState = window.updateAppState;
-      if (typeof originalUpdateAppState === "function" && !window.__reviewLinkageStateWrapped) {
-        window.updateAppState = function(patchOrUpdater) {
-          const nextState = originalUpdateAppState(patchOrUpdater);
-          syncReviewScreens();
-          return nextState;
-        };
-        window.__reviewLinkageStateWrapped = true;
-      }
-
-      const originalNavigateToRoute = window.navigateToRoute;
-      if (typeof originalNavigateToRoute === "function" && !window.__reviewLinkageNavigateWrapped) {
-        window.navigateToRoute = function(route) {
-          const result = originalNavigateToRoute(route);
-          const activeId = activePrimaryScreenId();
-          if (activeId === "wire-6-review-overview" || activeId === "wire-6-1-review-focus" || activeId === "wire-4-1-live-setup" || activeId === "wire-4-1-1-live-windowed") {
-            syncReviewScreens();
-          }
-          return result;
-        };
-        window.__reviewLinkageNavigateWrapped = true;
-      }
-
-      syncReviewScreens();
-    })();
-  </script>
-  <script id="device-transfer-modal-script">
-    (() => {
-      const transferConfig = {
-        upload: {
-          kicker:"Uploading from device",
-          status:"Uploading secure transcript package...",
-          success:"Upload complete.",
-          icon:'<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 16V5"></path><path d="M7.5 9.5 12 5l4.5 4.5"></path><path d="M5 18.5h14"></path></svg>'
-        },
-        download: {
-          kicker:"Downloading to device",
-          status:"Writing package to Sony PCM-A10...",
-          success:"Download ready on device.",
-          icon:'<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v11"></path><path d="M7.5 11.5 12 16l4.5-4.5"></path><path d="M5 18.5h14"></path></svg>'
-        }
-      };
-
-      let transferTimer = null;
-      let pendingMode = null;
-
-      const draft = () => window.appState?.deviceTransferDraft || {};
-      const isTransferActive = () => draft().status === "in_progress";
-
-      function getTransferModal() {
-        return document.querySelector("#wire-7-device [data-device-modal]");
-      }
-
-      function syncTransferModalState(status = draft().status || "idle") {
-        const modal = getTransferModal();
-        if (!modal) return;
-        const normalized = status || "idle";
-        modal.dataset.transferState = normalized;
-        modal.setAttribute("aria-busy", normalized === "in_progress" ? "true" : "false");
-      }
-
-      function formatFileSize(size) {
-        if (!Number.isFinite(size) || size <= 0) return "0 KB";
-        if (size < 1024 * 1024) return `${(size / 1024).toFixed(1)} KB`;
-        return `${(size / (1024 * 1024)).toFixed(1)} MB`;
-      }
-
-      function inferFileType(file) {
-        if (file?.type) return file.type;
-        const extension = file?.name?.split(".").pop();
-        return extension ? extension.toUpperCase() : "unknown";
-      }
-
-      function fileMeta(file) {
-        const fileType = inferFileType(file);
-        return {
-          fileName: file?.name || "Selected transfer file",
-          fileType,
-          sizeLabel: formatFileSize(file?.size || 0),
-          meta: `${fileType} / ${formatFileSize(file?.size || 0)}`
-        };
-      }
-
-      function writeTransferDraft(patch) {
-        const next = { ...draft(), ...patch };
-        window.updateAppState?.({ deviceTransferDraft: patch });
-        syncTransferModalState(next.status);
-      }
-
-      function setTransferProgress(modal, value) {
-        const percent = Math.max(0, Math.min(100, Math.round(value)));
-        const bar = modal.querySelector("[data-device-modal-bar]");
-        const label = modal.querySelector("[data-device-modal-percent]");
-        if (bar) bar.style.width = percent + "%";
-        if (label) label.textContent = percent + "%";
-        writeTransferDraft({ progress: percent });
-      }
-
-      function setModalStatus(text) {
-        const status = getTransferModal()?.querySelector("[data-device-modal-status]");
-        if (status) status.textContent = text;
-      }
-
-      function stopTransferTimer() {
-        if (transferTimer) clearInterval(transferTimer);
-        transferTimer = null;
-      }
-
-      function completeTransfer(mode) {
-        stopTransferTimer();
-        const modal = getTransferModal();
-        if (!modal) return;
-        setTransferProgress(modal, 100);
-        setModalStatus(transferConfig[mode]?.success || "Transfer complete.");
-        writeTransferDraft({
-          progress: 100,
-          status: "success",
-          completedAt: new Date().toISOString(),
-          errorMessage: null
-        });
-      }
-
-      function failTransfer() {
-        if (!isTransferActive()) return;
-        stopTransferTimer();
-        setModalStatus("Transfer failed in test mode.");
-        writeTransferDraft({
-          status: "error",
-          completedAt: new Date().toISOString(),
-          errorMessage: "Simulated transfer failure"
-        });
-      }
-
-      function cancelTransfer() {
-        if (!["selecting", "in_progress"].includes(draft().status)) return;
-        stopTransferTimer();
-        setModalStatus("Transfer cancelled.");
-        writeTransferDraft({
-          status: "cancelled",
-          completedAt: new Date().toISOString()
-        });
-      }
-
-      function startTransferProgress(mode, modal) {
-        let progress = 0;
-        stopTransferTimer();
-        setTransferProgress(modal, 0);
-        transferTimer = setInterval(() => {
-          if (!isTransferActive()) {
-            stopTransferTimer();
-            return;
-          }
-          progress = Math.min(100, progress + (progress < 72 ? 8 : 4));
-          setTransferProgress(modal, progress);
-          if (progress >= 100) completeTransfer(mode);
-        }, 120);
-      }
-
-      function openTransferModal(mode, file) {
-        const config = transferConfig[mode] || transferConfig.upload;
-        const meta = fileMeta(file);
-        const modal = getTransferModal();
-        if (!modal) return;
-
-        modal.querySelector("[data-device-modal-icon]").innerHTML = config.icon;
-        modal.querySelector("[data-device-modal-kicker]").textContent = config.kicker;
-        modal.querySelector("[data-device-modal-title]").textContent = meta.fileName;
-        modal.querySelector("[data-device-modal-file]").textContent = meta.fileName;
-        modal.querySelector("[data-device-modal-meta]").textContent = meta.meta;
-        modal.querySelector("[data-device-modal-status]").textContent = config.status;
-        modal.classList.add("is-open");
-        modal.setAttribute("aria-hidden", "false");
-        modal.dataset.transferState = "in_progress";
-        modal.setAttribute("aria-busy", "true");
-        window.openModal?.("device-transfer");
-        writeTransferDraft({
-          mode,
-          fileName: meta.fileName,
-          fileType: meta.fileType,
-          progress: 0,
-          status: "in_progress",
-          errorMessage: null,
-          startedAt: new Date().toISOString(),
-          completedAt: null,
-          sizeLabel: meta.sizeLabel
-        });
-
-        startTransferProgress(mode, modal);
-      }
-
-      function handleFileSelectionCancelled(input) {
-        stopTransferTimer();
-        writeTransferDraft({
-          mode: pendingMode,
-          fileName: null,
-          fileType: null,
-          sizeLabel: null,
-          progress: 0,
-          status: "cancelled",
-          startedAt: null,
-          completedAt: new Date().toISOString()
-        });
-        pendingMode = null;
-        if (input) input.value = "";
-      }
-
-      function handleSelectedFile(input) {
-        const file = input?.files?.[0];
-        if (!pendingMode || !file) {
-          handleFileSelectionCancelled(input);
-          return;
-        }
-        const mode = pendingMode;
-        pendingMode = null;
-        openTransferModal(mode, file);
-        input.value = "";
-      }
-
-      function beginDeviceFileSelection(mode) {
-        const input = document.querySelector("#wire-7-device [data-device-file-input]");
-        const normalizedMode = mode === "download" ? "download" : "upload";
-        if (!input) return;
-
-        pendingMode = normalizedMode;
-        stopTransferTimer();
-        input.value = "";
-        writeTransferDraft({
-          mode: normalizedMode,
-          fileName: null,
-          fileType: null,
-          sizeLabel: null,
-          progress: 0,
-          status: "selecting",
-          errorMessage: null,
-          startedAt: null,
-          completedAt: null
-        });
-        input.click();
-      }
-
-      function closeTransferModal() {
-        const modal = getTransferModal();
-        if (!modal) return;
-        if (isTransferActive()) cancelTransfer();
-        stopTransferTimer();
-        modal.classList.remove("is-open");
-        modal.setAttribute("aria-hidden", "true");
-        syncTransferModalState();
-        window.closeModal?.("device-transfer");
-      }
-
-      document.addEventListener("click", (event) => {
-        const trigger = event.target.closest("#wire-7-device [data-device-transfer]");
-        if (trigger) {
-          event.preventDefault();
-          beginDeviceFileSelection(trigger.dataset.deviceTransfer);
-          return;
-        }
-
-        if (event.target.closest("#wire-7-device [data-device-transfer-cancel]")) {
-          event.preventDefault();
-          cancelTransfer();
-          return;
-        }
-
-        if (event.target.closest("#wire-7-device [data-device-transfer-error]")) {
-          event.preventDefault();
-          failTransfer();
-          return;
-        }
-
-        if (event.target.closest("#wire-7-device [data-device-modal-close]")) {
-          event.preventDefault();
-          closeTransferModal();
-        }
-      });
-
-      document.addEventListener("keydown", (event) => {
-        if (event.key !== "Escape") return;
-        const modal = document.querySelector("#wire-7-device [data-device-modal].is-open");
-        if (!modal) return;
-        event.preventDefault();
-        closeTransferModal();
-      });
-
-      const fileInput = document.querySelector("#wire-7-device [data-device-file-input]");
-      fileInput?.addEventListener("change", () => handleSelectedFile(fileInput));
-      fileInput?.addEventListener("cancel", () => handleFileSelectionCancelled(fileInput));
-      syncTransferModalState();
-    })();
-  </script>
-  <script id="pricing-auth-flow-script">
-    (() => {
-      const pricingScreen = document.getElementById("wire-5-pricing");
-      const authScreen = document.getElementById("wire-9-auth");
-      const createAccountScreen = document.getElementById("wire-9-1-create-account");
-      if (!pricingScreen || !authScreen || !createAccountScreen) return;
-
-      const planMeta = {
-        free: {
-          label:"Free",
-          authStatus:"Create an account to keep the Free lane attached to your Pricing flow.",
-          pricingPending:"Free is selected. Complete auth to come back here and continue.",
-          pricingReady:"You're signed in. Free stays selected and ready on Pricing."
-        },
-        standard: {
-          label:"Standard",
-          authStatus:"Create an account to keep the Standard lane attached to your Pricing flow.",
-          pricingPending:"Standard is selected. Complete auth to come back here and continue.",
-          pricingReady:"You're signed in. Standard stays selected and ready on Pricing."
-        },
-        pro: {
-          label:"Pro",
-          authStatus:"Create an account to keep the Pro lane attached to your Pricing flow.",
-          pricingPending:"Pro is selected. Complete auth to come back here and continue.",
-          pricingReady:"You're signed in. Pro stays selected and ready on Pricing."
-        }
-      };
-
-      const frontendToBackendPlanKey = {
-        free: "free",
-        standard: "go",
-        pro: "pro"
-      };
-
-      const backendToFrontendPlanKey = {
-        free: "free",
-        go: "standard",
-        plus: "plus",
-        pro: "pro"
-      };
-
-      function backendPlanKey(frontendPlanKey) {
-        return frontendToBackendPlanKey[frontendPlanKey] || frontendPlanKey;
-      }
-
-      function frontendPlanKey(backendPlanKeyValue) {
-        return backendToFrontendPlanKey[backendPlanKeyValue] || backendPlanKeyValue;
-      }
-
-      function selectedPlanKey() {
-        const summaryPlanKey = window.appState?.billingSummary?.account?.currentPlanKey;
-        return window.appState?.selectedPlan || window.appState?.authDraft?.selectedPlan || frontendPlanKey(summaryPlanKey) || null;
-      }
-
-      function getPlanMeta(planKey) {
-        const backendKey = backendPlanKey(planKey);
-        const backendPlan = (window.appState?.billingPlans || []).find((plan) => plan.planKey === backendKey);
-        const fallback = planMeta[planKey] || {
-          label:"Plan pending",
-          authStatus:"Choose a plan from Pricing to keep the context visible through auth.",
-          pricingPending:"Choose a lane to continue.",
-          pricingReady:"Return to Pricing when a plan is selected."
-        };
-        if (!backendPlan) return fallback;
-        return {
-          ...fallback,
-          label: backendPlan.displayName || fallback.label,
-          pricingPending: `${backendPlan.displayName} is selected. Complete auth to sync this plan with billing.`,
-          pricingReady: `Billing summary confirms ${backendPlan.displayName} as the current plan.`
-        };
-      }
-
-      function syncEmailInputs() {
-        const email = window.appState?.authDraft?.email || "";
-        for (const input of document.querySelectorAll("[data-auth-input='email']")) {
-          if (document.activeElement === input) continue;
-          input.value = email;
-        }
-      }
-
-      function authFlowLabel(flow) {
-        return flow === "signup" ? "Signup flow" : "Login flow";
-      }
-
-      function authStatusCopy(flow, planKey, isAuthenticated) {
-        const meta = getPlanMeta(planKey);
-        const apiError = window.appState?.api?.lastError;
-        if (apiError) return apiError;
-        if (isAuthenticated) {
-          return `${meta.label} remains selected. Return to Pricing to continue with the same plan.`;
-        }
-        if (!planKey) {
-          return flow === "signup"
-            ? "Choose a plan from Pricing to create the account with a selected lane."
-            : "Log in now or choose a plan from Pricing first.";
-        }
-        return flow === "signup"
-          ? meta.authStatus
-          : `Log in to continue with the ${meta.label} plan.`;
-      }
-
-      function serverSession() {
-        return window.appState?.serverSession?.user ? window.appState.serverSession : null;
-      }
-
-      function syncAuthFlowUI() {
-        const authDraft = window.appState?.authDraft || {};
-        const isAuthenticated = Boolean(serverSession());
-        const planKey = selectedPlanKey();
-        const plan = getPlanMeta(planKey);
-        const screens = [
-          [authScreen, "login"],
-          [createAccountScreen, "signup"]
-        ];
-
-        for (const [screen, flow] of screens) {
-          const summary = screen.querySelector("[data-auth-plan-summary]");
-          if (!summary) continue;
-          const flowNode = summary.querySelector("[data-auth-flow-label]");
-          const planNode = summary.querySelector("[data-auth-selected-plan]");
-          const statusNode = summary.querySelector("[data-auth-plan-status]");
-          summary.dataset.uiState = isAuthenticated ? "authenticated" : (planKey ? "ready" : "empty");
-          if (flowNode) flowNode.textContent = authFlowLabel(flow);
-          if (planNode) planNode.textContent = plan.label;
-          if (statusNode) statusNode.textContent = authStatusCopy(flow, planKey, isAuthenticated);
-        }
-
-        syncEmailInputs();
-      }
-
-      function syncPricingPlanUI() {
-        const isAuthenticated = Boolean(serverSession());
-        const planKey = selectedPlanKey();
-        const plan = getPlanMeta(planKey);
-        const billingSummary = window.appState?.billingSummary;
-        const summary = pricingScreen.querySelector("[data-pricing-plan-summary]");
-        const planNode = pricingScreen.querySelector("[data-pricing-selected-plan]");
-        const statusNode = pricingScreen.querySelector("[data-pricing-plan-status]");
-
-        if (summary) summary.dataset.uiState = isAuthenticated ? "authenticated" : (planKey ? "ready" : "empty");
-        if (planNode) planNode.textContent = plan.label;
-        if (statusNode) {
-          statusNode.textContent = window.appState?.api?.billingStatus === "error" && window.appState?.api?.lastError
-            ? window.appState.api.lastError
-            : billingSummary?.currentPlan?.displayName
-            ? `Backend current plan: ${billingSummary.currentPlan.displayName}.`
-            : !planKey
-            ? "Choose a lane to continue."
-            : (isAuthenticated ? plan.pricingReady : plan.pricingPending);
-        }
-
-        for (const card of pricingScreen.querySelectorAll("[data-plan-card]")) {
-          const isSelected = card.dataset.planCard === planKey;
-          card.classList.toggle("is-selected", isSelected);
-          card.classList.toggle("is-authenticated", isSelected && isAuthenticated);
-        }
-
-        for (const cta of pricingScreen.querySelectorAll("[data-plan-cta]")) {
-          cta.setAttribute("aria-pressed", cta.dataset.planCta === planKey ? "true" : "false");
-        }
-      }
-
-      function updateAuthEmail(value) {
-        window.updateAppState?.({ authDraft: { email: value.trim() } });
-        syncAuthFlowUI();
-      }
-
-      function resolvePostAuthRoute(control) {
-        return window.appState?.authDraft?.destinationRoute || control.dataset.route || "pricing";
-      }
-
-      function authPassword(control) {
-        return control.closest(".screen")?.querySelector("[data-auth-input='password']")?.value || "";
-      }
-
-      async function refreshAuthAndBilling({ selectFrontendPlan = null } = {}) {
-        const api = window.miroApi;
-        if (!api) throw new Error("Miro API bridge is not available.");
-        window.updateAppState?.({
-          api: {
-            authStatus: "loading",
-            billingStatus: "loading",
-            lastError: null
-          }
-        });
-        const session = await api.getAuthSession();
-        const plans = await api.listBillingPlans();
-        const currentSelectedPlan = selectedPlanKey();
-        const summary = selectFrontendPlan
-          ? await api.selectBillingPlan(backendPlanKey(selectFrontendPlan))
-          : await api.getBillingSummary();
-        const currentFrontendPlan = frontendPlanKey(summary?.account?.currentPlanKey);
-        window.updateAppState?.({
-          selectedPlan: currentFrontendPlan || selectFrontendPlan || currentSelectedPlan || null,
-          serverSession: session,
-          billingPlans: plans,
-          billingSummary: summary,
-          authDraft: {
-            selectedPlan: currentFrontendPlan || selectFrontendPlan || currentSelectedPlan || null,
-            isAuthenticated: true,
-            completedAt: new Date().toISOString()
-          },
-          api: {
-            authStatus: "authenticated",
-            billingStatus: "ready",
-            lastError: null
-          }
-        });
-        syncAuthFlowUI();
-        syncPricingPlanUI();
-        return { session, plans, summary };
-      }
-
-      let authBillingRefreshInFlight = false;
-      async function refreshAuthAndBillingQuietly() {
-        if (authBillingRefreshInFlight) return;
-        authBillingRefreshInFlight = true;
-        try {
-          await refreshAuthAndBilling();
-        } catch (error) {
-          window.updateAppState?.({
-            api: {
-              authStatus: "error",
-              billingStatus: "error",
-              lastError: error.message || String(error)
-            }
-          });
-          syncAuthFlowUI();
-          syncPricingPlanUI();
-        } finally {
-          authBillingRefreshInFlight = false;
-        }
-      }
-
-      async function completeAuthFlow(control) {
-        const flow = control.dataset.authFlow || window.appState?.authDraft?.flow || "login";
-        const accountMode = control.dataset.accountMode || (flow === "signup" ? "created" : "returning");
-        const emailInput = control.closest(".screen")?.querySelector("[data-auth-input='email']");
-        const email = emailInput?.value?.trim() || window.appState?.authDraft?.email || "";
-        const password = authPassword(control);
-        const selectedPlan = selectedPlanKey();
-        const destinationRoute = resolvePostAuthRoute(control);
-
-        window.updateAppState?.({
-          selectedPlan,
-          authDraft: {
-            flow,
-            email,
-            accountMode,
-            selectedPlan,
-            destinationRoute,
-            isAuthenticated: false,
-            completedAt: null
-          }
-        });
-
-        if (!email || !password) {
-          window.updateAppState?.({ api: { authStatus: "error", lastError: "Email and password are required for real auth." } });
-          syncAuthFlowUI();
-          return false;
-        }
-
-        if (!window.miroApi?.authConfigured?.()) {
-          window.updateAppState?.({
-            api: {
-              authStatus: "error",
-              lastError: "Supabase auth is not configured. Set runtime config before using real signup/login."
-            }
-          });
-          syncAuthFlowUI();
-          return false;
-        }
-
-        control.disabled = true;
-        control.dataset.uiState = "loading";
-        try {
-          let authResult;
-          if (flow === "signup") {
-            authResult = await window.miroApi.signUpWithPassword(email, password);
-          } else {
-            authResult = await window.miroApi.signInWithPassword(email, password);
-          }
-          const supabaseSession = authResult?.session || await window.miroApi.getSupabaseSession();
-          if (!supabaseSession?.access_token) {
-            throw new Error("Supabase did not return an active session. Confirm email verification or auth settings before syncing billing.");
-          }
-          await refreshAuthAndBilling({ selectFrontendPlan: selectedPlan });
-          window.navigateToRoute(destinationRoute);
-          return true;
-        } catch (error) {
-          window.updateAppState?.({
-            authDraft: { isAuthenticated: false, completedAt: null },
-            api: {
-              authStatus: "error",
-              billingStatus: window.appState?.api?.billingStatus || "idle",
-              lastError: error.message || String(error)
-            }
-          });
-          syncAuthFlowUI();
-          syncPricingPlanUI();
-          return false;
-        } finally {
-          control.disabled = false;
-          control.dataset.uiState = "";
-        }
-      }
-
-      document.addEventListener("input", (event) => {
-        const input = event.target.closest("[data-auth-input='email']");
-        if (!input) return;
-        updateAuthEmail(input.value || "");
-      });
-
-      document.addEventListener("click", async (event) => {
-        const control = event.target.closest("[data-action='auth-continue']");
-        if (!control) return;
-        event.preventDefault();
-        event.stopPropagation();
-        if (typeof event.stopImmediatePropagation === "function") event.stopImmediatePropagation();
-        await completeAuthFlow(control);
-      }, true);
-
-      const originalNavigateToRoute = window.navigateToRoute;
-      if (typeof originalNavigateToRoute === "function" && !window.__pricingAuthFlowWrapped) {
-        window.navigateToRoute = function(route) {
-          originalNavigateToRoute(route);
-          const activeId = document.querySelector(".screen.is-active:not(#wire-8-me-panel)")?.id || "";
-          if (activeId === "wire-5-pricing") {
-            syncPricingPlanUI();
-            refreshAuthAndBillingQuietly();
-          }
-          if (activeId === "wire-9-auth" || activeId === "wire-9-1-create-account") {
-            syncAuthFlowUI();
-            refreshAuthAndBillingQuietly();
-          }
-        };
-        window.__pricingAuthFlowWrapped = true;
-      }
-
-      syncAuthFlowUI();
-      syncPricingPlanUI();
-      const initialActiveId = document.querySelector(".screen.is-active:not(#wire-8-me-panel)")?.id || "";
-      if (initialActiveId === "wire-5-pricing" || initialActiveId === "wire-9-auth" || initialActiveId === "wire-9-1-create-account") {
-        refreshAuthAndBillingQuietly();
-      }
-    })();
-  </script>
-</body>
-</html>
+        if (back
