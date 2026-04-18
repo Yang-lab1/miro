@@ -18,6 +18,7 @@ import app.models.audit  # noqa: F401,E402
 import app.models.billing  # noqa: F401,E402
 import app.models.hardware  # noqa: F401,E402
 import app.models.learning  # noqa: F401,E402
+import app.models.realtime_observability  # noqa: F401,E402
 import app.models.review  # noqa: F401,E402
 import app.models.simulation  # noqa: F401,E402
 import app.models.user  # noqa: F401,E402

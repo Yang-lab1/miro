@@ -24,6 +24,7 @@ from app.models.simulation import (
 )
 from app.modules.realtime.alerts import RuleBasedRealtimeAlertAnalyzer
 from app.modules.realtime.grounding import build_realtime_grounding_context
+from app.modules.realtime.observability import RealtimeObservabilityTracker
 from app.modules.realtime.providers import get_realtime_provider
 from app.modules.realtime.providers.base import (
     RealtimeAlertExtractionContext,
@@ -566,6 +567,12 @@ def create_realtime_session(
     session.add(realtime_session)
     session.commit()
     session.refresh(realtime_session)
+    RealtimeObservabilityTracker(realtime_session.id).sync_session_state(
+        session_status=realtime_session.session_status,
+        started_at=realtime_session.started_at,
+        ended_at=realtime_session.ended_at,
+        doubao_session_id=realtime_session.provider_session_id,
+    )
     return _build_realtime_response(session, realtime_session)
 
 
@@ -619,6 +626,12 @@ def start_realtime_session(
 
     session.commit()
     session.refresh(realtime_session)
+    RealtimeObservabilityTracker(realtime_session.id).sync_session_state(
+        session_status=realtime_session.session_status,
+        started_at=realtime_session.started_at,
+        ended_at=realtime_session.ended_at,
+        doubao_session_id=realtime_session.provider_session_id,
+    )
     return _build_realtime_response(session, realtime_session)
 
 
@@ -644,6 +657,12 @@ def end_realtime_session(
     realtime_session.provider_status = "closed"
     session.commit()
     session.refresh(realtime_session)
+    RealtimeObservabilityTracker(realtime_session.id).sync_session_state(
+        session_status=realtime_session.session_status,
+        started_at=realtime_session.started_at,
+        ended_at=realtime_session.ended_at,
+        doubao_session_id=realtime_session.provider_session_id,
+    )
     return _build_realtime_response(session, realtime_session)
 
 
@@ -669,7 +688,26 @@ def respond_realtime_turn(
     if realtime_session.session_status != "active":
         _raise_not_active_error(realtime_session)
 
-    normalized_text = _normalize_text(payload.sourceText)
+    language = payload.language or "en"
+    grounding = build_realtime_grounding_context(session, realtime_session)
+    user_turn_index, assistant_turn_index = _reserve_turn_index_pair(session, realtime_session)
+    user_turn_created_at = _utcnow()
+    assistant_audio_base64: str | None = None
+    assistant_audio_mime_type: str | None = None
+    assistant_voice: str | None = None
+
+    if payload.inputMode == "speech":
+        raise AppError(
+            status_code=400,
+            code="realtime_voice_socket_required",
+            message="Speech turns must use /realtime/sessions/{id}/voice.",
+            details={
+                "sessionId": realtime_session.id,
+                "hint": "Use the Doubao voice WebSocket bridge from the Live stage.",
+            },
+        )
+
+    normalized_text = _normalize_text(payload.sourceText or "")
     if not normalized_text:
         raise AppError(
             status_code=400,
@@ -685,11 +723,7 @@ def respond_realtime_turn(
                 ]
             },
         )
-
-    language = payload.language or "en"
-    grounding = build_realtime_grounding_context(session, realtime_session)
-    user_turn_index, assistant_turn_index = _reserve_turn_index_pair(session, realtime_session)
-    user_turn_created_at = _utcnow()
+    transcript_text = payload.sourceText or normalized_text
 
     user_turn = RealtimeSessionTurn(
         session_id=realtime_session.id,
@@ -697,7 +731,7 @@ def respond_realtime_turn(
         parent_turn_id=None,
         speaker="user",
         input_mode=payload.inputMode,
-        source_text=payload.sourceText,
+        source_text=transcript_text,
         normalized_text=normalized_text,
         language=language,
         created_at=user_turn_created_at,
@@ -719,6 +753,8 @@ def respond_realtime_turn(
             recent_transcript_lines=recent_transcript_lines,
         )
     )
+    assistant_text = generated_turn.assistant_text
+
     assistant_turn_created_at = _utcnow()
     assistant_turn = RealtimeSessionTurn(
         session_id=realtime_session.id,
@@ -726,8 +762,8 @@ def respond_realtime_turn(
         parent_turn_id=user_turn.id,
         speaker="assistant",
         input_mode=None,
-        source_text=generated_turn.assistant_text,
-        normalized_text=generated_turn.assistant_text,
+        source_text=assistant_text,
+        normalized_text=assistant_text,
         language=language,
         created_at=assistant_turn_created_at,
     )
@@ -775,6 +811,9 @@ def respond_realtime_turn(
         assistantTurn=_build_turn_response(assistant_turn),
         alerts=[_build_alert_response(alert) for alert in created_alerts],
         turnCount=realtime_session.turn_count,
+        assistantAudioBase64=assistant_audio_base64,
+        assistantAudioMimeType=assistant_audio_mime_type,
+        assistantVoice=assistant_voice,
     )
 
 

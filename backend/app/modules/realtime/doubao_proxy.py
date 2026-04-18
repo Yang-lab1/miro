@@ -32,6 +32,7 @@ from app.modules.realtime.doubao_client import (
     DoubaoCredentials,
     DoubaoSessionConfig,
 )
+from app.modules.realtime.observability import RealtimeObservabilityTracker
 from app.modules.realtime.doubao_protocol import (
     MSG_TYPE_ERROR,
     DoubaoFrame,
@@ -138,6 +139,7 @@ async def run_doubao_voice_bridge(
 
     settings = get_settings()
     credentials = build_doubao_credentials_from_settings()
+    tracker = RealtimeObservabilityTracker(realtime_session.id)
     session_cfg = DoubaoSessionConfig(
         speaker=settings.doubao_speaker,
         model=settings.doubao_model,
@@ -150,6 +152,13 @@ async def run_doubao_voice_bridge(
         await client.connect()
     except DoubaoClientError as exc:
         logger.warning("doubao_proxy.connect_failed error=%s", exc)
+        tracker.record_event(
+            source="backend",
+            event_type="error",
+            payload_summary={"stage": "connect"},
+            error_code="doubao_connect_failed",
+            error_message=str(exc),
+        )
         await _send_browser_json(
             browser_ws,
             {"type": "error", "code": "doubao_connect_failed", "message": str(exc)},
@@ -158,6 +167,13 @@ async def run_doubao_voice_bridge(
         return
     except Exception as exc:  # noqa: BLE001
         logger.exception("doubao_proxy.connect_unexpected error=%s", exc)
+        tracker.record_event(
+            source="backend",
+            event_type="error",
+            payload_summary={"stage": "connect_unexpected"},
+            error_code="doubao_connect_unexpected",
+            error_message=str(exc),
+        )
         await _send_browser_json(
             browser_ws,
             {
@@ -190,11 +206,25 @@ async def run_doubao_voice_bridge(
                 },
             },
         )
+        tracker.record_event(
+            source="backend",
+            event_type="voice_ws_ready",
+            payload_summary={
+                "doubaoSessionId": doubao_session_id,
+                "inputSampleRate": 16000,
+                "ttsSampleRate": session_cfg.tts_sample_rate,
+            },
+            set_values={
+                "voice_ws_ready": True,
+                "doubao_session_id": doubao_session_id,
+                "session_status": realtime_session.session_status,
+            },
+        )
 
         accumulator = _TurnAccumulator()
 
         browser_task = asyncio.create_task(
-            _pump_browser_to_doubao(browser_ws, client),
+            _pump_browser_to_doubao(browser_ws, client, tracker=tracker),
             name="doubao_proxy.browser_to_doubao",
         )
         doubao_task = asyncio.create_task(
@@ -205,6 +235,7 @@ async def run_doubao_voice_bridge(
                 actor=actor,
                 realtime_session=realtime_session,
                 accumulator=accumulator,
+                tracker=tracker,
             ),
             name="doubao_proxy.doubao_to_browser",
         )
@@ -232,7 +263,12 @@ async def run_doubao_voice_bridge(
 # ---------------------------------------------------------------------------
 
 
-async def _pump_browser_to_doubao(browser_ws: BrowserSocket, client: DoubaoClient) -> None:
+async def _pump_browser_to_doubao(
+    browser_ws: BrowserSocket,
+    client: DoubaoClient,
+    *,
+    tracker: RealtimeObservabilityTracker,
+) -> None:
     while True:
         try:
             message = await browser_ws.receive()
@@ -247,11 +283,50 @@ async def _pump_browser_to_doubao(browser_ws: BrowserSocket, client: DoubaoClien
         bytes_payload = message.get("bytes")
 
         if bytes_payload:
+            frame_bytes = bytes(bytes_payload)
+            frame_size = len(frame_bytes)
+            tracker.record_event(
+                source="frontend",
+                event_type="client_audio_frame",
+                payload_summary={"bytes": frame_size, "format": "pcm_s16le"},
+                payload_size=frame_size,
+                increments={
+                    "client_audio_frame_count": 1,
+                    "client_audio_total_bytes": frame_size,
+                },
+            )
+            tracker.record_event(
+                source="backend",
+                event_type="server_audio_received",
+                payload_summary={"bytes": frame_size, "transport": "binary"},
+                payload_size=frame_size,
+                increments={
+                    "server_received_audio_frame_count": 1,
+                    "server_received_audio_total_bytes": frame_size,
+                },
+            )
             # Raw binary frame from the browser — assume PCM16 LE.
             try:
-                await client.send_audio_chunk(bytes(bytes_payload))
+                await client.send_audio_chunk(frame_bytes)
+                tracker.record_event(
+                    source="backend",
+                    event_type="server_audio_forwarded",
+                    payload_summary={"bytes": frame_size, "transport": "binary"},
+                    payload_size=frame_size,
+                    increments={
+                        "server_forwarded_audio_frame_count": 1,
+                        "server_forwarded_audio_total_bytes": frame_size,
+                    },
+                )
             except Exception as exc:  # noqa: BLE001
                 logger.warning("doubao_proxy.audio_forward_failed error=%s", exc)
+                tracker.record_event(
+                    source="backend",
+                    event_type="error",
+                    payload_summary={"stage": "audio_forward_binary", "bytes": frame_size},
+                    error_code="audio_forward_failed",
+                    error_message=str(exc),
+                )
             continue
 
         if not text_payload:
@@ -270,12 +345,57 @@ async def _pump_browser_to_doubao(browser_ws: BrowserSocket, client: DoubaoClien
                 raw = base64.b64decode(b64)
             except Exception as exc:  # noqa: BLE001
                 logger.warning("doubao_proxy.b64_decode_failed error=%s", exc)
+                tracker.record_event(
+                    source="backend",
+                    event_type="error",
+                    payload_summary={"stage": "b64_decode", "chars": len(b64)},
+                    error_code="browser_audio_decode_failed",
+                    error_message=str(exc),
+                )
                 continue
             if raw:
+                frame_size = len(raw)
+                tracker.record_event(
+                    source="frontend",
+                    event_type="client_audio_frame",
+                    payload_summary={"bytes": frame_size, "format": "pcm_s16le"},
+                    payload_size=frame_size,
+                    increments={
+                        "client_audio_frame_count": 1,
+                        "client_audio_total_bytes": frame_size,
+                    },
+                )
+                tracker.record_event(
+                    source="backend",
+                    event_type="server_audio_received",
+                    payload_summary={"bytes": frame_size, "transport": "json_base64"},
+                    payload_size=frame_size,
+                    increments={
+                        "server_received_audio_frame_count": 1,
+                        "server_received_audio_total_bytes": frame_size,
+                    },
+                )
                 try:
                     await client.send_audio_chunk(raw)
+                    tracker.record_event(
+                        source="backend",
+                        event_type="server_audio_forwarded",
+                        payload_summary={"bytes": frame_size, "transport": "json_base64"},
+                        payload_size=frame_size,
+                        increments={
+                            "server_forwarded_audio_frame_count": 1,
+                            "server_forwarded_audio_total_bytes": frame_size,
+                        },
+                    )
                 except Exception as exc:  # noqa: BLE001
                     logger.warning("doubao_proxy.audio_forward_failed error=%s", exc)
+                    tracker.record_event(
+                        source="backend",
+                        event_type="error",
+                        payload_summary={"stage": "audio_forward_json", "bytes": frame_size},
+                        error_code="audio_forward_failed",
+                        error_message=str(exc),
+                    )
         elif msg_type == "end_segment":
             # push-to-talk release; Doubao uses VAD so nothing extra is strictly required,
             # but we can nudge it.
@@ -309,6 +429,7 @@ async def _pump_doubao_to_browser(
     actor: CurrentActor,
     realtime_session: RealtimeSession,
     accumulator: _TurnAccumulator,
+    tracker: RealtimeObservabilityTracker,
 ) -> None:
     from app.modules.realtime import service as realtime_service  # local import to dodge cycles
 
@@ -321,6 +442,7 @@ async def _pump_doubao_to_browser(
                 actor=actor,
                 realtime_session=realtime_session,
                 accumulator=accumulator,
+                tracker=tracker,
                 realtime_service=realtime_service,
             )
         except Exception as exc:  # noqa: BLE001
@@ -335,6 +457,7 @@ async def _handle_doubao_frame(
     actor: CurrentActor,
     realtime_session: RealtimeSession,
     accumulator: _TurnAccumulator,
+    tracker: RealtimeObservabilityTracker,
     realtime_service: Any,
 ) -> None:
     if frame.is_error or frame.message_type == MSG_TYPE_ERROR:
@@ -353,6 +476,13 @@ async def _handle_doubao_frame(
                 "code": str(error_code) if error_code is not None else "doubao_error",
                 "message": payload_text or "Doubao returned an error frame.",
             },
+        )
+        tracker.record_event(
+            source="upstream",
+            event_type="error",
+            payload_summary={"eventId": frame.event_id, "payload": payload_text[:200]},
+            error_code=str(error_code) if error_code is not None else "doubao_error",
+            error_message=payload_text or "Doubao returned an error frame.",
         )
         return
 
@@ -374,10 +504,21 @@ async def _handle_doubao_frame(
                 "message": payload_text or "Doubao connection failed.",
             },
         )
+        tracker.record_event(
+            source="upstream",
+            event_type="error",
+            payload_summary={"eventId": event, "payload": payload_text[:200]},
+            error_code="doubao_connection_failed",
+            error_message=payload_text or "Doubao connection failed.",
+        )
         return
 
     if event == int(ServerEvent.SESSION_STARTED):
         logger.info("doubao_proxy.session_started session=%s", frame.session_id)
+        tracker.sync_session_state(
+            doubao_session_id=frame.session_id,
+            session_status=realtime_session.session_status,
+        )
         return
     if event == int(ServerEvent.SESSION_FAILED):
         payload_text = _decode_payload_text(frame.payload)
@@ -389,6 +530,13 @@ async def _handle_doubao_frame(
                 "code": "doubao_session_failed",
                 "message": payload_text or "Doubao session failed.",
             },
+        )
+        tracker.record_event(
+            source="upstream",
+            event_type="error",
+            payload_summary={"eventId": event, "payload": payload_text[:200]},
+            error_code="doubao_session_failed",
+            error_message=payload_text or "Doubao session failed.",
         )
         return
     if event == int(ServerEvent.SESSION_FINISHED):
@@ -412,6 +560,14 @@ async def _handle_doubao_frame(
                     "isFinal": is_final,
                 },
             )
+            tracker.record_event(
+                source="upstream",
+                event_type="user_transcript",
+                payload_summary={"text": text[:200], "isFinal": is_final},
+                payload_size=len(text.encode("utf-8", errors="ignore")),
+                increments={"user_transcript_event_count": 1},
+                set_values={"last_user_turn_at": _utcnow() if is_final else None},
+            )
         if is_final:
             accumulator.user_turn_ended_at = _utcnow()
             await _persist_user_turn_if_needed(
@@ -419,6 +575,7 @@ async def _handle_doubao_frame(
                 actor=actor,
                 realtime_session=realtime_session,
                 accumulator=accumulator,
+                tracker=tracker,
                 realtime_service=realtime_service,
             )
         return
@@ -443,6 +600,17 @@ async def _handle_doubao_frame(
                     "isFinal": False,
                 },
             )
+            tracker.record_event(
+                source="upstream",
+                event_type="assistant_text",
+                payload_summary={
+                    "delta": text_fragment[:200],
+                    "text": accumulator.assistant_text[:200],
+                    "isFinal": False,
+                },
+                payload_size=len(text_fragment.encode("utf-8", errors="ignore")),
+                increments={"assistant_text_event_count": 1},
+            )
         return
 
     if event == int(ServerEvent.CHAT_ENDED):
@@ -456,14 +624,29 @@ async def _handle_doubao_frame(
                 "isFinal": True,
             },
         )
+        tracker.record_event(
+            source="upstream",
+            event_type="assistant_text",
+            payload_summary={"text": accumulator.assistant_text[:200], "isFinal": True},
+            payload_size=len(accumulator.assistant_text.encode("utf-8", errors="ignore")),
+            increments={"assistant_text_event_count": 1},
+        )
         await _persist_assistant_turn_if_needed(
             db=db,
             actor=actor,
             realtime_session=realtime_session,
             accumulator=accumulator,
+            tracker=tracker,
             realtime_service=realtime_service,
         )
         await _send_browser_json(browser_ws, {"type": "assistant_turn_end"})
+        tracker.record_event(
+            source="upstream",
+            event_type="assistant_turn_end",
+            payload_summary={"text": accumulator.assistant_text[:200]},
+            increments={"assistant_turn_end_count": 1},
+            set_values={"last_assistant_turn_at": _utcnow()},
+        )
         return
 
     if event == int(ServerEvent.TTS_RESPONSE):
@@ -476,6 +659,13 @@ async def _handle_doubao_frame(
                     "format": "pcm_s16le",
                     "sampleRate": 24000,
                 },
+            )
+            tracker.record_event(
+                source="upstream",
+                event_type="assistant_audio_chunk",
+                payload_summary={"bytes": len(frame.payload), "sampleRate": 24000},
+                payload_size=len(frame.payload),
+                increments={"assistant_audio_chunk_count": 1},
             )
         return
 
@@ -493,6 +683,13 @@ async def _handle_doubao_frame(
                 "message": payload_text,
             },
         )
+        tracker.record_event(
+            source="upstream",
+            event_type="error",
+            payload_summary={"eventId": event, "payload": payload_text[:200]},
+            error_code="dialog_common_error",
+            error_message=payload_text,
+        )
         return
 
     logger.debug("doubao_proxy.unhandled_event event=%s", event)
@@ -509,6 +706,7 @@ async def _persist_user_turn_if_needed(
     actor: CurrentActor,
     realtime_session: RealtimeSession,
     accumulator: _TurnAccumulator,
+    tracker: RealtimeObservabilityTracker,
     realtime_service: Any,
 ) -> None:
     if accumulator.user_recorded:
@@ -522,6 +720,13 @@ async def _persist_user_turn_if_needed(
         )
     except Exception as exc:  # noqa: BLE001
         logger.warning("doubao_proxy.reserve_turn_failed error=%s", exc)
+        tracker.record_event(
+            source="backend",
+            event_type="error",
+            payload_summary={"stage": "reserve_user_turn_pair"},
+            error_code="reserve_turn_failed",
+            error_message=str(exc),
+        )
         return
 
     accumulator.user_turn_index = user_idx
@@ -548,9 +753,27 @@ async def _persist_user_turn_if_needed(
     except Exception as exc:  # noqa: BLE001
         db.rollback()
         logger.warning("doubao_proxy.persist_user_turn_failed error=%s", exc)
+        tracker.record_event(
+            source="db",
+            event_type="error",
+            payload_summary={"stage": "persist_user_turn"},
+            error_code="persist_user_turn_failed",
+            error_message=str(exc),
+        )
         return
 
     accumulator.user_recorded = True
+    tracker.record_event(
+        source="db",
+        event_type="db_turn_persisted",
+        payload_summary={
+            "speaker": "user",
+            "turnIndex": user_turn.turn_index,
+            "text": accumulator.user_text[:200],
+        },
+        increments={"persisted_turn_count": 1},
+        set_values={"last_user_turn_at": user_turn.ended_at},
+    )
 
 
 async def _persist_assistant_turn_if_needed(
@@ -559,6 +782,7 @@ async def _persist_assistant_turn_if_needed(
     actor: CurrentActor,
     realtime_session: RealtimeSession,
     accumulator: _TurnAccumulator,
+    tracker: RealtimeObservabilityTracker,
     realtime_service: Any,
 ) -> None:
     if accumulator.assistant_recorded:
@@ -573,6 +797,13 @@ async def _persist_assistant_turn_if_needed(
             )
         except Exception as exc:  # noqa: BLE001
             logger.warning("doubao_proxy.reserve_assistant_turn_failed error=%s", exc)
+            tracker.record_event(
+                source="backend",
+                event_type="error",
+                payload_summary={"stage": "reserve_assistant_turn_pair"},
+                error_code="reserve_assistant_turn_failed",
+                error_message=str(exc),
+            )
             return
         accumulator.assistant_turn_index = assistant_idx
 
@@ -597,9 +828,27 @@ async def _persist_assistant_turn_if_needed(
     except Exception as exc:  # noqa: BLE001
         db.rollback()
         logger.warning("doubao_proxy.persist_assistant_turn_failed error=%s", exc)
+        tracker.record_event(
+            source="db",
+            event_type="error",
+            payload_summary={"stage": "persist_assistant_turn"},
+            error_code="persist_assistant_turn_failed",
+            error_message=str(exc),
+        )
         return
 
     accumulator.assistant_recorded = True
+    tracker.record_event(
+        source="db",
+        event_type="db_turn_persisted",
+        payload_summary={
+            "speaker": "assistant",
+            "turnIndex": assistant_turn.turn_index,
+            "text": accumulator.assistant_text[:200],
+        },
+        increments={"persisted_turn_count": 1},
+        set_values={"last_assistant_turn_at": assistant_turn.ended_at},
+    )
 
     # Prepare for the next turn cycle — keep the accumulator alive but reset.
     accumulator.reset()
