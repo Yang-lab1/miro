@@ -263,6 +263,17 @@ class DoubaoClient:
             build_audio_client_frame(pcm_bytes, session_id=self._session_id)
         )
 
+    async def end_asr(self) -> None:
+        if self._ws is None or self._session_id is None:
+            return
+        await self._safe_send(
+            build_json_client_frame(
+                int(ClientEvent.END_ASR),
+                b"{}",
+                session_id=self._session_id,
+            )
+        )
+
     async def finish_session(self) -> None:
         if self._ws is None or self._session_id is None:
             return

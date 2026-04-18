@@ -146,6 +146,7 @@ async def _stream_audio_fixture(
             }
         )
         await asyncio.sleep(frame_ms / 1000)
+    await browser_ws.enqueue_text_message({"type": "end_segment"})
 
 
 def _load_db_snapshot(session: Session, realtime_session_id: str) -> tuple[dict[str, Any] | None, list[dict[str, Any]]]:

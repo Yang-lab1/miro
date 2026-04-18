@@ -397,12 +397,19 @@ async def _pump_browser_to_doubao(
                         error_message=str(exc),
                     )
         elif msg_type == "end_segment":
-            # push-to-talk release; Doubao uses VAD so nothing extra is strictly required,
-            # but we can nudge it.
+            # Explicitly declare the end of the current utterance so upstream
+            # can leave ASR and enter assistant response generation.
             try:
-                await client.send_audio_chunk(b"")
-            except Exception:  # noqa: BLE001
-                pass
+                await client.end_asr()
+            except Exception as exc:  # noqa: BLE001
+                logger.warning("doubao_proxy.end_asr_failed error=%s", exc)
+                tracker.record_event(
+                    source="backend",
+                    event_type="error",
+                    payload_summary={"stage": "end_asr"},
+                    error_code="end_asr_failed",
+                    error_message=str(exc),
+                )
         elif msg_type == "interrupt":
             await client.send_client_interrupt()
         elif msg_type == "hello":
@@ -614,7 +621,6 @@ async def _handle_doubao_frame(
         return
 
     if event == int(ServerEvent.CHAT_ENDED):
-        accumulator.assistant_turn_ended_at = _utcnow()
         await _send_browser_json(
             browser_ws,
             {
@@ -630,22 +636,6 @@ async def _handle_doubao_frame(
             payload_summary={"text": accumulator.assistant_text[:200], "isFinal": True},
             payload_size=len(accumulator.assistant_text.encode("utf-8", errors="ignore")),
             increments={"assistant_text_event_count": 1},
-        )
-        await _persist_assistant_turn_if_needed(
-            db=db,
-            actor=actor,
-            realtime_session=realtime_session,
-            accumulator=accumulator,
-            tracker=tracker,
-            realtime_service=realtime_service,
-        )
-        await _send_browser_json(browser_ws, {"type": "assistant_turn_end"})
-        tracker.record_event(
-            source="upstream",
-            event_type="assistant_turn_end",
-            payload_summary={"text": accumulator.assistant_text[:200]},
-            increments={"assistant_turn_end_count": 1},
-            set_values={"last_assistant_turn_at": _utcnow()},
         )
         return
 
@@ -670,6 +660,26 @@ async def _handle_doubao_frame(
         return
 
     if event == int(ServerEvent.TTS_SENTENCE_END):
+        return
+
+    if event == int(ServerEvent.TTS_ENDED):
+        accumulator.assistant_turn_ended_at = _utcnow()
+        await _persist_assistant_turn_if_needed(
+            db=db,
+            actor=actor,
+            realtime_session=realtime_session,
+            accumulator=accumulator,
+            tracker=tracker,
+            realtime_service=realtime_service,
+        )
+        await _send_browser_json(browser_ws, {"type": "assistant_turn_end"})
+        tracker.record_event(
+            source="upstream",
+            event_type="assistant_turn_end",
+            payload_summary={"text": accumulator.assistant_text[:200]},
+            increments={"assistant_turn_end_count": 1},
+            set_values={"last_assistant_turn_at": _utcnow()},
+        )
         return
 
     if event == int(ServerEvent.DIALOG_COMMON_ERROR):
