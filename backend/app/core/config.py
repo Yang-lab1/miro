@@ -38,9 +38,19 @@ class Settings(BaseSettings):
     allow_demo_actor_fallback: bool = False
     demo_user_email: str = "demo@miro.local"
     realtime_provider_mode: str = "stub"
+    hardware_provider_mode: str = "demo"
+    browser_voice_fallback_enabled: bool = True
+
+    # --- Text generation provider ---
+    llm_provider_mode: str = "rule_based"
+    llm_api_key: str = ""
+    llm_base_url: str = "https://api.openai.com/v1"
+    llm_model: str = "gpt-4o-mini"
+    llm_timeout_seconds: float = 20.0
 
     # --- Doubao / Volcengine Realtime Dialogue ---
     doubao_app_id: str = ""
+    doubao_api_key: str = ""
     doubao_access_token: str = ""
     doubao_secret_key: str = ""
     doubao_resource_id: str = "volc.speech.dialog"

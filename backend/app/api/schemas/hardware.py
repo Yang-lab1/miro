@@ -56,3 +56,10 @@ class HardwareSyncResponse(StrictModel):
     device: HardwareDeviceSummaryResponse
     syncRecord: HardwareDeviceSyncRecordResponse
     log: HardwareDeviceLogResponse
+
+
+class HardwareReviewPacketResponse(StrictModel):
+    reviewId: str
+    schemaVersion: Literal["miro.review.packet.v1"]
+    packetHash: str
+    packet: dict[str, Any]

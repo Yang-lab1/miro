@@ -53,17 +53,48 @@ Responsibilities:
 
 - Accept meeting setup config
 - Retrieve country package and user memory
+- Respect country-level learning precheck before live launch
 - Run language-signal evaluation
 - Stream transcript and alerts to the session UI
 - Prepare lightweight uploaded context summaries and excerpts plus strategy output for live grounding
+
+### 2.4A Learning / Preparation Service
+
+Responsibilities:
+
+- Serve country-level learning content and country-level completion progress
+- Gate simulation precheck with latest country learning completion
+- Serve Preparation module board data:
+  - published module catalog
+  - actor-scoped module state
+  - recommended module
+  - snapshot counts
+  - filterable module cards
+- Persist actor-scoped module state transitions:
+  - start
+  - save
+  - unsave
+  - complete
 
 ### 2.5 Review Service
 
 Responsibilities:
 
 - Generate review summaries and score modules
+- Derive additive review analysis from persisted summary, metrics, and line evidence
 - Merge Simulation and Device records
 - Support filters and detail views
+
+### 2.5A History Service
+
+Responsibilities:
+
+- Aggregate actor-scoped review records and hardware sync records into one History feed
+- Normalize CTA-safe history cards:
+  - open review
+  - continue from review
+  - replay availability
+- Keep History as a read-side projection over existing persistence instead of a new heavy event store
 
 ### 2.6 Hardware Demo State Service
 
@@ -105,6 +136,7 @@ Responsibilities:
 6. Frontend updates transcript drawer and alerts drawer.
 7. When session ends, review service computes module scores and summary.
 8. User Twin is updated with repeated issues.
+9. History can surface the finished review plus linked hardware sync records without changing the original review or realtime session.
 
 Current implementation note:
 
@@ -120,6 +152,7 @@ Current implementation note:
   - safe fallback to lightweight deterministic summaries when extraction is unavailable
 - It is still not full document parsing, chunking, embedding, or retrieval.
 - The default turn generation and alert extraction logic remain rule-based, but partner replies and review summaries can now reflect grounded uploaded context while the demo and smoke suite stay stable.
+- The simulation service can now branch a new simulation from a review snapshot by reusing the persisted setup and cloned uploaded context rows from the source simulation.
 
 ### 3.3 Hardware demo state flow
 
@@ -152,6 +185,11 @@ This architecture intentionally excludes facial inference as a required producti
 - `memberships`
 - `user_settings`
 - `user_twin_memory`
+- `country_catalog`
+- `country_learning_contents`
+- `user_learning_progress`
+- `learning_module_catalog`
+- `user_learning_module_states`
 - `simulations`
 - `simulation_turns`
 - `simulation_alerts`

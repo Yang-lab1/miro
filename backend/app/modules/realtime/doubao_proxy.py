@@ -32,12 +32,12 @@ from app.modules.realtime.doubao_client import (
     DoubaoCredentials,
     DoubaoSessionConfig,
 )
-from app.modules.realtime.observability import RealtimeObservabilityTracker
 from app.modules.realtime.doubao_protocol import (
     MSG_TYPE_ERROR,
     DoubaoFrame,
     ServerEvent,
 )
+from app.modules.realtime.observability import RealtimeObservabilityTracker
 from app.services.current_actor import CurrentActor
 
 logger = logging.getLogger(__name__)
@@ -107,20 +107,23 @@ class _TurnAccumulator:
 
 def build_doubao_credentials_from_settings() -> DoubaoCredentials:
     settings = get_settings()
-    if not settings.doubao_app_id or not settings.doubao_access_token:
+    if not settings.doubao_api_key and (
+        not settings.doubao_app_id or not settings.doubao_access_token
+    ):
         raise AppError(
             status_code=503,
             code="doubao_not_configured",
             message="Doubao credentials are not configured on the backend.",
             details={
                 "hint": (
-                    "Set DOUBAO_APP_ID and DOUBAO_ACCESS_TOKEN in backend/.env, "
-                    "then restart uvicorn."
+                    "Set DOUBAO_API_KEY, or the legacy DOUBAO_APP_ID and "
+                    "DOUBAO_ACCESS_TOKEN, in backend/.env, then restart uvicorn."
                 )
             },
         )
     return DoubaoCredentials(
         app_id=settings.doubao_app_id,
+        api_key=settings.doubao_api_key,
         access_token=settings.doubao_access_token,
         secret_key=settings.doubao_secret_key or "",
         resource_id=settings.doubao_resource_id,

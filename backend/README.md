@@ -44,7 +44,7 @@ It intentionally does not implement full business logic for turn runtime, ASR/TT
 4. Copy `.env.example` to `.env` and adjust `DATABASE_URL` if needed.
 5. Apply migrations: `alembic upgrade head`
 6. Start the server: `uvicorn app.main:app --reload`
-7. Verify the service: `GET /api/v1/health`
+7. Verify the service: `GET /api/v1/health` and, before a production rehearsal, `GET /api/v1/ready`
 
 If Docker is unavailable on a developer machine, point `DATABASE_URL` at an existing local PostgreSQL instance. The committed default remains PostgreSQL.
 
@@ -70,7 +70,7 @@ Config notes:
 
 - `FRONTEND_SITE_URL` is normalized into an origin and folded into the resolved CORS allow-list.
 - `SUPABASE_JWT_ISSUER` and `SUPABASE_JWKS_URL` can still be overridden explicitly, but they are now derived automatically from `SUPABASE_URL` when omitted.
-- Health checks should target `GET /api/v1/health`.
+- Liveness checks should target `GET /api/v1/health`; production deployment gates should target `GET /api/v1/ready`, which returns `503` when required providers are not configured.
 
 The current hosted deployment path is:
 
@@ -112,6 +112,7 @@ The scaffold exposes `/api/v1` as the common prefix and mounts module route grou
 - `voice-profiles`
 - `realtime`
 - `reviews`
+- `history`
 - `hardware`
 - `billing`
 
@@ -122,8 +123,11 @@ Phase 2 and Phase 3 currently implement:
 - `GET /api/v1/learning/countries/{countryKey}`
 - `GET /api/v1/learning/progress/{countryKey}`
 - `POST /api/v1/learning/progress/{countryKey}/complete`
+- `GET /api/v1/learning/modules`
+- `POST /api/v1/learning/modules/{moduleId}/state`
 - `POST /api/v1/simulations/precheck`
 - `POST /api/v1/simulations`
+- `POST /api/v1/simulations/from-review/{reviewId}`
 - `GET /api/v1/simulations/{simulationId}`
 - `PATCH /api/v1/simulations/{simulationId}`
 - `POST /api/v1/simulations/{simulationId}/files`
@@ -133,6 +137,9 @@ Phase 2 and Phase 3 currently implement:
 - `GET /api/v1/realtime/sessions/{sessionId}`
 - `POST /api/v1/realtime/sessions/{sessionId}/start`
 - `POST /api/v1/realtime/sessions/{sessionId}/end`
+- `GET /api/v1/history/records`
+- `GET /api/v1/user-twin?countryKey=Japan`
+- `POST /api/v1/user-twin/refresh-from-review/{reviewId}`
 - `GET /api/v1/hardware/devices`
 - `POST /api/v1/hardware/devices/{deviceId}/connect`
 - `POST /api/v1/hardware/devices/{deviceId}/disconnect`
@@ -144,7 +151,20 @@ Phase 2 and Phase 3 currently implement:
 - `POST /api/v1/billing/select-plan`
 - `POST /api/v1/billing/top-up`
 
-The setup flow stores revisions, uploaded file metadata, lightweight extracted summaries/excerpts, and stable strategy payloads. Realtime create/start/end now exist with a stub launch provider, but there is still no real media transport or external provider integration.
+The setup flow stores revisions, uploaded file metadata, extracted source text, lightweight summaries/excerpts, and stable strategy payloads. Realtime create/start/end and the browser WebSocket bridge are implemented; the bridge requires a granted Doubao realtime resource in production. Text generation can use the explicit rule-based fallback or a configured OpenAI-compatible provider. Review creation updates the actor-scoped User Twin memory and the next strategy/turn retrieves it.
+
+Learning is now split into two layers:
+
+- country learning:
+  - country catalog
+  - published country content
+  - actor-scoped country completion for simulation precheck
+- preparation module board:
+  - published module catalog cards
+  - actor-scoped saved / started / completed state
+  - recommended module and snapshot counts
+
+This remains a minimal demo-safe backend surface. It is not a full content management system, curriculum engine, or case-thread / long-horizon history platform.
 
 Auth is now wired as a thin Supabase integration:
 
@@ -159,6 +179,20 @@ Hardware is now wired as a demo simulation state layer:
 - `connect`, `disconnect`, and `sync` persist demo-only state transitions
 - `logs` and `sync-records` expose UI-safe demo history only
 - the backend does not implement BLE, USB, provisioning, firmware, or real wearable ingestion
+- production rejects demo hardware sync with `503 hardware_provider_not_configured`; set `HARDWARE_PROVIDER_MODE` only after a real adapter is available
+
+History is now wired as a unified read-side aggregation layer:
+
+- `GET /api/v1/history/records` combines actor-scoped review records and actor-scoped hardware sync records
+- review cards expose open / continue / replay CTA flags
+- hardware sync cards expose open-review / continue CTA flags when linked review data exists
+- no separate history persistence has been added; the feed is projected from existing review and device sync data
+
+Continue-from-review is now wired as a simulation branch path:
+
+- `POST /api/v1/simulations/from-review/{reviewId}` creates the next simulation from an actor-scoped review snapshot
+- it reuses persisted review setup and clones uploaded context from the source simulation when available
+- it does not mutate the original review, realtime session, or source simulation
 
 Billing is now wired as a demo state layer:
 
@@ -168,16 +202,18 @@ Billing is now wired as a demo state layer:
 - `top-up` increases demo credits and records a demo payment event only
 - the backend does not implement Stripe, PayPal, invoices, taxes, refunds, webhooks, or recurring charges
 
-Live grounding is now wired as a lightweight internal scaffold:
+Live grounding is now wired as a lightweight internal retrieval layer:
 
-- uploaded files persist extracted summaries/excerpts for internal grounding only
+- uploaded files persist extracted source text plus summaries/excerpts for internal grounding
 - the extraction path now supports:
   - direct `text/plain` content
   - simple text extraction from text-based PDFs
   - deterministic fallback summaries when extraction is unavailable
-- realtime turn generation can read strategy summary, uploaded context, and recent transcript lines
+- uploaded source text is chunked in-process and each turn retrieves the top matching context chunks
+- realtime turn generation can read strategy summary, retrieved context, User Twin memories, and recent transcript lines
 - review summaries can reflect grounded uploaded context without changing the public review contract
-- the backend still does not implement OCR, chunking, embeddings, vector retrieval, or real multimodal/live media handling
+- the backend still does not implement OCR, embeddings/vector storage, Office-layout extraction, or real multimodal/live media understanding
+- production rejects `speech_stub` turns; synthetic speech is limited to local tests and demos. Set `BROWSER_VOICE_FALLBACK_ENABLED=true` when the browser-native voice path is the approved production voice channel.
 
 ## Shared Source Of Truth
 

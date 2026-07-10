@@ -396,6 +396,51 @@ def test_sync_updates_demo_device_and_creates_logs_and_sync_record(
     assert sync_records.json()[0]["syncRecordId"] == payload["syncRecord"]["syncRecordId"]
 
 
+def test_sync_saved_review_to_default_device_creates_review_linked_record(
+    make_client,
+    supabase_jwks_server,
+    db_session,
+):
+    user_id = str(uuid4())
+    _seed_user(db_session, user_id=user_id, email="review-sync-owner@miro.local")
+    review = _seed_review(db_session, user_id=user_id)
+    client, token = _build_authenticated_client(
+        make_client,
+        supabase_jwks_server,
+        user_id=user_id,
+        email="review-sync-owner@miro.local",
+    )
+
+    response = client.post(
+        f"/api/v1/hardware/reviews/{review.id}/sync",
+        headers=_auth_headers(token),
+    )
+
+    assert response.status_code == 200
+    payload = response.json()
+    assert payload["syncRecord"]["syncKind"] == "download"
+    assert payload["syncRecord"]["status"] == "healthy"
+    assert payload["syncRecord"]["reviewId"] == review.id
+    assert payload["device"]["connected"] is True
+
+    packet_response = client.get(
+        f"/api/v1/hardware/reviews/{review.id}/packet",
+        headers=_auth_headers(token),
+    )
+    assert packet_response.status_code == 200
+    packet_payload = packet_response.json()
+    assert packet_payload["schemaVersion"] == "miro.review.packet.v1"
+    assert packet_payload["packetHash"]
+    assert packet_payload["packet"]["reviewId"] == review.id
+
+    sync_records = client.get(
+        f"/api/v1/hardware/devices/{payload['device']['deviceId']}/sync-records",
+        headers=_auth_headers(token),
+    )
+    assert sync_records.status_code == 200
+    assert sync_records.json()[0]["reviewId"] == review.id
+
+
 def test_logs_endpoint_returns_entries_in_stable_desc_order(
     make_client,
     supabase_jwks_server,

@@ -11,12 +11,16 @@ class RealtimeSessionCreateRequest(StrictModel):
     simulationId: str
     transport: RealtimeTransport | None = None
     skipLearningPrecheck: bool = False
+    seedOpeningTurn: bool = False
 
 
 class RealtimeTurnRespondRequest(StrictModel):
-    inputMode: Literal["text", "speech_stub"]
-    sourceText: str
+    inputMode: Literal["text", "speech", "speech_stub"]
+    sourceText: str | None = None
     language: str | None = None
+    audioBase64: str | None = None
+    audioMimeType: str | None = None
+    audioFileName: str | None = None
 
 
 class RealtimeLaunchResponse(StrictModel):
@@ -32,7 +36,7 @@ class RealtimeTurnResponse(StrictModel):
     turnId: str
     turnIndex: int
     speaker: str
-    inputMode: Literal["text", "speech_stub"] | None
+    inputMode: Literal["text", "speech", "speech_stub"] | None
     sourceText: str
     normalizedText: str
     language: str
@@ -56,6 +60,9 @@ class RealtimeTurnExchangeResponse(StrictModel):
     assistantTurn: RealtimeTurnResponse
     alerts: list[RealtimeAlertResponse]
     turnCount: int
+    assistantAudioBase64: str | None = None
+    assistantAudioMimeType: str | None = None
+    assistantVoice: str | None = None
 
 
 class RealtimeSessionSummaryResponse(StrictModel):
@@ -95,6 +102,7 @@ class RealtimeSessionResponse(StrictModel):
     setupRevision: int
     strategyForSetupRevision: int
     launch: RealtimeLaunchResponse
+    openingTurn: RealtimeTurnResponse | None = None
     createdAt: datetime
     updatedAt: datetime
     startedAt: datetime | None

@@ -1,7 +1,7 @@
 import re
 from datetime import UTC, datetime
 
-from sqlalchemy import case, select, update
+from sqlalchemy import case, func, select, update
 from sqlalchemy.orm import Session
 
 from app.api.schemas.realtime import (
@@ -14,6 +14,7 @@ from app.api.schemas.realtime import (
     RealtimeTurnRespondRequest,
     RealtimeTurnResponse,
 )
+from app.core.config import get_settings
 from app.core.errors import AppError
 from app.models.simulation import (
     RealtimeSession,
@@ -32,7 +33,7 @@ from app.modules.realtime.providers.base import (
     RealtimeProviderSyncContext,
     RealtimeTurnGenerationContext,
 )
-from app.modules.realtime.turn_engine import RuleBasedRealtimeTurnGenerator
+from app.modules.realtime.turn_engine import get_turn_generator
 from app.modules.simulation import service as simulation_service
 from app.services.current_actor import CurrentActor
 
@@ -42,7 +43,6 @@ STATUS_REASON_SUPERSEDED_SETUP_REVISION = "superseded_setup_revision"
 STATUS_REASON_SUPERSEDED_STRATEGY_REVISION = "superseded_strategy_revision"
 STATUS_REASON_MANUALLY_ENDED = "manually_ended"
 
-turn_generator = RuleBasedRealtimeTurnGenerator()
 alert_analyzer = RuleBasedRealtimeAlertAnalyzer()
 
 
@@ -151,6 +151,8 @@ def _build_realtime_response(
             details={"sessionId": realtime_session.id},
         )
 
+    opening_turn = _get_opening_turn(session, realtime_session.id)
+
     return RealtimeSessionResponse(
         sessionId=realtime_session.id,
         simulationId=realtime_session.simulation_id,
@@ -165,6 +167,7 @@ def _build_realtime_response(
         setupRevision=realtime_session.setup_revision,
         strategyForSetupRevision=realtime_session.strategy_for_setup_revision,
         launch=_parse_launch_payload(realtime_session.launch_payload_json),
+        openingTurn=_build_turn_response(opening_turn) if opening_turn else None,
         createdAt=realtime_session.created_at,
         updatedAt=realtime_session.updated_at,
         startedAt=realtime_session.started_at,
@@ -450,6 +453,85 @@ def _reserve_turn_index_pair(
     )
 
 
+def _get_opening_turn(
+    session: Session,
+    session_id: str,
+) -> RealtimeSessionTurn | None:
+    first_turn = session.scalar(
+        select(RealtimeSessionTurn)
+        .where(RealtimeSessionTurn.session_id == session_id)
+        .order_by(
+            RealtimeSessionTurn.turn_index.asc(),
+            RealtimeSessionTurn.created_at.asc(),
+            RealtimeSessionTurn.id.asc(),
+        )
+        .limit(1)
+    )
+    if first_turn is not None and first_turn.speaker == "assistant":
+        return first_turn
+    return None
+
+
+def _should_seed_opening_turn(realtime_session: RealtimeSession) -> bool:
+    payload = realtime_session.provider_payload_json or {}
+    return bool(payload.get("seedOpeningTurn"))
+
+
+def _mark_seed_opening_turn_requested(realtime_session: RealtimeSession) -> None:
+    payload = dict(realtime_session.provider_payload_json or {})
+    payload["seedOpeningTurn"] = True
+    realtime_session.provider_payload_json = payload
+
+
+def _session_has_turns(session: Session, session_id: str) -> bool:
+    count = session.scalar(
+        select(func.count())
+        .select_from(RealtimeSessionTurn)
+        .where(RealtimeSessionTurn.session_id == session_id)
+    )
+    return bool(count)
+
+
+def _seed_opening_turn_if_requested(
+    session: Session,
+    realtime_session: RealtimeSession,
+) -> RealtimeSessionTurn | None:
+    if not _should_seed_opening_turn(realtime_session):
+        return None
+    if _session_has_turns(session, realtime_session.id):
+        return _get_opening_turn(session, realtime_session.id)
+
+    grounding = build_realtime_grounding_context(session, realtime_session)
+    generated_turn = get_turn_generator().generate_opening_turn(
+        RealtimeTurnGenerationContext(
+            session_id=realtime_session.id,
+            provider_mode=realtime_session.provider_mode,
+            language="en",
+            normalized_text="",
+            grounding=grounding,
+            recent_transcript_lines=[],
+        )
+    )
+    created_at = _utcnow()
+    opening_turn = RealtimeSessionTurn(
+        session_id=realtime_session.id,
+        turn_index=1,
+        parent_turn_id=None,
+        speaker="assistant",
+        input_mode=None,
+        source_text=generated_turn.assistant_text,
+        normalized_text=generated_turn.assistant_text,
+        language="en",
+        created_at=created_at,
+    )
+    session.add(opening_turn)
+    session.flush()
+    realtime_session.next_turn_index = max(int(realtime_session.next_turn_index or 1), 2)
+    realtime_session.turn_count = int(realtime_session.turn_count or 0) + 1
+    realtime_session.last_assistant_turn_at = created_at
+    return opening_turn
+
+
 def _load_recent_transcript_lines(
     session: Session,
     session_id: str,
@@ -516,6 +598,8 @@ def create_realtime_session(
                 now=now,
             )
             if stale_reason is None:
+                if payload.seedOpeningTurn:
+                    _mark_seed_opening_turn_requested(existing_session)
                 session.commit()
                 session.refresh(existing_session)
                 return _build_realtime_response(session, existing_session)
@@ -554,7 +638,10 @@ def create_realtime_session(
         provider_mode=launch_result.provider_mode,
         provider_session_id=launch_result.provider_session_id,
         provider_status=launch_result.provider_status,
-        provider_payload_json=launch_result.provider_payload_json,
+        provider_payload_json={
+            **(launch_result.provider_payload_json or {}),
+            **({"seedOpeningTurn": True} if payload.seedOpeningTurn else {}),
+        },
         launch_payload_json=launch_result.launch.model_dump(mode="json"),
         launch_expires_at=launch_result.launch.expiresAt,
         next_turn_index=1,
@@ -623,6 +710,7 @@ def start_realtime_session(
     realtime_session.provider_status = "connected"
     if realtime_session.started_at is None:
         realtime_session.started_at = _utcnow()
+    _seed_opening_turn_if_requested(session, realtime_session)
 
     session.commit()
     session.refresh(realtime_session)
@@ -689,7 +777,6 @@ def respond_realtime_turn(
         _raise_not_active_error(realtime_session)
 
     language = payload.language or "en"
-    grounding = build_realtime_grounding_context(session, realtime_session)
     user_turn_index, assistant_turn_index = _reserve_turn_index_pair(session, realtime_session)
     user_turn_created_at = _utcnow()
     assistant_audio_base64: str | None = None
@@ -704,6 +791,19 @@ def respond_realtime_turn(
             details={
                 "sessionId": realtime_session.id,
                 "hint": "Use the Doubao voice WebSocket bridge from the Live stage.",
+            },
+        )
+
+    if (
+        payload.inputMode == "speech_stub"
+        and get_settings().app_env.strip().lower() == "production"
+    ):
+        raise AppError(
+            status_code=503,
+            code="realtime_speech_provider_required",
+            message="Synthetic speech input is disabled in production.",
+            details={
+                "hint": "Use the authenticated realtime voice WebSocket bridge.",
             },
         )
 
@@ -723,6 +823,12 @@ def respond_realtime_turn(
                 ]
             },
         )
+
+    grounding = build_realtime_grounding_context(
+        session,
+        realtime_session,
+        query_text=normalized_text,
+    )
     transcript_text = payload.sourceText or normalized_text
 
     user_turn = RealtimeSessionTurn(
@@ -743,7 +849,7 @@ def respond_realtime_turn(
         realtime_session.id,
     )
 
-    generated_turn = turn_generator.generate_turn(
+    generated_turn = get_turn_generator().generate_turn(
         RealtimeTurnGenerationContext(
             session_id=realtime_session.id,
             provider_mode=realtime_session.provider_mode,

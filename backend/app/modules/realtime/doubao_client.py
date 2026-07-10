@@ -15,8 +15,9 @@ import asyncio
 import json
 import logging
 import uuid
+from collections.abc import AsyncIterator
 from dataclasses import dataclass, field
-from typing import AsyncIterator, Final
+from typing import Final
 
 from app.modules.realtime.doubao_protocol import (
     ClientEvent,
@@ -29,11 +30,12 @@ from app.modules.realtime.doubao_protocol import (
 try:
     import websockets
     from websockets.client import WebSocketClientProtocol
-    from websockets.exceptions import ConnectionClosed
+    from websockets.exceptions import ConnectionClosed, InvalidStatusCode
 except ImportError:  # pragma: no cover - exercised only when `websockets` is missing locally
     websockets = None  # type: ignore[assignment]
     WebSocketClientProtocol = object  # type: ignore[misc, assignment]
     ConnectionClosed = Exception  # type: ignore[misc, assignment]
+    InvalidStatusCode = Exception  # type: ignore[misc, assignment]
 
 
 logger = logging.getLogger(__name__)
@@ -57,17 +59,24 @@ DEFAULT_TTS_SAMPLE_RATE: Final[int] = 24000
 class DoubaoCredentials:
     app_id: str
     access_token: str
+    api_key: str = ""
     secret_key: str = ""
     resource_id: str = DEFAULT_RESOURCE_ID
     app_key: str = DEFAULT_APP_KEY
 
     def headers(self, connect_id: str | None = None) -> dict[str, str]:
-        headers = {
-            "X-Api-App-ID": self.app_id,
-            "X-Api-Access-Key": self.access_token,
-            "X-Api-Resource-Id": self.resource_id,
-            "X-Api-App-Key": self.app_key,
-        }
+        if self.api_key:
+            headers = {
+                "X-Api-Key": self.api_key,
+                "X-Api-Resource-Id": self.resource_id,
+            }
+        else:
+            headers = {
+                "X-Api-App-ID": self.app_id,
+                "X-Api-Access-Key": self.access_token,
+                "X-Api-Resource-Id": self.resource_id,
+                "X-Api-App-Key": self.app_key,
+            }
         if self.secret_key:
             # Not all Doubao routes require it, but we pass it when provided.
             headers["X-Api-Secret-Key"] = self.secret_key
@@ -125,9 +134,12 @@ class DoubaoClient:
             raise DoubaoClientError(
                 "The 'websockets' package is not installed in the backend environment."
             )
-        if not self._creds.app_id or not self._creds.access_token:
+        if not self._creds.api_key and (
+            not self._creds.app_id or not self._creds.access_token
+        ):
             raise DoubaoClientError(
-                "Doubao credentials are not configured (DOUBAO_APP_ID / DOUBAO_ACCESS_TOKEN)."
+                "Doubao credentials are not configured (set DOUBAO_API_KEY, "
+                "or the legacy DOUBAO_APP_ID / DOUBAO_ACCESS_TOKEN pair)."
             )
 
         headers = self._creds.headers(connect_id=self._connect_id)
@@ -138,23 +150,35 @@ class DoubaoClient:
         )
         # `websockets` uses `additional_headers` in >=12, `extra_headers` in <12.
         try:
-            self._ws = await websockets.connect(  # type: ignore[attr-defined]
-                self._ws_url,
-                additional_headers=headers,
-                max_size=None,
-                open_timeout=10,
-                ping_interval=20,
-                ping_timeout=20,
-            )
-        except TypeError:
-            self._ws = await websockets.connect(  # type: ignore[attr-defined]
-                self._ws_url,
-                extra_headers=headers,
-                max_size=None,
-                open_timeout=10,
-                ping_interval=20,
-                ping_timeout=20,
-            )
+            try:
+                self._ws = await websockets.connect(  # type: ignore[attr-defined]
+                    self._ws_url,
+                    additional_headers=headers,
+                    max_size=None,
+                    open_timeout=10,
+                    ping_interval=20,
+                    ping_timeout=20,
+                )
+            except TypeError:
+                self._ws = await websockets.connect(  # type: ignore[attr-defined]
+                    self._ws_url,
+                    extra_headers=headers,
+                    max_size=None,
+                    open_timeout=10,
+                    ping_interval=20,
+                    ping_timeout=20,
+                )
+        except InvalidStatusCode as exc:
+            status_code = getattr(exc, "status_code", None)
+            if status_code in {401, 403}:
+                raise DoubaoClientError(
+                    "Doubao rejected the realtime connection with HTTP "
+                    f"{status_code}. Check DOUBAO_API_KEY or the legacy credentials "
+                    "and grant the volc.speech.dialog resource to the application."
+                ) from exc
+            raise DoubaoClientError(
+                f"Doubao realtime handshake failed with HTTP {status_code or 'unknown'}."
+            ) from exc
 
     async def close(self) -> None:
         if self._closed:
@@ -180,7 +204,7 @@ class DoubaoClient:
                     pass
             self._ws = None
 
-    async def __aenter__(self) -> "DoubaoClient":
+    async def __aenter__(self) -> DoubaoClient:
         await self.connect()
         return self
 

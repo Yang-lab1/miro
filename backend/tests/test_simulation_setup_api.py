@@ -159,6 +159,8 @@ def test_add_text_file_extracts_real_text_content(client, db_session):
     assert response.status_code == 200
     payload = response.json()["uploadedFiles"][0]
     assert payload["parseStatus"] == "ready"
+    assert "renewal timing should stay conservative" in payload["extractedSummaryText"].lower()
+    assert "internal owner and timeline" in payload["extractedExcerptText"].lower()
 
     record = db_session.scalar(
         select(SimulationUploadedFile).where(
@@ -170,6 +172,43 @@ def test_add_text_file_extracts_real_text_content(client, db_session):
     assert "renewal timing should stay conservative" in record.extracted_summary_text.lower()
     assert record.extracted_excerpt_text is not None
     assert "internal owner and timeline" in record.extracted_excerpt_text.lower()
+    assert record.extracted_text == text_content
+
+
+def test_generate_strategy_uses_uploaded_text_as_interview_outline(client):
+    created = _create_simulation(client, "Japan", full_setup=True)
+    text_content = (
+        "Renewal timing should stay conservative. "
+        "Confirm the internal owner before discussing pricing."
+    )
+    uploaded = client.post(
+        f"/api/v1/simulations/{created['simulationId']}/files",
+        json={
+            "files": [
+                {
+                    "fileName": "renewal-notes.txt",
+                    "contentType": "text/plain",
+                    "sizeBytes": len(text_content.encode("utf-8")),
+                    "sourceType": "manual_upload",
+                    "textContent": text_content,
+                }
+            ]
+        },
+    )
+    assert uploaded.status_code == 200
+
+    generated = client.post(f"/api/v1/simulations/{created['simulationId']}/strategy")
+
+    assert generated.status_code == 200
+    strategy = generated.json()["strategy"]
+    uploaded_item = next(item for item in strategy["items"] if item["id"] == "uploaded-context")
+    uploaded_bullets = " ".join(uploaded_item["bullets"]["en"]).lower()
+    assert "renewal timing should stay conservative" in uploaded_bullets
+    assert "internal owner" in uploaded_bullets
+    assert strategy["interviewOutline"]
+    opening = strategy["interviewOutline"][0]
+    assert opening["stage"] == "opening"
+    assert "renewal timing" in opening["prompt"].lower()
 
 
 def test_add_pdf_file_extracts_simple_text(client, db_session):

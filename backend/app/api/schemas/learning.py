@@ -36,3 +36,44 @@ class LearningProgressResponse(StrictModel):
 
 class LearningProgressCompleteRequest(StrictModel):
     contentVersion: str
+
+
+LearningModuleStatus = Literal["new", "saved", "open", "completed"]
+LearningModuleTab = Literal["all", "recommended", "new", "saved", "open", "completed"]
+LearningModuleAction = Literal["start", "save", "unsave", "complete"]
+
+
+class LearningModuleItemResponse(StrictModel):
+    moduleId: str
+    countryKey: str
+    title: str
+    summary: str
+    theme: str
+    scene: str
+    status: LearningModuleStatus
+    stateLabel: str
+    saved: bool
+    recommended: bool
+    sortOrder: int
+
+
+class LearningModuleSnapshotCountsResponse(StrictModel):
+    open: int
+    new: int
+    saved: int
+
+
+class LearningModulesResponse(StrictModel):
+    recommendedModule: LearningModuleItemResponse | None
+    snapshotCounts: LearningModuleSnapshotCountsResponse
+    items: list[LearningModuleItemResponse]
+
+
+class LearningModuleStateRequest(StrictModel):
+    action: LearningModuleAction
+
+
+class LearningModuleStateResponse(StrictModel):
+    item: LearningModuleItemResponse
+    recommendedModule: LearningModuleItemResponse | None
+    snapshotCounts: LearningModuleSnapshotCountsResponse

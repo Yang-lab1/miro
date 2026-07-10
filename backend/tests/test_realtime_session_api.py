@@ -78,12 +78,15 @@ def _create_realtime_session(
     *,
     transport: str | None = None,
     skip_learning_precheck: bool = False,
+    seed_opening_turn: bool = False,
 ) -> dict:
     payload = {"simulationId": simulation_id}
     if transport is not None:
         payload["transport"] = transport
     if skip_learning_precheck:
         payload["skipLearningPrecheck"] = True
+    if seed_opening_turn:
+        payload["seedOpeningTurn"] = True
 
     response = client.post("/api/v1/realtime/sessions", json=payload)
     assert response.status_code == 200
@@ -416,6 +419,63 @@ def test_start_sets_provider_status_connected(client, db_session):
     assert started.status_code == 200
     record = _get_realtime_session_record(db_session, created["sessionId"])
     assert record.provider_status == "connected"
+
+
+def test_start_can_seed_opening_assistant_turn_for_real_interview_flow(client, db_session):
+    created = _create_simulation(client, "Japan", full_setup=True)
+    uploaded = client.post(
+        f"/api/v1/simulations/{created['simulationId']}/files",
+        json={
+            "files": [
+                {
+                    "fileName": "renewal-notes.txt",
+                    "contentType": "text/plain",
+                    "sizeBytes": 112,
+                    "sourceType": "manual_upload",
+                    "textContent": (
+                        "Renewal timing should stay conservative. "
+                        "Confirm the internal owner before discussing pricing."
+                    ),
+                }
+            ]
+        },
+    )
+    assert uploaded.status_code == 200
+    generated = client.post(f"/api/v1/simulations/{created['simulationId']}/strategy")
+    assert generated.status_code == 200
+    realtime_session = _create_realtime_session(
+        client,
+        created["simulationId"],
+        seed_opening_turn=True,
+    )
+
+    started = client.post(f"/api/v1/realtime/sessions/{realtime_session['sessionId']}/start")
+
+    assert started.status_code == 200
+    payload = started.json()
+    assert payload["openingTurn"]["speaker"] == "assistant"
+    assert payload["openingTurn"]["turnIndex"] == 1
+    assert "renewal timing" in payload["openingTurn"]["sourceText"].lower()
+
+    transcript = client.get(
+        f"/api/v1/realtime/sessions/{realtime_session['sessionId']}/turns"
+    )
+    assert transcript.status_code == 200
+    assert [turn["speaker"] for turn in transcript.json()] == ["assistant"]
+
+    response = _respond_turn(
+        client,
+        realtime_session["sessionId"],
+        source_text="We should confirm the owner before we discuss pricing.",
+    )
+    assert response.status_code == 200
+    assert response.json()["userTurn"]["turnIndex"] == 2
+    assert response.json()["assistantTurn"]["turnIndex"] == 3
+    assert response.json()["turnCount"] == 3
+
+    record = _get_realtime_session_record(db_session, realtime_session["sessionId"])
+    assert record.turn_count == 3
+    assert record.next_turn_index == 4
 
 
 def test_start_realtime_session_returns_launch_expired_for_expired_pending(client, db_session):

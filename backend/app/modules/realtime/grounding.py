@@ -5,10 +5,12 @@ from sqlalchemy.orm import Session
 from app.api.schemas.simulation import SimulationStrategyResponse
 from app.core.errors import AppError
 from app.models.simulation import RealtimeSession, Simulation, SimulationUploadedFile
+from app.models.user import UserTwinMemory
 from app.modules.realtime.providers.base import (
     RealtimeGroundingContext,
     RealtimeGroundingFileContext,
 )
+from app.modules.realtime.retrieval import retrieve_context_chunks
 
 STUB_SUMMARY_PREFIX = "uploaded brief about "
 STUB_EXCERPT_PREFIX = "reference from "
@@ -97,9 +99,38 @@ def _build_uploaded_context_excerpts(
     return excerpts[:3]
 
 
+def _load_user_twin_memories(
+    session: Session,
+    *,
+    user_id: str,
+    country_key: str,
+) -> list[str]:
+    memories = session.scalars(
+        select(UserTwinMemory)
+        .where(
+            UserTwinMemory.user_id == user_id,
+            UserTwinMemory.country_key == country_key,
+        )
+        .order_by(
+            UserTwinMemory.issue_count.desc(),
+            UserTwinMemory.updated_at.desc(),
+            UserTwinMemory.id.asc(),
+        )
+        .limit(5)
+    ).all()
+    return [
+        (
+            f"{memory.issue_key} ({memory.risk_level}, {memory.issue_count}x)"
+            + (f": {memory.last_context}" if memory.last_context else "")
+        )
+        for memory in memories
+    ]
+
+
 def build_realtime_grounding_context(
     session: Session,
     realtime_session: RealtimeSession,
+    query_text: str | None = None,
 ) -> RealtimeGroundingContext:
     simulation = _load_simulation(session, realtime_session.simulation_id)
     uploaded_files = _load_uploaded_files(session, simulation.id)
@@ -112,6 +143,12 @@ def build_realtime_grounding_context(
 
     uploaded_context_summary_en = _build_uploaded_context_summary(uploaded_files)
     uploaded_context_excerpts_en = _build_uploaded_context_excerpts(uploaded_files)
+    retrieved_context_chunks = retrieve_context_chunks(uploaded_files, query_text=query_text)
+    user_twin_memories = _load_user_twin_memories(
+        session,
+        user_id=realtime_session.user_id,
+        country_key=realtime_session.country_key,
+    )
 
     return RealtimeGroundingContext(
         simulation_id=simulation.id,
@@ -134,6 +171,7 @@ def build_realtime_grounding_context(
                 storage_key=file_record.storage_key,
                 parse_status=file_record.parse_status,
                 upload_status=file_record.upload_status,
+                extracted_text=file_record.extracted_text,
                 extracted_summary_text=file_record.extracted_summary_text,
                 extracted_excerpt_text=file_record.extracted_excerpt_text,
             )
@@ -141,4 +179,6 @@ def build_realtime_grounding_context(
         ],
         uploaded_context_summary_en=uploaded_context_summary_en,
         uploaded_context_excerpts_en=uploaded_context_excerpts_en,
+        retrieved_context_chunks=retrieved_context_chunks,
+        user_twin_memories=user_twin_memories,
     )

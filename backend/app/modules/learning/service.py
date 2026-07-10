@@ -7,10 +7,36 @@ from app.api.schemas.common import LocalizedText
 from app.api.schemas.learning import (
     LearningCountryResponse,
     LearningCountrySummaryResponse,
+    LearningModuleItemResponse,
+    LearningModuleSnapshotCountsResponse,
+    LearningModulesResponse,
+    LearningModuleStateResponse,
+    LearningModuleStatus,
+    LearningModuleTab,
     LearningProgressResponse,
 )
 from app.core.errors import AppError
-from app.models.learning import CountryCatalog, CountryLearningContent, UserLearningProgress
+from app.models.learning import (
+    CountryCatalog,
+    CountryLearningContent,
+    LearningModuleCatalog,
+    UserLearningModuleState,
+    UserLearningProgress,
+)
+from app.modules.learning.modules import (
+    LearningModuleAction,
+    LearningModuleFilterInput,
+    LearningModuleProjection,
+    LearningModuleStateSnapshot,
+    apply_learning_module_action,
+    build_learning_module_snapshot_counts,
+    derive_learning_module_state_label,
+    derive_learning_module_status,
+    filter_learning_module_projections,
+    is_learning_module_saved,
+    pick_recommended_module,
+    sort_learning_module_projections,
+)
 from app.services.current_actor import CurrentActor
 
 
@@ -215,3 +241,237 @@ def complete_learning_progress(
     session.refresh(progress)
 
     return _build_progress_response(country, latest_content, progress)
+
+
+def _get_published_learning_module(
+    session: Session,
+    module_id: str,
+) -> LearningModuleCatalog | None:
+    return session.scalar(
+        select(LearningModuleCatalog)
+        .where(
+            LearningModuleCatalog.id == module_id,
+            LearningModuleCatalog.publish_status == "published",
+        )
+        .limit(1)
+    )
+
+
+def _list_published_learning_modules(session: Session) -> list[LearningModuleCatalog]:
+    return session.scalars(
+        select(LearningModuleCatalog)
+        .where(LearningModuleCatalog.publish_status == "published")
+        .order_by(
+            LearningModuleCatalog.sort_order.asc(),
+            LearningModuleCatalog.title_text.asc(),
+            LearningModuleCatalog.id.asc(),
+        )
+    ).all()
+
+
+def _get_learning_module_states_for_actor(
+    session: Session,
+    actor: CurrentActor,
+    module_ids: list[str],
+) -> dict[str, UserLearningModuleState]:
+    if not module_ids:
+        return {}
+
+    states = session.scalars(
+        select(UserLearningModuleState).where(
+            UserLearningModuleState.user_id == actor.user_id,
+            UserLearningModuleState.module_id.in_(module_ids),
+        )
+    ).all()
+    return {state.module_id: state for state in states}
+
+
+def _build_learning_module_state_snapshot(
+    state: UserLearningModuleState | None,
+) -> LearningModuleStateSnapshot:
+    if state is None:
+        return LearningModuleStateSnapshot()
+
+    return LearningModuleStateSnapshot(
+        saved_at=state.saved_at,
+        started_at=state.started_at,
+        completed_at=state.completed_at,
+    )
+
+
+def _build_learning_module_projection(
+    module: LearningModuleCatalog,
+    state: UserLearningModuleState | None,
+) -> LearningModuleProjection:
+    return LearningModuleProjection(
+        module_id=module.id,
+        country_key=module.country_key,
+        title=module.title_text,
+        summary=module.summary_text,
+        theme=module.theme_key,
+        scene=module.scene_key,
+        sort_order=module.sort_order,
+        state=_build_learning_module_state_snapshot(state),
+    )
+
+
+def _load_learning_module_projections(
+    session: Session,
+    actor: CurrentActor,
+) -> list[LearningModuleProjection]:
+    catalog = _list_published_learning_modules(session)
+    states_by_module_id = _get_learning_module_states_for_actor(
+        session,
+        actor,
+        [module.id for module in catalog],
+    )
+    return [
+        _build_learning_module_projection(module, states_by_module_id.get(module.id))
+        for module in catalog
+    ]
+
+
+def _build_learning_module_item_response(
+    projection: LearningModuleProjection,
+    *,
+    recommended_module_id: str | None,
+) -> LearningModuleItemResponse:
+    return LearningModuleItemResponse(
+        moduleId=projection.module_id,
+        countryKey=projection.country_key,
+        title=projection.title,
+        summary=projection.summary,
+        theme=projection.theme,
+        scene=projection.scene,
+        status=derive_learning_module_status(projection.state),
+        stateLabel=derive_learning_module_state_label(projection.state),
+        saved=is_learning_module_saved(projection.state),
+        recommended=projection.module_id == recommended_module_id,
+        sortOrder=projection.sort_order,
+    )
+
+
+def _build_learning_modules_response(
+    projections: list[LearningModuleProjection],
+    filters: LearningModuleFilterInput,
+) -> LearningModulesResponse:
+    snapshot_counts = LearningModuleSnapshotCountsResponse.model_validate(
+        build_learning_module_snapshot_counts(projections)
+    )
+    filtered = filter_learning_module_projections(projections, filters)
+    recommended = pick_recommended_module(filtered)
+    recommended_module_id = recommended.module_id if recommended else None
+    ordered = sort_learning_module_projections(
+        filtered,
+        recommended_module_id=recommended_module_id,
+    )
+
+    return LearningModulesResponse(
+        recommendedModule=(
+            _build_learning_module_item_response(
+                recommended,
+                recommended_module_id=recommended_module_id,
+            )
+            if recommended is not None
+            else None
+        ),
+        snapshotCounts=snapshot_counts,
+        items=[
+            _build_learning_module_item_response(
+                projection,
+                recommended_module_id=recommended_module_id,
+            )
+            for projection in ordered
+        ],
+    )
+
+
+def list_learning_modules(
+    session: Session,
+    actor: CurrentActor,
+    *,
+    country_key: str | None,
+    theme: str | None,
+    scene: str | None,
+    status: LearningModuleStatus | None,
+    tab: LearningModuleTab | None,
+    query_text: str | None,
+) -> LearningModulesResponse:
+    projections = _load_learning_module_projections(session, actor)
+    return _build_learning_modules_response(
+        projections,
+        LearningModuleFilterInput(
+            country_key=country_key,
+            theme=theme,
+            scene=scene,
+            status=status,
+            tab=tab,
+            query=query_text,
+        ),
+    )
+
+
+def update_learning_module_state(
+    session: Session,
+    actor: CurrentActor,
+    module_id: str,
+    action: LearningModuleAction,
+) -> LearningModuleStateResponse:
+    module = _get_published_learning_module(session, module_id)
+    if module is None:
+        raise AppError(
+            status_code=404,
+            code="learning_module_not_found",
+            message=f"Learning module '{module_id}' was not found.",
+        )
+
+    state = session.scalar(
+        select(UserLearningModuleState)
+        .where(
+            UserLearningModuleState.user_id == actor.user_id,
+            UserLearningModuleState.module_id == module_id,
+        )
+        .limit(1)
+    )
+
+    now = datetime.now(tz=UTC)
+    next_state = apply_learning_module_action(
+        _build_learning_module_state_snapshot(state),
+        action,
+        now=now,
+    )
+
+    should_persist = any(
+        value is not None
+        for value in (
+            next_state.saved_at,
+            next_state.started_at,
+            next_state.completed_at,
+        )
+    )
+    if state is None and should_persist:
+        state = UserLearningModuleState(
+            user_id=actor.user_id,
+            module_id=module_id,
+        )
+        session.add(state)
+        session.flush()
+
+    if state is not None:
+        state.saved_at = next_state.saved_at
+        state.started_at = next_state.started_at
+        state.completed_at = next_state.completed_at
+
+    session.commit()
+
+    projections = _load_learning_module_projections(session, actor)
+    board = _build_learning_modules_response(
+        projections,
+        LearningModuleFilterInput(),
+    )
+    item = next(item for item in board.items if item.moduleId == module_id)
+    return LearningModuleStateResponse(
+        item=item,
+        recommendedModule=board.recommendedModule,
+        snapshotCounts=board.snapshotCounts,
+    )

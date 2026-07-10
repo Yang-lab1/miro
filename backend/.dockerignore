@@ -1,0 +1,10 @@
+.env
+.venv
+__pycache__
+*.py[cod]
+*.db
+*.log
+tmp
+tests
+.pytest_cache
+.ruff_cache

@@ -22,15 +22,16 @@ That gives you:
 
 ## 2. Product Modules
 
-The current product should be treated as five parallel modules:
+The current product should be treated as six parallel modules:
 
 1. Auth
 2. Simulation
 3. Hardware Sync
 4. Review
-5. Billing / Pricing
+5. History
+6. Billing / Pricing
 
-`Home` and `Settings` are not backend-heavy modules. They mostly aggregate data from the five modules above.
+`Home` and `Settings` are not backend-heavy modules. They mostly aggregate data from the six modules above.
 
 ## 3. Page Map
 
@@ -40,7 +41,8 @@ The current product should be treated as five parallel modules:
 | Live Simulation / Setup | Configure one rehearsal | choose country, meeting type, goal, duration, upload files, generate strategy, start session | idle, dirty, generating strategy, ready to start, upload pending | country package, user twin memory, uploaded files, current setup | Simulation |
 | Live Simulation / Session | Run one rehearsal and get language feedback | type response, evaluate, toggle drawer, end session | session-started, evaluating, transcript-active, alerts-active, ended | transcript, alerts, partner response, live metrics, countdown | Simulation |
 | Hardware Devices | Explore a demo hardware surface and simulated sync history | connect, disconnect, view status, trigger demo sync, open related review | disconnected, connected, syncing, success, failed | device status, firmware, battery, transfer health, sync records, demo event history | Hardware Demo State |
-| Review Center | Inspect results over time | filter by source, open a review, inspect lines | loading, list empty, list loaded, filtered empty, review selected | review list, summary, repeated issues, line details, source type | Review |
+| Review Center | Inspect one review in depth | filter by source, open a review, inspect lines | loading, list empty, list loaded, filtered empty, review selected | review list, summary, repeated issues, line details, source type | Review |
+| History | Scan unified past records and branch the next round | filter records, open review, continue from review | loading, list empty, filtered empty, list loaded | unified record feed, CTA flags, linked review ids, source session ids | History, Review, Hardware Demo State, Simulation |
 | Pricing | Pick plan and top up credits | select plan, top up | current plan, selected plan, top-up in progress, top-up success, top-up failed | plan catalog, balance, current subscription, credit packages | Billing |
 | Settings | Manage profile and language | change language, view account summary, log out | read-only summary, updating language, logged out | profile, org, plan, language preference | Auth, Billing |
 
@@ -307,6 +309,37 @@ Response shape to freeze:
   ]
 }
 ```
+
+### 4.4A History Flow
+
+This is the additive unified record layer that sits beside Review Center.
+
+User actions:
+
+- open history list
+- filter by country / type / status / query
+- open linked review
+- continue from a prior review
+
+UI states:
+
+- loading
+- list empty
+- filtered empty
+- record selected for CTA
+
+Suggested APIs:
+
+- `GET /api/v1/history/records`
+- `POST /api/v1/simulations/from-review/{reviewId}`
+
+Important implementation note:
+
+- History is a read-side aggregation over:
+  - reviews
+  - hardware sync records
+- It should not introduce a heavy new persistence layer at this stage.
+- Continue-from-review should create a fresh simulation from the persisted review setup and source uploaded context without mutating the original review or realtime session.
 
 ### 4.5 Pricing Flow
 

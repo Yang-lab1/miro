@@ -7,6 +7,11 @@ from app.api.dependencies.actors import CurrentActor, get_current_actor
 from app.api.schemas.learning import (
     LearningCountryResponse,
     LearningCountrySummaryResponse,
+    LearningModulesResponse,
+    LearningModuleStateRequest,
+    LearningModuleStateResponse,
+    LearningModuleStatus,
+    LearningModuleTab,
     LearningProgressCompleteRequest,
     LearningProgressResponse,
 )
@@ -53,4 +58,42 @@ def complete_learning(
         actor,
         countryKey,
         payload.contentVersion,
+    )
+
+
+@router.get("/modules", response_model=LearningModulesResponse)
+def list_learning_modules(
+    db: DbSession,
+    actor: ActorDep,
+    countryKey: str | None = None,
+    theme: str | None = None,
+    scene: str | None = None,
+    status: LearningModuleStatus | None = None,
+    tab: LearningModuleTab | None = None,
+    query: str | None = None,
+) -> LearningModulesResponse:
+    return learning_service.list_learning_modules(
+        db,
+        actor,
+        country_key=countryKey,
+        theme=theme,
+        scene=scene,
+        status=status,
+        tab=tab,
+        query_text=query,
+    )
+
+
+@router.post("/modules/{moduleId}/state", response_model=LearningModuleStateResponse)
+def update_learning_module_state(
+    moduleId: str,
+    payload: LearningModuleStateRequest,
+    db: DbSession,
+    actor: ActorDep,
+) -> LearningModuleStateResponse:
+    return learning_service.update_learning_module_state(
+        db,
+        actor,
+        moduleId,
+        payload.action,
     )

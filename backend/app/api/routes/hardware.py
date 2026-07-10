@@ -8,6 +8,7 @@ from app.api.schemas.hardware import (
     HardwareDeviceLogResponse,
     HardwareDeviceSummaryResponse,
     HardwareDeviceSyncRecordResponse,
+    HardwareReviewPacketResponse,
     HardwareSyncRequest,
     HardwareSyncResponse,
 )
@@ -54,6 +55,24 @@ def sync_device(
     actor: ActorDep,
 ) -> HardwareSyncResponse:
     return hardware_service.sync_device(db, actor, device_id, payload)
+
+
+@router.post("/reviews/{review_id}/sync", response_model=HardwareSyncResponse)
+def sync_review_to_default_device(
+    review_id: str,
+    db: DbSession,
+    actor: ActorDep,
+) -> HardwareSyncResponse:
+    return hardware_service.sync_review_to_default_device(db, actor, review_id)
+
+
+@router.get("/reviews/{review_id}/packet", response_model=HardwareReviewPacketResponse)
+def get_review_packet(
+    review_id: str,
+    db: DbSession,
+    actor: ActorDep,
+) -> HardwareReviewPacketResponse:
+    return hardware_service.get_review_packet(db, actor, review_id)
 
 
 @router.get("/devices/{device_id}/logs", response_model=list[HardwareDeviceLogResponse])

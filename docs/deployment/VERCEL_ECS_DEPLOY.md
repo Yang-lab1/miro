@@ -26,6 +26,7 @@ Vercel runtime env:
 - `MIRO_SUPABASE_PUBLISHABLE_KEY=<supabase-publishable-key>`
 - `MIRO_SUPABASE_AUTH_REDIRECT_TO=https://miro-vert.vercel.app`
 - `MIRO_TURNSTILE_SITE_KEY=<optional-turnstile-site-key>`
+- `MIRO_ALLOW_LOCAL_FALLBACK=false`
 
 Notes:
 
@@ -33,6 +34,7 @@ Notes:
 - `runtime-config.js` is served with `Cache-Control: no-store` so production env changes are not hidden behind stale cache.
 - SPA routes are rewritten back to `index.html`.
 - When `MIRO_TURNSTILE_SITE_KEY` is omitted, the hosted auth modal now falls back to demo-safe email auth instead of disabling the public form.
+- `MIRO_ALLOW_LOCAL_FALLBACK` must remain `false` in production. The hosted Live flow will stop in setup when auth or the backend session cannot be created; only localhost previews may use the local demo fallback.
 
 ## 2. Backend on Alibaba Cloud ECS
 
@@ -71,6 +73,19 @@ Runtime shape:
 Health check:
 
 - `/api/v1/health`
+
+Production readiness check:
+
+- `/api/v1/ready`
+- returns `200` only when the database is reachable and production text-model/Doubao configuration exists
+- returns `503` with per-provider checks when the backend is not ready for a real interview
+
+Container option:
+
+- `backend/Dockerfile` runs `alembic upgrade head` before starting Uvicorn
+- build with `docker build -t miro-backend ./backend`
+- run with `docker run --env-file backend/.env -p 8000:8000 miro-backend`
+- keep `backend/.env` outside the image and provide production secrets at runtime
 
 ## 3. Supabase pairing
 

@@ -39,3 +39,32 @@ class UserLearningProgress(Base, IdMixin, TimestampMixin):
     progress_status: Mapped[str] = mapped_column(String(32), nullable=False)
     completed_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
     expires_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+
+
+class LearningModuleCatalog(Base, IdMixin, TimestampMixin):
+    __tablename__ = "learning_module_catalog"
+    __table_args__ = (UniqueConstraint("module_key"),)
+
+    module_key: Mapped[str] = mapped_column(String(64), nullable=False)
+    country_key: Mapped[str] = mapped_column(String(64), nullable=False, index=True)
+    title_text: Mapped[str] = mapped_column(String(255), nullable=False)
+    summary_text: Mapped[str] = mapped_column(String(500), nullable=False)
+    theme_key: Mapped[str] = mapped_column(String(64), nullable=False, index=True)
+    scene_key: Mapped[str] = mapped_column(String(64), nullable=False, index=True)
+    publish_status: Mapped[str] = mapped_column(String(32), nullable=False, default="draft")
+    sort_order: Mapped[int] = mapped_column(nullable=False, default=100)
+
+
+class UserLearningModuleState(Base, IdMixin, TimestampMixin):
+    __tablename__ = "user_learning_module_states"
+    __table_args__ = (UniqueConstraint("user_id", "module_id"),)
+
+    user_id: Mapped[str] = mapped_column(ForeignKey("users.id"), nullable=False, index=True)
+    module_id: Mapped[str] = mapped_column(
+        ForeignKey("learning_module_catalog.id"),
+        nullable=False,
+        index=True,
+    )
+    saved_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+    started_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+    completed_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)

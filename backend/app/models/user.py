@@ -50,4 +50,5 @@ class UserTwinMemory(Base, IdMixin, TimestampMixin):
     risk_level: Mapped[str] = mapped_column(String(32), nullable=False)
     issue_count: Mapped[int] = mapped_column(Integer, default=1, nullable=False)
     last_context: Mapped[str | None] = mapped_column(Text, nullable=True)
+    last_review_id: Mapped[str | None] = mapped_column(String(36), nullable=True)
     last_seen_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)

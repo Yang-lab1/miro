@@ -195,6 +195,28 @@ def test_expired_token_returns_auth_token_expired(make_client, supabase_jwks_ser
     assert response.json()["error"]["code"] == "auth_token_expired"
 
 
+def test_small_future_iat_is_tolerated(make_client, supabase_jwks_server):
+    import time
+
+    client = make_client(
+        ALLOW_DEMO_ACTOR_FALLBACK="false",
+        SUPABASE_URL=supabase_jwks_server["base_url"],
+    )
+    user_id = str(uuid4())
+    token = supabase_jwks_server["issue_token"](
+        sub=user_id,
+        email="clock-skew@miro.local",
+        extra_claims={"iat": int(time.time()) + 30},
+    )
+
+    response = client.get("/api/v1/auth/session", headers=_auth_headers(token))
+
+    assert response.status_code == 200
+    payload = response.json()
+    assert payload["user"]["id"] == user_id
+    assert payload["user"]["email"] == "clock-skew@miro.local"
+
+
 @pytest.mark.parametrize(
     ("token_kwargs", "label"),
     [

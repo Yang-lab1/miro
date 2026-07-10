@@ -1,4 +1,6 @@
+import json
 from datetime import UTC, datetime
+from hashlib import sha256
 
 from sqlalchemy import func, select
 from sqlalchemy.orm import Session
@@ -10,9 +12,10 @@ from app.api.schemas.hardware import (
     HardwareSyncRequest,
     HardwareSyncResponse,
 )
+from app.core.config import get_settings
 from app.core.errors import AppError
 from app.models.hardware import Device, DeviceLog, DeviceSyncEvent
-from app.models.review import Review
+from app.models.review import Review, ReviewLine
 from app.services.current_actor import CurrentActor
 
 DEFAULT_DEMO_DEVICE_NAME = "Miro Pin 01"
@@ -280,6 +283,20 @@ def sync_device(
     device_id: str,
     payload: HardwareSyncRequest,
 ) -> HardwareSyncResponse:
+    settings = get_settings()
+    if (
+        settings.app_env.strip().lower() == "production"
+        and settings.hardware_provider_mode.strip().lower() == "demo"
+    ):
+        raise AppError(
+            status_code=503,
+            code="hardware_provider_not_configured",
+            message="A real hardware transport is required in production.",
+            details={
+                "hint": "Configure HARDWARE_PROVIDER_MODE and the device adapter before syncing.",
+            },
+        )
+
     device = _get_actor_device(session, actor, device_id)
     review_id = None
     if payload.reviewId is not None:
@@ -350,6 +367,112 @@ def sync_device(
         device=_build_device_summary(session, device),
         syncRecord=_build_sync_record_response(sync_event),
         log=_build_log_response(sync_log),
+    )
+
+
+def _build_review_sync_text(review: Review) -> tuple[str, str]:
+    summary_payload = review.summary_json or {}
+    headline = str(summary_payload.get("headline") or review.title_text)
+    coach_summary = str(summary_payload.get("coachSummary") or "")
+    next_step = str(summary_payload.get("nextStep") or "")
+    detail_parts = [
+        coach_summary,
+        f"Next: {next_step}" if next_step else "",
+    ]
+    details = " ".join(part for part in detail_parts if part)
+    if not details:
+        details = f"Review {review.id} is ready to continue on device."
+    return headline[:500], details[:2000]
+
+
+def _build_review_packet(session: Session, review: Review) -> tuple[dict, str]:
+    summary = review.summary_json or {}
+    metrics = review.metrics_json or {}
+    lines = session.scalars(
+        select(ReviewLine)
+        .where(ReviewLine.review_id == review.id)
+        .order_by(ReviewLine.line_index.asc(), ReviewLine.created_at.asc(), ReviewLine.id.asc())
+        .limit(12)
+    ).all()
+    packet = {
+        "schemaVersion": "miro.review.packet.v1",
+        "reviewId": review.id,
+        "countryKey": review.country_key,
+        "meetingType": review.meeting_type_key,
+        "goal": review.goal_key,
+        "overallAssessment": review.overall_assessment,
+        "score": review.score_total,
+        "summary": {
+            "headline": summary.get("headline") or review.title_text,
+            "coachSummary": summary.get("coachSummary") or "",
+            "nextStep": summary.get("nextStep") or "",
+        },
+        "metrics": {
+            "turnCount": metrics.get("turnCount", 0),
+            "alertCount": metrics.get("alertCount", 0),
+            "topIssueKeys": review.repeated_issues_json or [],
+        },
+        "lines": [
+            {
+                "speaker": line.speaker,
+                "turnIndex": line.turn_index,
+                "text": line.text or line.source_text,
+            }
+            for line in lines
+        ],
+    }
+    serialized = json.dumps(packet, ensure_ascii=False, sort_keys=True, separators=(",", ":"))
+    return packet, sha256(serialized.encode("utf-8")).hexdigest()
+
+
+def get_review_packet(
+    session: Session,
+    actor: CurrentActor,
+    review_id: str,
+) -> dict:
+    review = _validate_review_for_actor(session, actor, review_id)
+    packet, packet_hash = _build_review_packet(session, review)
+    return {
+        "reviewId": review.id,
+        "schemaVersion": "miro.review.packet.v1",
+        "packetHash": packet_hash,
+        "packet": packet,
+    }
+
+
+def sync_review_to_default_device(
+    session: Session,
+    actor: CurrentActor,
+    review_id: str,
+) -> HardwareSyncResponse:
+    review = _validate_review_for_actor(session, actor, review_id)
+    devices = _list_actor_devices(session, actor)
+    device = next((item for item in devices if item.connection_state == "connected"), devices[0])
+    review.device_id = device.id
+    summary_text, detail_text = _build_review_sync_text(review)
+    packet, packet_hash = _build_review_packet(session, review)
+
+    return sync_device(
+        session,
+        actor,
+        device.id,
+        HardwareSyncRequest(
+            syncKind="download",
+            healthStatus="healthy",
+            summaryText=summary_text,
+            detailText=detail_text,
+            batteryPercent=device.battery_percent,
+            reviewId=review.id,
+            vibrationEventCount=1,
+            payload={
+                "source": "review_auto_sync",
+                "schemaVersion": "miro.review.packet.v1",
+                "packetHash": packet_hash,
+                "reviewPacket": packet,
+                "overallAssessment": review.overall_assessment,
+                "topIssueKeys": review.repeated_issues_json or [],
+            },
+        ),
     )
 
 

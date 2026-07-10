@@ -22,6 +22,7 @@ from app.modules.review.analysis import (
     ReviewAnalysisLineInput,
     build_review_analysis_snapshot,
 )
+from app.modules.user_twin import service as user_twin_service
 from app.services.current_actor import CurrentActor
 
 REVIEW_SOURCE_REALTIME_SESSION = "realtime_session"
@@ -527,6 +528,7 @@ def create_review_from_realtime_session(
         raise
 
     session.refresh(review)
+    user_twin_service.refresh_from_review(session, actor, review.id)
     return _build_review_detail_response(session, review)
 
 

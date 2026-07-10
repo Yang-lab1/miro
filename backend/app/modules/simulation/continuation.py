@@ -14,6 +14,7 @@ class UploadedContextCloneSource:
     source_type: str | None
     extracted_summary_text: str | None
     extracted_excerpt_text: str | None
+    extracted_text: str | None = None
 
 
 @dataclass(frozen=True)

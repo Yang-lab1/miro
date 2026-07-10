@@ -1,4 +1,4 @@
-from fastapi import APIRouter
+from fastapi import APIRouter, Response, status
 
 from app.core.config import get_settings
 from app.db.session import ping_database
@@ -48,4 +48,53 @@ def healthcheck() -> dict[str, object]:
         "service": settings.app_name,
         "environment": settings.app_env,
         "databaseReachable": db_reachable,
+    }
+
+
+@router.get("/ready")
+def readiness(response: Response) -> dict[str, object]:
+    settings = get_settings()
+    database_reachable = False
+    try:
+        database_reachable = ping_database()
+    except Exception:
+        database_reachable = False
+
+    llm_configured = settings.llm_provider_mode == "rule_based" or bool(
+        settings.llm_api_key.strip()
+    )
+    doubao_configured = bool(settings.doubao_api_key.strip()) or bool(
+        settings.doubao_app_id.strip() and settings.doubao_access_token.strip()
+    )
+    voice_configured = doubao_configured or settings.browser_voice_fallback_enabled
+    hardware_configured = settings.hardware_provider_mode.strip().lower() != "demo"
+    is_production = settings.app_env.strip().lower() == "production"
+    checks = {
+        "database": {"configured": bool(settings.database_url), "reachable": database_reachable},
+        "llm": {
+            "mode": settings.llm_provider_mode,
+            "configured": llm_configured,
+        },
+        "doubao": {
+            "resourceId": settings.doubao_resource_id,
+            "configured": doubao_configured,
+            "browserFallbackEnabled": settings.browser_voice_fallback_enabled,
+        },
+        "hardware": {
+            "mode": settings.hardware_provider_mode,
+            "configured": hardware_configured,
+        },
+    }
+    ready = database_reachable and (
+        not is_production
+        or (llm_configured and voice_configured and hardware_configured)
+    )
+    if not ready:
+        response.status_code = status.HTTP_503_SERVICE_UNAVAILABLE
+
+    return {
+        "status": "ready" if ready else "not_ready",
+        "service": settings.app_name,
+        "environment": settings.app_env,
+        "checks": checks,
     }

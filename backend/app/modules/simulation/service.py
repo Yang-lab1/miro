@@ -16,6 +16,7 @@ from app.api.schemas.simulation import (
     SimulationStrategyBullets,
     SimulationStrategyGeneratedFrom,
     SimulationStrategyItem,
+    SimulationStrategyOutlineQuestion,
     SimulationStrategyResponse,
     SimulationUploadedFileResponse,
 )
@@ -29,6 +30,7 @@ from app.models.simulation import (
     SimulationUploadedFile,
     VoiceProfileCatalog,
 )
+from app.models.user import UserTwinMemory
 from app.modules.learning import service as learning_service
 from app.modules.simulation.continuation import (
     ReviewContinuationSource,
@@ -224,6 +226,7 @@ def _build_review_continuation_source(
                 storage_key=file_record.storage_key,
                 parse_status=file_record.parse_status,
                 source_type=file_record.source_type,
+                extracted_text=file_record.extracted_text,
                 extracted_summary_text=file_record.extracted_summary_text,
                 extracted_excerpt_text=file_record.extracted_excerpt_text,
             )
@@ -296,6 +299,8 @@ def _build_uploaded_file_response(
         sourceType=record.source_type,
         storageKey=record.storage_key,
         parseStatus=record.parse_status,
+        extractedSummaryText=record.extracted_summary_text,
+        extractedExcerptText=record.extracted_excerpt_text,
         status=record.upload_status,
         createdAt=record.created_at,
     )
@@ -345,6 +350,7 @@ def _build_simulation_response(
 def _build_strategy_items(
     sections: list[dict],
     uploaded_files: list[SimulationUploadedFile],
+    user_twin_memories: list[UserTwinMemory] | None = None,
 ) -> list[SimulationStrategyItem]:
     items: list[SimulationStrategyItem] = []
 
@@ -380,6 +386,26 @@ def _build_strategy_items(
 
     if uploaded_files:
         file_names = ", ".join(file_record.file_name for file_record in uploaded_files)
+        uploaded_summaries = [
+            _compact_strategy_text(file_record.extracted_summary_text, limit=180)
+            for file_record in uploaded_files
+            if file_record.extracted_summary_text
+        ]
+        uploaded_excerpts = [
+            _compact_strategy_text(file_record.extracted_excerpt_text, limit=180)
+            for file_record in uploaded_files
+            if file_record.extracted_excerpt_text
+        ]
+        context_bullets = [
+            f"Uploaded files: {file_names}",
+            *[f"Summary: {summary}" for summary in uploaded_summaries[:2]],
+            *[f"Evidence: {excerpt}" for excerpt in uploaded_excerpts[:2]],
+        ]
+        if len(context_bullets) == 1:
+            context_bullets.insert(
+                0,
+                "Bring in the uploaded context only when it supports the current ask.",
+            )
         items.append(
             SimulationStrategyItem(
                 id="uploaded-context",
@@ -389,19 +415,105 @@ def _build_strategy_items(
                     zh="Use uploaded context deliberately",
                 ),
                 bullets=SimulationStrategyBullets(
+                    en=context_bullets,
+                    zh=context_bullets,
+                ),
+            )
+        )
+
+    if user_twin_memories:
+        items.append(
+            SimulationStrategyItem(
+                id="user-twin-memory",
+                tag=LocalizedText(en="User Twin", zh="User Twin"),
+                title=LocalizedText(
+                    en="Watch the patterns you repeat.",
+                    zh="留意你反复出现的沟通模式。",
+                ),
+                bullets=SimulationStrategyBullets(
                     en=[
-                        "Bring in the uploaded context only when it supports the current ask.",
-                        f"Uploaded files: {file_names}",
+                        (
+                            f"{memory.issue_key} has appeared {memory.issue_count} time(s) "
+                            f"in {memory.country_key} rounds."
+                        )
+                        for memory in user_twin_memories[:3]
                     ],
                     zh=[
-                        "Use uploaded context only when it supports the current ask.",
-                        f"Uploaded files: {file_names}",
+                        (
+                            f"{memory.country_key} 场景中，{memory.issue_key} 已出现 "
+                            f"{memory.issue_count} 次。"
+                        )
+                        for memory in user_twin_memories[:3]
                     ],
                 ),
             )
         )
 
     return items
+
+
+def _compact_strategy_text(value: str | None, *, limit: int = 220) -> str:
+    normalized = " ".join(str(value or "").split())
+    if len(normalized) <= limit:
+        return normalized
+    return normalized[: limit - 3].rstrip() + "..."
+
+
+def _primary_uploaded_anchor(
+    uploaded_files: list[SimulationUploadedFile],
+) -> tuple[SimulationUploadedFile | None, str]:
+    for file_record in uploaded_files:
+        anchor = _compact_strategy_text(
+            file_record.extracted_summary_text or file_record.extracted_excerpt_text,
+            limit=220,
+        )
+        if anchor:
+            return file_record, anchor
+    return None, ""
+
+
+def _build_interview_outline(
+    simulation: Simulation,
+    uploaded_files: list[SimulationUploadedFile],
+) -> list[SimulationStrategyOutlineQuestion]:
+    file_record, uploaded_anchor = _primary_uploaded_anchor(uploaded_files)
+    meeting_type = simulation.meeting_type_key or "this conversation"
+    goal = simulation.goal_key or "the main goal"
+    country = simulation.country_key or "the target market"
+    opening_anchor = uploaded_anchor or f"{goal} in {country}"
+
+    return [
+        SimulationStrategyOutlineQuestion(
+            questionId="opening-context",
+            stage="opening",
+            prompt=(
+                "Start with your opening goal, then connect it to this context: "
+                f"{opening_anchor}"
+            ),
+            expectedSignal="User frames the objective with evidence from the uploaded brief.",
+            groundingFileId=file_record.id if file_record else None,
+        ),
+        SimulationStrategyOutlineQuestion(
+            questionId="ownership-risk",
+            stage="probe",
+            prompt=(
+                f"Who owns the next decision in {meeting_type}, and what risk or timing point "
+                "should they care about first?"
+            ),
+            expectedSignal="User identifies owner, risk, and next decision path.",
+            groundingFileId=file_record.id if file_record else None,
+        ),
+        SimulationStrategyOutlineQuestion(
+            questionId="specific-close",
+            stage="close",
+            prompt=(
+                "Close with one specific next step that is dated, easy to accept, and aligned "
+                f"with {goal}."
+            ),
+            expectedSignal="User proposes a concrete, low-friction next action.",
+            groundingFileId=file_record.id if file_record else None,
+        ),
+    ]
 
 
 def _build_strategy(
@@ -418,7 +530,25 @@ def _build_strategy(
         )
 
     uploaded_files = _get_uploaded_files(session, simulation.id)
-    items = _build_strategy_items(latest_content.sections_json or [], uploaded_files)
+    user_twin_memories = session.scalars(
+        select(UserTwinMemory)
+        .where(
+            UserTwinMemory.user_id == simulation.user_id,
+            UserTwinMemory.country_key == simulation.country_key,
+        )
+        .order_by(
+            UserTwinMemory.issue_count.desc(),
+            UserTwinMemory.updated_at.desc(),
+            UserTwinMemory.id.asc(),
+        )
+        .limit(3)
+    ).all()
+    items = _build_strategy_items(
+        latest_content.sections_json or [],
+        uploaded_files,
+        user_twin_memories,
+    )
+    interview_outline = _build_interview_outline(simulation, uploaded_files)
     generated_at = datetime.now(tz=UTC)
 
     return SimulationStrategyResponse(
@@ -444,6 +574,7 @@ def _build_strategy(
             ),
         ),
         items=items,
+        interviewOutline=interview_outline,
     )
 
 
@@ -691,6 +822,7 @@ def create_simulation_from_review(
                 storage_key=file_record.storage_key,
                 parse_status=file_record.parse_status,
                 source_type=file_record.source_type,
+                extracted_text=file_record.extracted_text,
                 extracted_summary_text=file_record.extracted_summary_text,
                 extracted_excerpt_text=file_record.extracted_excerpt_text,
             )
@@ -754,6 +886,7 @@ def add_simulation_files(
                 storage_key=None,
                 parse_status=extraction.parse_status,
                 source_type=file_payload.sourceType,
+                extracted_text=extraction.extracted_text,
                 extracted_summary_text=extraction.extracted_summary_text,
                 extracted_excerpt_text=extraction.extracted_excerpt_text,
             )

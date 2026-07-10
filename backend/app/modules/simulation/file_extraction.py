@@ -7,7 +7,7 @@ from dataclasses import dataclass
 
 from pypdf import PdfReader
 
-MAX_TEXT_CHARS = 4000
+MAX_TEXT_CHARS = 12000
 SUMMARY_CHAR_LIMIT = 220
 EXCERPT_CHAR_LIMIT = 260
 
@@ -15,6 +15,7 @@ EXCERPT_CHAR_LIMIT = 260
 @dataclass(slots=True)
 class FileExtractionResult:
     parse_status: str
+    extracted_text: str | None
     extracted_summary_text: str
     extracted_excerpt_text: str
 
@@ -22,9 +23,9 @@ class FileExtractionResult:
 def _normalize_uploaded_context_topic(file_name: str) -> str:
     stem = file_name.rsplit(".", 1)[0]
     normalized = re.sub(r"[_\\-]+", " ", stem)
-    normalized = re.sub(r"\\s+", " ", normalized).strip().lower()
-    normalized = re.sub(r"\\b(v\\d+|final|copy|draft)\\b", "", normalized)
-    normalized = re.sub(r"\\s+", " ", normalized).strip()
+    normalized = re.sub(r"\s+", " ", normalized).strip().lower()
+    normalized = re.sub(r"\b(v\d+|final|copy|draft)\b", "", normalized)
+    normalized = re.sub(r"\s+", " ", normalized).strip()
     return normalized or "uploaded context"
 
 
@@ -48,13 +49,14 @@ def build_stub_extraction(
     )
     return FileExtractionResult(
         parse_status=parse_status,
+        extracted_text=None,
         extracted_summary_text=summary,
         extracted_excerpt_text=excerpt,
     )
 
 
 def _normalize_text_content(raw_text: str) -> str:
-    return re.sub(r"\\s+", " ", raw_text).strip()
+    return re.sub(r"\s+", " ", raw_text).strip()
 
 
 def _shorten(text: str, *, limit: int) -> str:
@@ -64,7 +66,7 @@ def _shorten(text: str, *, limit: int) -> str:
 
 
 def _build_text_summary(text: str) -> str:
-    sentences = re.split(r"(?<=[.!?])\\s+", text)
+    sentences = re.split(r"(?<=[.!?])\s+", text)
     summary_parts = [segment.strip() for segment in sentences if segment.strip()]
     if not summary_parts:
         return _shorten(text, limit=SUMMARY_CHAR_LIMIT)
@@ -129,6 +131,7 @@ def extract_uploaded_file_content(
         if extracted_text:
             return FileExtractionResult(
                 parse_status="ready",
+                extracted_text=extracted_text,
                 extracted_summary_text=_build_text_summary(extracted_text),
                 extracted_excerpt_text=_build_text_excerpt(extracted_text),
             )

@@ -22,6 +22,7 @@ from app.models.simulation import RealtimeSession, Simulation
 from app.models.user import Membership, User, UserTwinMemory
 
 ASYMMETRIC_SIGNING_ALGORITHMS = ("RS256", "RS384", "RS512", "ES256", "ES384", "ES512")
+JWT_CLOCK_SKEW_LEEWAY_SECONDS = 60
 
 
 @dataclass(slots=True)
@@ -131,6 +132,7 @@ def verify_supabase_token(token: str) -> VerifiedSupabaseClaims:
             algorithms=[algorithm],
             audience=settings.supabase_jwt_audience,
             issuer=issuer,
+            leeway=JWT_CLOCK_SKEW_LEEWAY_SECONDS,
             options={"require": ["sub", "exp", "iss", "aud"]},
         )
     except ExpiredSignatureError as exc:

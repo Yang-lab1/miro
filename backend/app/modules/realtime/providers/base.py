@@ -1,4 +1,4 @@
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from typing import Protocol
 
 from app.api.schemas.realtime import RealtimeLaunchResponse, RealtimeTransport
@@ -48,6 +48,7 @@ class RealtimeGroundingFileContext:
     upload_status: str
     extracted_summary_text: str | None
     extracted_excerpt_text: str | None
+    extracted_text: str | None = None
 
 
 @dataclass(slots=True)
@@ -65,6 +66,8 @@ class RealtimeGroundingContext:
     uploaded_files: list[RealtimeGroundingFileContext]
     uploaded_context_summary_en: str | None
     uploaded_context_excerpts_en: list[str]
+    retrieved_context_chunks: list[str]
+    user_twin_memories: list[str] = field(default_factory=list)
 
 
 @dataclass(slots=True)

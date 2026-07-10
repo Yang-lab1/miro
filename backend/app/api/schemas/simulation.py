@@ -80,8 +80,18 @@ class SimulationUploadedFileResponse(StrictModel):
     sourceType: str | None
     storageKey: str | None
     parseStatus: str | None
+    extractedSummaryText: str | None
+    extractedExcerptText: str | None
     status: str
     createdAt: datetime
+
+
+class SimulationStrategyOutlineQuestion(StrictModel):
+    questionId: str
+    stage: Literal["opening", "probe", "close"]
+    prompt: str
+    expectedSignal: str
+    groundingFileId: str | None = None
 
 
 class SimulationStrategyGeneratedFrom(StrictModel):
@@ -112,6 +122,7 @@ class SimulationStrategyResponse(StrictModel):
     generatedFrom: SimulationStrategyGeneratedFrom
     summary: LocalizedText
     items: list[SimulationStrategyItem]
+    interviewOutline: list[SimulationStrategyOutlineQuestion] = Field(default_factory=list)
 
 
 class SimulationResponse(StrictModel):
