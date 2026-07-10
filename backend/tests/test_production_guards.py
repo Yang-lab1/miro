@@ -37,10 +37,23 @@ def _build_ready_simulation(client, headers):
     return session_id
 
 
-def test_production_rejects_synthetic_speech_input(make_client, supabase_jwks_server):
+def test_production_rejects_synthetic_speech_input(
+    make_client,
+    supabase_jwks_server,
+    monkeypatch,
+):
+    from app.modules.realtime import service as realtime_service
+    from app.modules.realtime.turn_engine import RuleBasedRealtimeTurnGenerator
+
+    monkeypatch.setattr(
+        realtime_service,
+        "get_turn_generator",
+        lambda: RuleBasedRealtimeTurnGenerator(),
+    )
     client = make_client(
         APP_ENV="production",
-        LLM_PROVIDER_MODE="rule_based",
+        LLM_PROVIDER_MODE="openai_compatible",
+        LLM_API_KEY="test-key",
         SUPABASE_URL=supabase_jwks_server["base_url"],
     )
     user_id = "production-guard-speech-user"

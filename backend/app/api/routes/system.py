@@ -60,15 +60,16 @@ def readiness(response: Response) -> dict[str, object]:
     except Exception:
         database_reachable = False
 
-    llm_configured = settings.llm_provider_mode == "rule_based" or bool(
-        settings.llm_api_key.strip()
-    )
+    llm_provider_mode = settings.llm_provider_mode.strip().lower()
+    is_production = settings.app_env.strip().lower() == "production"
+    llm_configured = (
+        llm_provider_mode == "openai_compatible" and bool(settings.llm_api_key.strip())
+    ) or (llm_provider_mode == "rule_based" and not is_production)
     doubao_configured = bool(settings.doubao_api_key.strip()) or bool(
         settings.doubao_app_id.strip() and settings.doubao_access_token.strip()
     )
     voice_configured = doubao_configured or settings.browser_voice_fallback_enabled
     hardware_configured = settings.hardware_provider_mode.strip().lower() != "demo"
-    is_production = settings.app_env.strip().lower() == "production"
     checks = {
         "database": {"configured": bool(settings.database_url), "reachable": database_reachable},
         "llm": {

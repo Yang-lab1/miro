@@ -204,7 +204,17 @@ def _parse_json_content(content: object) -> dict:
 
 def get_turn_generator() -> RuleBasedRealtimeTurnGenerator | OpenAICompatibleRealtimeTurnGenerator:
     settings = get_settings()
-    if settings.llm_provider_mode.strip().lower() == "openai_compatible":
+    provider_mode = settings.llm_provider_mode.strip().lower()
+    if settings.app_env.strip().lower() == "production" and provider_mode != "openai_compatible":
+        raise AppError(
+            status_code=503,
+            code="realtime_text_provider_required",
+            message="A real text-generation provider is required in production.",
+            details={
+                "hint": "Set LLM_PROVIDER_MODE=openai_compatible and configure LLM_API_KEY.",
+            },
+        )
+    if provider_mode == "openai_compatible":
         return OpenAICompatibleRealtimeTurnGenerator(
             api_key=settings.llm_api_key,
             base_url=settings.llm_base_url,
