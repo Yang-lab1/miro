@@ -69,7 +69,13 @@ def readiness(response: Response) -> dict[str, object]:
         settings.doubao_app_id.strip() and settings.doubao_access_token.strip()
     )
     voice_configured = doubao_configured or settings.browser_voice_fallback_enabled
-    hardware_configured = settings.hardware_provider_mode.strip().lower() != "demo"
+    hardware_provider_mode = settings.hardware_provider_mode.strip().lower()
+    hardware_provider_url = settings.hardware_provider_url.strip()
+    hardware_configured = (
+        hardware_provider_mode == "webhook"
+        and bool(hardware_provider_url)
+        and (not is_production or hardware_provider_url.startswith("https://"))
+    )
     checks = {
         "database": {"configured": bool(settings.database_url), "reachable": database_reachable},
         "llm": {
@@ -82,7 +88,8 @@ def readiness(response: Response) -> dict[str, object]:
             "browserFallbackEnabled": settings.browser_voice_fallback_enabled,
         },
         "hardware": {
-            "mode": settings.hardware_provider_mode,
+            "mode": hardware_provider_mode,
+            "urlConfigured": bool(hardware_provider_url),
             "configured": hardware_configured,
         },
     }

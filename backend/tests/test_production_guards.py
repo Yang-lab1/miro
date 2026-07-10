@@ -95,3 +95,52 @@ def test_production_rejects_demo_hardware_sync(make_client, supabase_jwks_server
 
     assert response.status_code == 503
     assert response.json()["error"]["code"] == "hardware_provider_not_configured"
+
+
+def test_production_hardware_webhook_must_accept_packet(
+    make_client,
+    supabase_jwks_server,
+    monkeypatch,
+):
+    import app.modules.hardware.service as hardware_service
+
+    calls = []
+
+    class FakeResponse:
+        def raise_for_status(self):
+            return None
+
+        def json(self):
+            return {"accepted": True}
+
+    def fake_post(url, *, headers, json, timeout):
+        calls.append({"url": url, "headers": headers, "json": json, "timeout": timeout})
+        return FakeResponse()
+
+    monkeypatch.setattr(hardware_service.httpx, "post", fake_post)
+    client = make_client(
+        APP_ENV="production",
+        HARDWARE_PROVIDER_MODE="webhook",
+        HARDWARE_PROVIDER_URL="https://hardware.example.test/sync",
+        HARDWARE_PROVIDER_API_KEY="bridge-key",
+        SUPABASE_URL=supabase_jwks_server["base_url"],
+    )
+    token = supabase_jwks_server["issue_token"](sub="production-webhook-user")
+    headers = {"Authorization": f"Bearer {token}"}
+    device_id = client.get("/api/v1/hardware/devices", headers=headers).json()[0]["deviceId"]
+
+    response = client.post(
+        f"/api/v1/hardware/devices/{device_id}/sync",
+        json={
+            "syncKind": "download",
+            "healthStatus": "healthy",
+            "summaryText": "Review packet",
+            "payload": {"schemaVersion": "miro.review.packet.v1"},
+        },
+        headers=headers,
+    )
+
+    assert response.status_code == 200
+    assert calls[0]["url"] == "https://hardware.example.test/sync"
+    assert calls[0]["headers"]["Authorization"] == "Bearer bridge-key"
+    assert calls[0]["json"]["payload"]["schemaVersion"] == "miro.review.packet.v1"

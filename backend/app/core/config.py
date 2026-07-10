@@ -39,6 +39,9 @@ class Settings(BaseSettings):
     demo_user_email: str = "demo@miro.local"
     realtime_provider_mode: str = "stub"
     hardware_provider_mode: str = "demo"
+    hardware_provider_url: str = ""
+    hardware_provider_api_key: str = ""
+    hardware_provider_timeout_seconds: float = 10.0
     browser_voice_fallback_enabled: bool = True
 
     # --- Text generation provider ---

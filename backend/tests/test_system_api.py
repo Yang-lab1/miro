@@ -34,7 +34,8 @@ def test_production_readiness_rejects_rule_based_text_generation(make_client):
     client = make_client(
         APP_ENV="production",
         LLM_PROVIDER_MODE="rule_based",
-        HARDWARE_PROVIDER_MODE="bluetooth",
+        HARDWARE_PROVIDER_MODE="webhook",
+        HARDWARE_PROVIDER_URL="https://hardware.example.test/sync",
         BROWSER_VOICE_FALLBACK_ENABLED="true",
     )
 

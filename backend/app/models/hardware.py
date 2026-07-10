@@ -1,7 +1,7 @@
-"""Demo hardware state models.
+"""Hardware audit state models.
 
-These tables currently support a simulated hardware surface for UI/demo flows.
-They do not imply real device transport, firmware, or physical-world ingestion.
+These tables store device-facing audit state. Production transport is performed
+by the configured hardware bridge before a sync event is persisted.
 """
 
 from datetime import datetime

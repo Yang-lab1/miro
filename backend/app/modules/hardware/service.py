@@ -1,7 +1,9 @@
 import json
 from datetime import UTC, datetime
 from hashlib import sha256
+from typing import Any
 
+import httpx
 from sqlalchemy import func, select
 from sqlalchemy.orm import Session
 
@@ -35,6 +37,61 @@ SYNC_DETAIL_BY_KIND = {
     "download": "Demo device download finished for UI playback.",
     "sync_complete": "Demo device sync finished for UI playback.",
 }
+
+
+def _hardware_provider_mode() -> str:
+    return get_settings().hardware_provider_mode.strip().lower()
+
+
+def _dispatch_hardware_provider(payload: dict[str, Any]) -> dict[str, Any]:
+    settings = get_settings()
+    mode = settings.hardware_provider_mode.strip().lower()
+    url = settings.hardware_provider_url.strip()
+    is_production = settings.app_env.strip().lower() == "production"
+
+    if mode == "demo" and not is_production:
+        return {}
+    if mode != "webhook" or not url or (is_production and not url.startswith("https://")):
+        raise AppError(
+            status_code=503,
+            code="hardware_provider_not_configured",
+            message="A real hardware transport is required before syncing.",
+            details={
+                "hint": (
+                    "Configure HARDWARE_PROVIDER_MODE=webhook and an HTTPS "
+                    "HARDWARE_PROVIDER_URL for the device bridge."
+                ),
+            },
+        )
+
+    headers = {
+        "Content-Type": "application/json",
+        "X-Miro-Protocol": "miro.hardware.sync.v1",
+    }
+    if settings.hardware_provider_api_key.strip():
+        headers["Authorization"] = f"Bearer {settings.hardware_provider_api_key.strip()}"
+
+    try:
+        response = httpx.post(
+            url,
+            headers=headers,
+            json=payload,
+            timeout=settings.hardware_provider_timeout_seconds,
+        )
+        response.raise_for_status()
+    except httpx.HTTPError as exc:
+        raise AppError(
+            status_code=502,
+            code="hardware_provider_sync_failed",
+            message="The hardware bridge did not accept the sync packet.",
+            details={"provider": "webhook", "reason": str(exc)[:240]},
+        ) from exc
+
+    try:
+        provider_response = response.json()
+    except ValueError:
+        return {}
+    return provider_response if isinstance(provider_response, dict) else {}
 
 
 def _raise_device_not_found(device_id: str) -> None:
@@ -283,20 +340,6 @@ def sync_device(
     device_id: str,
     payload: HardwareSyncRequest,
 ) -> HardwareSyncResponse:
-    settings = get_settings()
-    if (
-        settings.app_env.strip().lower() == "production"
-        and settings.hardware_provider_mode.strip().lower() == "demo"
-    ):
-        raise AppError(
-            status_code=503,
-            code="hardware_provider_not_configured",
-            message="A real hardware transport is required in production.",
-            details={
-                "hint": "Configure HARDWARE_PROVIDER_MODE and the device adapter before syncing.",
-            },
-        )
-
     device = _get_actor_device(session, actor, device_id)
     review_id = None
     if payload.reviewId is not None:
@@ -305,6 +348,34 @@ def sync_device(
     now = datetime.now(tz=UTC)
     previous_firmware = device.firmware_version
     next_firmware = payload.firmwareVersion or previous_firmware
+
+    provider_response = _dispatch_hardware_provider(
+        {
+            "schemaVersion": "miro.hardware.sync.v1",
+            "deviceId": device.id,
+            "reviewId": review_id,
+            "syncKind": payload.syncKind,
+            "healthStatus": payload.healthStatus,
+            "summaryText": payload.summaryText,
+            "detailText": payload.detailText,
+            "firmwareBefore": previous_firmware,
+            "firmwareAfter": next_firmware,
+            "batteryPercent": payload.batteryPercent,
+            "payload": payload.payload or {},
+        }
+    )
+    provider_mode = _hardware_provider_mode()
+    is_demo = provider_mode == "demo"
+    summary_text = payload.summaryText or (
+        SYNC_TITLE_BY_KIND[payload.syncKind]
+        if is_demo
+        else "Hardware sync completed"
+    )
+    detail_text = payload.detailText or (
+        SYNC_DETAIL_BY_KIND[payload.syncKind]
+        if is_demo
+        else "The hardware bridge accepted the sync packet."
+    )
 
     device.connection_state = "connected"
     device.transfer_state = payload.healthStatus
@@ -322,6 +393,8 @@ def sync_device(
             "vibrationEventCount": payload.vibrationEventCount,
             "firmwareBefore": previous_firmware,
             "firmwareAfter": next_firmware,
+            "provider": provider_mode,
+            "providerResponse": provider_response,
         }
     )
 
@@ -329,7 +402,7 @@ def sync_device(
         device_id=device.id,
         review_id=review_id,
         health_status=payload.healthStatus,
-        summary_text=payload.summaryText,
+        summary_text=summary_text,
         payload_json=sync_payload,
     )
     session.add(sync_event)
@@ -341,22 +414,23 @@ def sync_device(
         review_id=review_id,
         event_type="sync",
         severity=_severity_for_health_status(payload.healthStatus),
-        title_text=payload.summaryText or SYNC_TITLE_BY_KIND[payload.syncKind],
-        detail_text=payload.detailText or SYNC_DETAIL_BY_KIND[payload.syncKind],
-        payload_json={"syncRecordId": sync_event.id, "source": "hardware-demo"},
+        title_text=summary_text,
+        detail_text=detail_text,
+        payload_json={"syncRecordId": sync_event.id, "source": f"hardware-{provider_mode}"},
     )
 
-    for index in range(payload.vibrationEventCount):
-        _create_log(
-            session,
-            device_id=device.id,
-            review_id=review_id,
-            event_type="vibration",
-            severity="warning",
-            title_text=f"Demo vibration event {index + 1}",
-            detail_text="Simulated vibration event captured for UI playback.",
-            payload_json={"syncRecordId": sync_event.id, "sequence": index + 1},
-        )
+    if is_demo:
+        for index in range(payload.vibrationEventCount):
+            _create_log(
+                session,
+                device_id=device.id,
+                review_id=review_id,
+                event_type="vibration",
+                severity="warning",
+                title_text=f"Demo vibration event {index + 1}",
+                detail_text="Simulated vibration event captured for UI playback.",
+                payload_json={"syncRecordId": sync_event.id, "sequence": index + 1},
+            )
 
     session.commit()
     session.refresh(device)

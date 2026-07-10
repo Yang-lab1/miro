@@ -63,12 +63,21 @@ Key backend env:
 - `SUPABASE_JWT_ISSUER=https://wzqpboqlhzxqbfautlxe.supabase.co/auth/v1`
 - `SUPABASE_JWKS_URL=https://wzqpboqlhzxqbfautlxe.supabase.co/auth/v1/.well-known/jwks.json`
 - `ALLOW_DEMO_ACTOR_FALLBACK=false`
+- `HARDWARE_PROVIDER_MODE=webhook`
+- `HARDWARE_PROVIDER_URL=<https-hardware-bridge-sync-endpoint>`
+- `HARDWARE_PROVIDER_API_KEY=<hardware-bridge-token>`
+- `HARDWARE_PROVIDER_TIMEOUT_SECONDS=10`
 
 Runtime shape:
 
 - run `alembic upgrade head`
 - start `uvicorn app.main:app --host 0.0.0.0 --port 8000`
 - expose the API behind the sslip-backed HTTPS origin used by the frontend
+
+The hardware bridge receives JSON with `X-Miro-Protocol: miro.hardware.sync.v1`.
+For a review sync, the nested `payload` contains the versioned
+`miro.review.packet.v1` packet and its hash. Miro writes the local sync record
+only after the bridge returns a 2xx response.
 
 Health check:
 
@@ -79,6 +88,7 @@ Production readiness check:
 - `/api/v1/ready`
 - returns `200` only when the database is reachable and production text-model/Doubao configuration exists
 - returns `503` with per-provider checks when the backend is not ready for a real interview
+- hardware readiness requires `HARDWARE_PROVIDER_MODE=webhook` and an HTTPS bridge URL; `demo` and unknown modes never count as production hardware
 
 Container option:
 
