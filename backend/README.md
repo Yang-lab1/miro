@@ -208,9 +208,13 @@ Live grounding is now wired as a lightweight internal retrieval layer:
 - the extraction path now supports:
   - direct `text/plain` content
   - simple text extraction from text-based PDFs
-  - deterministic fallback summaries when extraction is unavailable
+  - failed parse status when extraction is unavailable; unreadable uploads cannot enter strategy
+    generation or realtime launch
 - uploaded source text is chunked in-process and each turn retrieves the top matching context chunks
 - realtime turn generation can read strategy summary, retrieved context, User Twin memories, and recent transcript lines
+- when `LLM_PROVIDER_MODE=openai_compatible` is enabled, strategy generation sends uploaded source text,
+  learning notes, and User Twin memory to the configured server-side model and validates an opening /
+  probe / close outline before saving it
 - review summaries can reflect grounded uploaded context without changing the public review contract
 - the backend still does not implement OCR, embeddings/vector storage, Office-layout extraction, or real multimodal/live media understanding
 - production rejects `speech_stub` turns; synthetic speech is limited to local tests and demos. Set `BROWSER_VOICE_FALLBACK_ENABLED=true` when the browser-native voice path is the approved production voice channel.

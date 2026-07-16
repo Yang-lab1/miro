@@ -274,7 +274,8 @@ Current implementation note:
 - The current extraction path supports:
   - direct `text/plain` content
   - simple text extraction from text-based PDFs
-  - safe fallback to deterministic summaries when extraction is unavailable
+  - an explicit failed parse status when extraction is unavailable; no synthetic summary is created
+    from a filename or unreadable upload
 - They are still not parsed through a full document pipeline, chunked, embedded, or retrieved through a vector database.
 
 Simulation files request example:
@@ -324,7 +325,9 @@ Current implementation note:
   - uploaded context grounding prep
   - turn generation
   - alert extraction
-- The default turn generation and alert extraction paths remain demo-safe and rule-based.
+- The local default turn generation and alert extraction paths remain demo-safe and rule-based. When
+  `LLM_PROVIDER_MODE=openai_compatible` is enabled, strategy generation also uses the configured
+  server-side model and validates the three-stage outline before saving it.
 - Turn generation now consumes:
   - strategy summary
   - uploaded context summary / excerpts derived from real text when available

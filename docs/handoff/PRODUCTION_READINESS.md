@@ -8,14 +8,14 @@
 
 1. 上传 TXT 或文本型 PDF。
 2. 提取正文、摘要和 excerpt，并保存到当前 simulation。
-3. 根据资料生成 `opening / probe / close` 面试提纲。
+3. 根据资料生成 `opening / probe / close` 面试提纲；生产配置真实文本模型时，提纲会把上传正文、学习笔记和 User Twin 记忆作为模型输入，并校验返回结构。
 4. 创建 realtime session，持久化 AI 第一问。
 5. 接收用户回答，按上传正文和 User Twin 检索下一轮上下文。
 6. 结束面试，生成 Review 报告并保存到账号范围。
 7. 从 Review 生成硬件同步记录。
 8. 生成带 `schemaVersion` 和 `packetHash` 的 Review Packet，并通过明确配置的 HTTPS webhook 适配器发送；桥接返回 2xx 后才记录同步。
 
-当前证据：后端完整回归 `182 passed`；本轮新增的 TXT/PDF 解析失败保护、资料锚点真实性、上传大小边界和面试时长边界均已覆盖测试。前端 TypeScript/Vite 构建、高保真静态构建和本轮触及文件的 Ruff 定向检查均通过。
+当前证据：后端完整回归 `184 passed`；本轮新增的真实 LLM 提纲生成、TXT/PDF 解析失败保护、资料锚点真实性、上传大小边界和面试时长边界均已覆盖测试。前端 TypeScript/Vite 构建、高保真静态构建和本轮触及文件的 Ruff 定向检查均通过。
 
 ## 当前线上状态
 

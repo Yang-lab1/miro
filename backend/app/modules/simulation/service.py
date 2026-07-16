@@ -21,6 +21,7 @@ from app.api.schemas.simulation import (
     SimulationUploadedFileResponse,
 )
 from app.api.schemas.voice_profiles import VoiceProfileResponseItem
+from app.core.config import get_settings
 from app.core.errors import AppError
 from app.core.shared_catalog import load_enum_keys
 from app.models.review import Review
@@ -39,6 +40,10 @@ from app.modules.simulation.continuation import (
     review_can_continue,
 )
 from app.modules.simulation.file_extraction import extract_uploaded_file_content
+from app.modules.simulation.strategy_generation import (
+    OpenAICompatibleStrategyGenerator,
+    StrategyGenerationContext,
+)
 from app.services.current_actor import CurrentActor
 
 
@@ -570,6 +575,43 @@ def _build_strategy(
         user_twin_memories,
     )
     interview_outline = _build_interview_outline(simulation, uploaded_files)
+    if get_settings().llm_provider_mode.strip().lower() == "openai_compatible":
+        interview_outline = OpenAICompatibleStrategyGenerator(
+            api_key=get_settings().llm_api_key,
+            base_url=get_settings().llm_base_url,
+            model=get_settings().llm_model,
+            timeout_seconds=get_settings().llm_timeout_seconds,
+        ).generate(
+            StrategyGenerationContext(
+                country_key=simulation.country_key,
+                meeting_type_key=simulation.meeting_type_key or "",
+                goal_key=simulation.goal_key or "",
+                voice_style_key=simulation.voice_style_key or "",
+                learning_bullets=[
+                    str(item.get("content", {}).get("en"))
+                    for section in latest_content.sections_json or []
+                    for item in section.get("items", [])
+                    if isinstance(item.get("content"), dict)
+                    and item.get("content", {}).get("en")
+                ],
+                uploaded_sources=[
+                    {
+                        "file_id": file_record.id,
+                        "file_name": file_record.file_name,
+                        "text": file_record.extracted_text
+                        or file_record.extracted_excerpt_text
+                        or file_record.extracted_summary_text
+                        or "",
+                    }
+                    for file_record in uploaded_files
+                ],
+                user_twin_memories=[
+                    f"{memory.issue_key}: {memory.last_context or 'recurring pattern'} "
+                    f"({memory.issue_count} occurrence(s))"
+                    for memory in user_twin_memories
+                ],
+            )
+        )
     generated_at = datetime.now(tz=UTC)
 
     return SimulationStrategyResponse(

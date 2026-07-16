@@ -42,8 +42,36 @@ def test_production_rejects_synthetic_speech_input(
     supabase_jwks_server,
     monkeypatch,
 ):
+    import httpx
+
     from app.modules.realtime import service as realtime_service
     from app.modules.realtime.turn_engine import RuleBasedRealtimeTurnGenerator
+
+    def fake_llm_post(*args, **kwargs):
+        return httpx.Response(
+            200,
+            request=httpx.Request("POST", args[0]),
+            json={
+                "choices": [
+                    {
+                        "message": {
+                            "content": (
+                                '{"questions":['
+                                '{"stage":"opening","prompt":"What is the goal?",'
+                                '"expectedSignal":"A clear goal."},'
+                                '{"stage":"probe","prompt":"Who owns the decision?",'
+                                '"expectedSignal":"A named owner."},'
+                                '{"stage":"close","prompt":"What is next?",'
+                                '"expectedSignal":"A concrete next step."}'
+                                ']}'
+                            )
+                        }
+                    }
+                ]
+            },
+        )
+
+    monkeypatch.setattr(httpx, "post", fake_llm_post)
 
     monkeypatch.setattr(
         realtime_service,
