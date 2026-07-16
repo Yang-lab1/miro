@@ -8,6 +8,7 @@ from dataclasses import dataclass
 from pypdf import PdfReader
 
 MAX_TEXT_CHARS = 12000
+MAX_UPLOAD_BYTES = 8 * 1024 * 1024
 SUMMARY_CHAR_LIMIT = 220
 EXCERPT_CHAR_LIMIT = 260
 
@@ -83,6 +84,8 @@ def _extract_text_plain(
 def _is_text_upload(file_name: str, content_type: str) -> bool:
     normalized_type = content_type.strip().lower()
     extension = file_name.rsplit(".", 1)[-1].lower() if "." in file_name else ""
+    if extension == "pdf":
+        return False
     return (
         normalized_type.startswith("text/")
         or normalized_type == "application/json"
@@ -98,6 +101,8 @@ def _is_pdf_upload(file_name: str, content_type: str) -> bool:
 
 def _extract_pdf_text(file_data_base64: str) -> str:
     decoded = base64.b64decode(file_data_base64, validate=True)
+    if len(decoded) > MAX_UPLOAD_BYTES:
+        raise ValueError("Uploaded file exceeds the maximum supported size.")
     reader = PdfReader(io.BytesIO(decoded))
     extracted_parts: list[str] = []
     for page in reader.pages[:3]:
@@ -117,6 +122,13 @@ def extract_uploaded_file_content(
     file_data_base64: str | None,
 ) -> FileExtractionResult:
     try:
+        if size_bytes > MAX_UPLOAD_BYTES:
+            return build_failed_extraction(
+                file_name,
+                content_type=content_type,
+                size_bytes=size_bytes,
+                source_type=source_type,
+            )
         extracted_text: str | None = None
         if _is_text_upload(file_name, content_type):
             extracted_text = _extract_text_plain(

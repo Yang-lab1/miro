@@ -288,6 +288,61 @@ def test_add_pdf_file_marks_parse_failed_when_text_extraction_fails(client, db_s
     assert record.extracted_excerpt_text is None
 
 
+def test_pdf_extension_cannot_be_parsed_as_plain_text_when_mime_is_wrong(
+    client,
+    db_session,
+):
+    created = _create_simulation(client, "Japan", full_setup=True)
+
+    response = client.post(
+        f"/api/v1/simulations/{created['simulationId']}/files",
+        json={
+            "files": [
+                {
+                    "fileName": "brief.pdf",
+                    "contentType": "text/plain",
+                    "sizeBytes": 32,
+                    "sourceType": "manual_upload",
+                    "textContent": "This is not a PDF document.",
+                }
+            ]
+        },
+    )
+
+    assert response.status_code == 200
+    payload = response.json()["uploadedFiles"][0]
+    assert payload["parseStatus"] == "failed"
+    record = db_session.scalar(
+        select(SimulationUploadedFile).where(
+            SimulationUploadedFile.id == payload["fileId"]
+        )
+    )
+    assert record is not None
+    assert record.extracted_text is None
+
+
+def test_upload_larger_than_backend_limit_is_not_marked_ready(client):
+    created = _create_simulation(client, "Japan", full_setup=True)
+
+    response = client.post(
+        f"/api/v1/simulations/{created['simulationId']}/files",
+        json={
+            "files": [
+                {
+                    "fileName": "oversized.txt",
+                    "contentType": "text/plain",
+                    "sizeBytes": 8 * 1024 * 1024 + 1,
+                    "sourceType": "manual_upload",
+                    "textContent": "This should never become usable context.",
+                }
+            ]
+        },
+    )
+
+    assert response.status_code == 200
+    assert response.json()["uploadedFiles"][0]["parseStatus"] == "failed"
+
+
 def test_generate_strategy_rejects_unreadable_uploaded_file(client):
     created = _create_simulation(client, "Japan", full_setup=True)
     uploaded = client.post(
