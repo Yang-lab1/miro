@@ -472,6 +472,27 @@ def _primary_uploaded_anchor(
     return None, ""
 
 
+def _ensure_uploaded_files_are_parsed(
+    uploaded_files: list[SimulationUploadedFile],
+) -> None:
+    failed_files = [
+        {
+            "fileId": file_record.id,
+            "fileName": file_record.file_name,
+            "parseStatus": file_record.parse_status,
+        }
+        for file_record in uploaded_files
+        if file_record.parse_status != "ready"
+    ]
+    if failed_files:
+        raise AppError(
+            status_code=422,
+            code="simulation_file_parse_failed",
+            message="Every uploaded PDF or TXT file must be parsed before strategy generation.",
+            details={"files": failed_files},
+        )
+
+
 def _build_interview_outline(
     simulation: Simulation,
     uploaded_files: list[SimulationUploadedFile],
@@ -914,6 +935,8 @@ def generate_simulation_strategy(
             message="Simulation setup is incomplete for strategy generation.",
         )
 
+    _ensure_uploaded_files_are_parsed(_get_uploaded_files(session, simulation.id))
+
     if (
         simulation.strategy_payload_json
         and simulation.strategy_for_setup_revision == simulation.setup_revision
@@ -974,6 +997,8 @@ def validate_realtime_launch_prerequisites(
             message="Simulation setup is still incomplete.",
             details={"simulationId": simulation_id},
         )
+
+    _ensure_uploaded_files_are_parsed(_get_uploaded_files(session, simulation.id))
 
     if simulation.strategy_payload_json is None:
         raise AppError(

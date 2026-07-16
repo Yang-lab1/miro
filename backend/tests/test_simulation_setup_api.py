@@ -94,7 +94,7 @@ def test_patch_simulation_to_ready_and_noop_preserves_revision(client):
     assert noop.json()["setupRevision"] == 2
 
 
-def test_add_files_bumps_revision_and_persists_grounding_stub_fields(client, db_session):
+def test_add_files_bumps_revision_and_marks_unreadable_file_failed(client, db_session):
     created = _create_simulation(client, "Japan", full_setup=True)
 
     response = client.post(
@@ -119,7 +119,7 @@ def test_add_files_bumps_revision_and_persists_grounding_stub_fields(client, db_
     file_payload = payload["uploadedFiles"][0]
     assert file_payload["sourceType"] == "manual_upload"
     assert file_payload["storageKey"] is None
-    assert file_payload["parseStatus"] == "ready"
+    assert file_payload["parseStatus"] == "failed"
     assert file_payload["status"] == "registered"
 
     record = db_session.scalar(
@@ -128,10 +128,8 @@ def test_add_files_bumps_revision_and_persists_grounding_stub_fields(client, db_
         )
     )
     assert record is not None
-    assert record.extracted_summary_text is not None
-    assert "brief" in record.extracted_summary_text.lower()
-    assert record.extracted_excerpt_text is not None
-    assert "brief.pdf" in record.extracted_excerpt_text
+    assert record.extracted_summary_text is None
+    assert record.extracted_excerpt_text is None
 
 
 def test_add_text_file_extracts_real_text_content(client, db_session):
@@ -258,7 +256,7 @@ def test_add_pdf_file_extracts_simple_text(client, db_session):
     assert "renewal timing stays conservative" in record.extracted_excerpt_text.lower()
 
 
-def test_add_pdf_file_falls_back_safely_when_text_extraction_fails(client, db_session):
+def test_add_pdf_file_marks_parse_failed_when_text_extraction_fails(client, db_session):
     created = _create_simulation(client, "Japan", full_setup=True)
 
     response = client.post(
@@ -278,7 +276,7 @@ def test_add_pdf_file_falls_back_safely_when_text_extraction_fails(client, db_se
 
     assert response.status_code == 200
     payload = response.json()["uploadedFiles"][0]
-    assert payload["parseStatus"] == "fallback"
+    assert payload["parseStatus"] == "failed"
 
     record = db_session.scalar(
         select(SimulationUploadedFile).where(
@@ -286,8 +284,33 @@ def test_add_pdf_file_falls_back_safely_when_text_extraction_fails(client, db_se
         )
     )
     assert record is not None
-    assert record.extracted_summary_text is not None
-    assert "broken brief" in record.extracted_summary_text.lower()
+    assert record.extracted_summary_text is None
+    assert record.extracted_excerpt_text is None
+
+
+def test_generate_strategy_rejects_unreadable_uploaded_file(client):
+    created = _create_simulation(client, "Japan", full_setup=True)
+    uploaded = client.post(
+        f"/api/v1/simulations/{created['simulationId']}/files",
+        json={
+            "files": [
+                {
+                    "fileName": "scanned-brief.pdf",
+                    "contentType": "application/pdf",
+                    "sizeBytes": 64,
+                    "sourceType": "manual_upload",
+                    "fileDataBase64": "bm90LWEtcmVhbC1wZGY=",
+                }
+            ]
+        },
+    )
+    assert uploaded.status_code == 200
+    assert uploaded.json()["uploadedFiles"][0]["parseStatus"] == "failed"
+
+    response = client.post(f"/api/v1/simulations/{created['simulationId']}/strategy")
+
+    assert response.status_code == 422
+    assert response.json()["error"]["code"] == "simulation_file_parse_failed"
 
 
 def test_generate_strategy_and_invalidate_on_setup_change(client):

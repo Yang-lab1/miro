@@ -1,5 +1,5 @@
 import re
-from datetime import UTC, datetime
+from datetime import UTC, datetime, timedelta
 
 from sqlalchemy import case, func, select, update
 from sqlalchemy.orm import Session
@@ -42,6 +42,7 @@ STATUS_REASON_SUPERSEDED_TRANSPORT = "superseded_transport"
 STATUS_REASON_SUPERSEDED_SETUP_REVISION = "superseded_setup_revision"
 STATUS_REASON_SUPERSEDED_STRATEGY_REVISION = "superseded_strategy_revision"
 STATUS_REASON_MANUALLY_ENDED = "manually_ended"
+STATUS_REASON_DURATION_EXCEEDED = "duration_exceeded"
 
 alert_analyzer = RuleBasedRealtimeAlertAnalyzer()
 
@@ -453,6 +454,48 @@ def _reserve_turn_index_pair(
     )
 
 
+def _enforce_session_duration(
+    session: Session,
+    realtime_session: RealtimeSession,
+) -> None:
+    if realtime_session.started_at is None or realtime_session.duration_minutes <= 0:
+        return
+
+    now = _utcnow()
+    deadline = _ensure_utc(realtime_session.started_at) + timedelta(
+        minutes=realtime_session.duration_minutes
+    )
+    if now < deadline:
+        return
+
+    _mark_realtime_session_ended(
+        realtime_session,
+        reason=STATUS_REASON_DURATION_EXCEEDED,
+        now=now,
+    )
+    realtime_session.provider_status = "closed"
+    session.commit()
+    session.refresh(realtime_session)
+    RealtimeObservabilityTracker(realtime_session.id).sync_session_state(
+        session_status=realtime_session.session_status,
+        started_at=realtime_session.started_at,
+        ended_at=realtime_session.ended_at,
+        doubao_session_id=realtime_session.provider_session_id,
+    )
+    raise AppError(
+        status_code=409,
+        code="realtime_duration_exceeded",
+        message="This realtime session has reached its configured duration.",
+        details={
+            "sessionId": realtime_session.id,
+            "durationMinutes": realtime_session.duration_minutes,
+            "endedAt": realtime_session.ended_at.isoformat()
+            if realtime_session.ended_at
+            else None,
+        },
+    )
+
+
 def _get_opening_turn(
     session: Session,
     session_id: str,
@@ -775,6 +818,8 @@ def respond_realtime_turn(
 
     if realtime_session.session_status != "active":
         _raise_not_active_error(realtime_session)
+
+    _enforce_session_duration(session, realtime_session)
 
     language = payload.language or "en"
     user_turn_index, assistant_turn_index = _reserve_turn_index_pair(session, realtime_session)

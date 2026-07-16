@@ -1,6 +1,6 @@
 # Miro Production Readiness
 
-更新时间：2026-07-10
+更新时间：2026-07-16
 
 ## 已跑通的产品闭环
 
@@ -15,7 +15,7 @@
 7. 从 Review 生成硬件同步记录。
 8. 生成带 `schemaVersion` 和 `packetHash` 的 Review Packet，并通过明确配置的 HTTPS webhook 适配器发送；桥接返回 2xx 后才记录同步。
 
-当前证据：后端完整闭环测试 `99 passed`；最新上传检索、LLM、Doubao 客户端和端到端测试 `5 passed`。前端 TypeScript/Vite 构建和高保真静态构建均通过。
+当前证据：后端完整回归 `180 passed`；本轮新增的 TXT/PDF 解析失败保护、资料锚点真实性和面试时长边界均已覆盖测试。前端 TypeScript/Vite 构建、高保真静态构建和本轮触及文件的 Ruff 定向检查均通过。
 
 ## 当前线上状态
 
@@ -27,6 +27,8 @@
 - 线上 API `https://47-238-228-236.sslip.io/api/v1` 当前健康检查超时，因此线上还不能宣称完整业务可用。
 - 后端新增 `/api/v1/ready`：开发环境用于数据库连通性检查，生产环境还会检查文本模型、语音通道和硬件适配器配置，未准备好时返回 `503`。
 - 生产环境不会把 API 失败静默伪装成本地面试；本地 localhost 预览才允许 fallback。
+- 上传资料只有在后端真正提取到正文后才允许生成提纲和启动 realtime；解析失败会停在 setup 并返回 `simulation_file_parse_failed`，不会用文件名或合成摘要冒充资料内容。
+- realtime 服务端会按 `durationMinutes` 到点结束会话；超时后的新回合返回 `realtime_duration_exceeded`，可继续走结束面试、生成报告和保存流程。
 
 ## 正式商用前必须完成
 

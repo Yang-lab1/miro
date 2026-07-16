@@ -271,7 +271,6 @@ def _build_grounding_note_from_context(grounding) -> str | None:
         anchor = (
             file_context.extracted_summary_text
             or file_context.extracted_excerpt_text
-            or file_context.file_name
         )
     else:
         anchor = grounding.uploaded_context_summary_en

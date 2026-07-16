@@ -12895,13 +12895,13 @@
           <p>Optional. Attach a brief, transcript, or PDF. You can skip and still start.</p>
           <div class="flow-upload-card">
             <label class="flow-upload-drop" data-flow-upload-drop>
-              <input type="file" data-live-upload-input accept=".txt,.md,.pdf,.ppt,.pptx,.doc,.docx,text/plain,text/markdown,application/pdf,application/vnd.ms-powerpoint,application/vnd.openxmlformats-officedocument.presentationml.presentation,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document">
+              <input type="file" data-live-upload-input accept=".txt,.pdf,text/plain,application/pdf">
               <span class="flow-upload-copy">
                 <span class="flow-upload-icon" aria-hidden="true">
                   <svg class="control-svg" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 16V5"></path><path d="M7.5 9.5 12 5l4.5 4.5"></path><path d="M5 17.5v1.2c0 .8.7 1.5 1.5 1.5h11c.8 0 1.5-.7 1.5-1.5v-1.2"></path></svg>
                 </span>
                 <strong>Drop your files here, or browse</strong>
-                <span>TXT, MD, PDF, DOC, PPT</span>
+                <span>TXT or PDF</span>
               </span>
             </label>
             <div class="flow-upload-progress" style="--upload-progress:${progress}%;" data-live-upload-progress>
@@ -13202,7 +13202,15 @@
           sourceType: "manual_upload"
         };
 
-        if (isReadableTextFile(file)) {
+        const extension = fileExtension(file.name);
+        const normalizedType = String(file.type || "").toLowerCase();
+        const isPdf = normalizedType === "application/pdf" || extension === "pdf";
+        const isTxt = normalizedType === "text/plain" || extension === "txt";
+        if (!isPdf && !isTxt) {
+          throw new Error("Upload a TXT or PDF file.");
+        }
+
+        if (isTxt) {
           const rawText = await file.text();
           const textContent = rawText.slice(0, MAX_TEXT_UPLOAD_CHARS);
           return {
@@ -13215,15 +13223,12 @@
         }
 
         const fileDataBase64 = await fileToBase64(file);
-        const ext = fileExtension(file.name);
-        const parseMode = contentType === "application/pdf" || ext === "pdf" ? "backend_pdf" : "backend_registered";
+        const parseMode = "backend_pdf";
         return {
           ...basePayload,
           fileDataBase64,
           parseMode,
-          localSummary: parseMode === "backend_pdf"
-            ? `${file.name} is ready for backend PDF extraction.`
-            : `${file.name} is attached; full parsing needs the backend extractor.`,
+          localSummary: `${file.name} is ready for backend PDF extraction.`,
           localExcerpt: ""
         };
       }
@@ -13609,14 +13614,21 @@
           voiceProfileId: defaults.voiceProfileId,
           constraints: buildSimulationConstraints(draft)
         });
-        try {
+        const preparedUpload = currentPreparedUploadPayload();
+        if (preparedUpload) {
           const withFiles = await attachPreparedUploadToSimulation(simulation.simulationId);
-          if (withFiles?.simulationId) {
-            simulation = withFiles;
-            draft = applyBackendUploadContextToDraft(draft, simulation);
+          if (!withFiles?.simulationId) {
+            throw new Error("The uploaded file could not be registered.");
           }
-        } catch (error) {
-          writeLiveApiState("upload_warning", error);
+          simulation = withFiles;
+          draft = applyBackendUploadContextToDraft(draft, simulation);
+          const uploadedFiles = Array.isArray(simulation.uploadedFiles) ? simulation.uploadedFiles : [];
+          const latestFile = uploadedFiles[uploadedFiles.length - 1];
+          if (latestFile?.parseStatus !== "ready") {
+            const parseError = new Error("The backend could not extract readable text from this file. Use a text PDF or TXT file.");
+            parseError.code = "simulation_file_parse_failed";
+            throw parseError;
+          }
         }
         const strategy = await api.generateSimulationStrategy(simulation.simulationId);
         return {
@@ -14847,7 +14859,24 @@
             return exchange;
           } catch (error) {
             liveExperienceState.localModeReason = error?.message || "Backend text turn unavailable.";
+            liveExperienceState.voiceLastErrorMessage = liveExperienceState.localModeReason;
+            liveExperienceState.listening = false;
+            liveExperienceState.micOn = false;
+            stopBrowserSpeechFallback();
+            setLiveChatBusy(false);
+            applyMicStateFromLiveExperience();
+            applyLiveVoiceStatusHint();
+            return { error: true, message: liveExperienceState.localModeReason };
           }
+        }
+
+        if (!currentRound?.localMode) {
+          const message = "The live session is unavailable. Reconnect before continuing.";
+          liveExperienceState.voiceLastErrorMessage = message;
+          setLiveChatBusy(false);
+          applyMicStateFromLiveExperience();
+          applyLiveVoiceStatusHint();
+          return { error: true, message };
         }
 
         const reply = localQuestionForTurn(clean, liveExperienceState.localTurnCount + 1);

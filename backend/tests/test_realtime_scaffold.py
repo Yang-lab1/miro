@@ -70,10 +70,14 @@ def test_grounding_context_includes_uploaded_file_metadata_and_strategy_summary(
         json={
             "files": [
                 {
-                    "fileName": "brief.pdf",
-                    "contentType": "application/pdf",
-                    "sizeBytes": 4096,
+                    "fileName": "brief.txt",
+                    "contentType": "text/plain",
+                    "sizeBytes": 128,
                     "sourceType": "manual_upload",
+                    "textContent": (
+                        "The brief covers a cautious introduction and a clear owner "
+                        "for the next step."
+                    ),
                 }
             ]
         },
@@ -96,17 +100,17 @@ def test_grounding_context_includes_uploaded_file_metadata_and_strategy_summary(
     assert grounding.strategy_summary_en is not None
     assert "establish_trust_before_pricing" in grounding.strategy_summary_en
     assert len(grounding.uploaded_files) == 1
-    assert grounding.uploaded_files[0].file_name == "brief.pdf"
+    assert grounding.uploaded_files[0].file_name == "brief.txt"
     assert grounding.uploaded_files[0].source_type == "manual_upload"
     assert grounding.uploaded_files[0].parse_status == "ready"
     assert grounding.uploaded_files[0].extracted_summary_text is not None
-    assert "brief" in grounding.uploaded_files[0].extracted_summary_text.lower()
+    assert "cautious introduction" in grounding.uploaded_files[0].extracted_summary_text.lower()
     assert grounding.uploaded_files[0].extracted_excerpt_text is not None
     assert grounding.uploaded_context_summary_en is not None
-    assert "brief" in grounding.uploaded_context_summary_en.lower()
+    assert "cautious introduction" in grounding.uploaded_context_summary_en.lower()
     assert grounding.uploaded_context_excerpts_en
-    assert "brief.pdf" in grounding.uploaded_context_excerpts_en[0]
-    assert any("brief.pdf" in bullet for bullet in grounding.strategy_bullets_en)
+    assert "clear owner" in grounding.uploaded_context_excerpts_en[0]
+    assert any("brief.txt" in bullet for bullet in grounding.strategy_bullets_en)
 
 
 def test_rule_based_turn_generator_uses_grounded_context_in_response(client, db_session):

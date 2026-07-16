@@ -30,13 +30,6 @@ def _derive_focus_phrase(normalized_text: str) -> str:
     return "your main concern"
 
 
-def _normalize_uploaded_topic(file_name: str) -> str:
-    stem = file_name.rsplit(".", 1)[0]
-    normalized = re.sub(r"[_\-]+", " ", stem)
-    normalized = re.sub(r"\s+", " ", normalized).strip().lower()
-    return normalized or "the uploaded brief"
-
-
 def _extract_grounding_anchor(context: RealtimeTurnGenerationContext) -> str | None:
     if context.grounding.retrieved_context_chunks:
         return context.grounding.retrieved_context_chunks[0]
@@ -46,7 +39,6 @@ def _extract_grounding_anchor(context: RealtimeTurnGenerationContext) -> str | N
             return file_context.extracted_excerpt_text
         if file_context.extracted_summary_text:
             return file_context.extracted_summary_text
-        return _normalize_uploaded_topic(file_context.file_name)
     if context.grounding.uploaded_context_excerpts_en:
         return context.grounding.uploaded_context_excerpts_en[0]
     if context.grounding.uploaded_context_summary_en:

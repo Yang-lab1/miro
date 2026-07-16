@@ -59,12 +59,16 @@ def _create_strategy_ready_simulation_with_uploaded_context(
         f"/api/v1/simulations/{created['simulationId']}/files",
         json={
             "files": [
-                {
-                    "fileName": file_name,
-                    "contentType": "application/pdf",
-                    "sizeBytes": 4096,
-                    "sourceType": "manual_upload",
-                }
+                    {
+                        "fileName": file_name,
+                        "contentType": "text/plain",
+                        "sizeBytes": 96,
+                        "sourceType": "manual_upload",
+                        "textContent": (
+                            "Renewal timing should stay conservative. "
+                            "Confirm the internal owner before discussing pricing."
+                        ),
+                    }
             ]
         },
     )

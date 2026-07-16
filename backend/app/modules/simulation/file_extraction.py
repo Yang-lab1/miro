@@ -16,42 +16,24 @@ EXCERPT_CHAR_LIMIT = 260
 class FileExtractionResult:
     parse_status: str
     extracted_text: str | None
-    extracted_summary_text: str
-    extracted_excerpt_text: str
+    extracted_summary_text: str | None
+    extracted_excerpt_text: str | None
 
 
-def _normalize_uploaded_context_topic(file_name: str) -> str:
-    stem = file_name.rsplit(".", 1)[0]
-    normalized = re.sub(r"[_\\-]+", " ", stem)
-    normalized = re.sub(r"\s+", " ", normalized).strip().lower()
-    normalized = re.sub(r"\b(v\d+|final|copy|draft)\b", "", normalized)
-    normalized = re.sub(r"\s+", " ", normalized).strip()
-    return normalized or "uploaded context"
-
-
-def build_stub_extraction(
+def build_failed_extraction(
     file_name: str,
     *,
     content_type: str,
     size_bytes: int,
     source_type: str | None,
-    parse_status: str = "ready",
+    parse_status: str = "failed",
 ) -> FileExtractionResult:
-    topic = _normalize_uploaded_context_topic(file_name)
-    source_label = source_type or "uploaded"
-    summary = (
-        f"Uploaded brief about {topic} from {file_name}. "
-        f"It is a {source_label} {content_type} file with {size_bytes} bytes of context."
-    )
-    excerpt = (
-        f"Reference from {file_name}: keep the live discussion anchored to {topic} "
-        "and use one concrete next step before moving into pressure or pricing."
-    )
+    del file_name, content_type, size_bytes, source_type
     return FileExtractionResult(
         parse_status=parse_status,
         extracted_text=None,
-        extracted_summary_text=summary,
-        extracted_excerpt_text=excerpt,
+        extracted_summary_text=None,
+        extracted_excerpt_text=None,
     )
 
 
@@ -98,6 +80,22 @@ def _extract_text_plain(
     return _normalize_text_content(decoded.decode("utf-8", errors="replace")[:MAX_TEXT_CHARS])
 
 
+def _is_text_upload(file_name: str, content_type: str) -> bool:
+    normalized_type = content_type.strip().lower()
+    extension = file_name.rsplit(".", 1)[-1].lower() if "." in file_name else ""
+    return (
+        normalized_type.startswith("text/")
+        or normalized_type == "application/json"
+        or extension == "txt"
+    )
+
+
+def _is_pdf_upload(file_name: str, content_type: str) -> bool:
+    normalized_type = content_type.strip().lower()
+    extension = file_name.rsplit(".", 1)[-1].lower() if "." in file_name else ""
+    return normalized_type == "application/pdf" or extension == "pdf"
+
+
 def _extract_pdf_text(file_data_base64: str) -> str:
     decoded = base64.b64decode(file_data_base64, validate=True)
     reader = PdfReader(io.BytesIO(decoded))
@@ -120,12 +118,12 @@ def extract_uploaded_file_content(
 ) -> FileExtractionResult:
     try:
         extracted_text: str | None = None
-        if content_type == "text/plain":
+        if _is_text_upload(file_name, content_type):
             extracted_text = _extract_text_plain(
                 text_content=text_content,
                 file_data_base64=file_data_base64,
             )
-        elif content_type == "application/pdf" and file_data_base64 is not None:
+        elif _is_pdf_upload(file_name, content_type) and file_data_base64 is not None:
             extracted_text = _extract_pdf_text(file_data_base64)
 
         if extracted_text:
@@ -136,18 +134,16 @@ def extract_uploaded_file_content(
                 extracted_excerpt_text=_build_text_excerpt(extracted_text),
             )
     except Exception:
-        return build_stub_extraction(
+        return build_failed_extraction(
             file_name,
             content_type=content_type,
             size_bytes=size_bytes,
             source_type=source_type,
-            parse_status="fallback",
         )
 
-    return build_stub_extraction(
+    return build_failed_extraction(
         file_name,
         content_type=content_type,
         size_bytes=size_bytes,
         source_type=source_type,
-        parse_status="ready",
     )

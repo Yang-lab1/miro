@@ -556,6 +556,27 @@ def test_end_realtime_session_succeeds_for_active(client, db_session):
     assert record.provider_status == "closed"
 
 
+def test_responding_after_configured_duration_ends_session(client, db_session):
+    simulation, started = _create_active_realtime_session(client)
+    record = _get_realtime_session_record(db_session, started["sessionId"])
+    record.started_at = datetime.now(tz=UTC) - timedelta(minutes=11)
+    db_session.commit()
+
+    response = _respond_turn(
+        client,
+        started["sessionId"],
+        source_text="We should move to pricing now.",
+    )
+
+    assert response.status_code == 409
+    assert response.json()["error"]["code"] == "realtime_duration_exceeded"
+    ended = _get_realtime_session_record(db_session, started["sessionId"])
+    assert ended.session_status == "ended"
+    assert ended.status_reason == "duration_exceeded"
+    assert ended.provider_status == "closed"
+    assert ended.simulation_id == simulation["simulationId"]
+
+
 def test_end_realtime_session_returns_failed_snapshot_for_failed_session(client, db_session):
     simulation = _create_strategy_ready_simulation(client)
     created = _create_realtime_session(client, simulation["simulationId"])
