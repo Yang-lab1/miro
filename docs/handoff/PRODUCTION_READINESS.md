@@ -20,6 +20,7 @@
 ## 当前线上状态
 
 - 前端已部署到 [miro-vert.vercel.app](https://miro-vert.vercel.app)。
+- 本轮生产部署为 [miro-eck14pk0l-yangs-projects-d2ad4c9e.vercel.app](https://miro-eck14pk0l-yangs-projects-d2ad4c9e.vercel.app)，Vercel 已将主域名重新绑定到该版本。
 - 当前 Browser Voice 版本部署为 `dpl_5gXbGo2gU34kBZLbkPmb2bauGB7w`。
 - 最新硬件失败状态修复部署为 `dpl_7ht7wqGM8U9LPBmLBL9U6JZiLgBw`。
 - 线上 Live 启动现在要求真实后端 session 创建成功；语音优先使用 Doubao，供应商不可用时可使用浏览器原生 Browser Voice（真实麦克风识别、后端文字回合和浏览器语音播报）。
